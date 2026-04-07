@@ -7,9 +7,9 @@
 Article Pool 是一个完整的 AI 内容创作生产线，包含：
 
 - **创作链路**：分流 → 创作 → 审阅 → 润色 → 评估 → 发布
-- **双 Agent 系统**：龙虾军团（运维）+ 创作链路（生产）
+- **创作 Agent 系统**：6 个 Agent 协作完成内容生产
 - **自动化工具**：封面生成、新闻抓取、公众号发布
-- **7 个核心 Skills**：覆盖公众号、小红书、AI早报等场景
+- **6 个核心 Skills**：覆盖公众号、小红书、AI早报等场景
 
 ## 快速开始
 
@@ -62,23 +62,13 @@ WECHAT_APPID=你的AppID
 WECHAT_SECRET=你的AppSecret
 ```
 
-### 5. 配置龙虾军团（可选）
-
-```bash
-# 查看龙虾配置模板
-cat agents/lobster-config.json
-
-# 复制需要的龙虾配置到 openclaw.json
-nano ~/.openclaw/openclaw.json
-```
-
-### 6. 重启 Gateway
+### 5. 重启 Gateway
 
 ```bash
 openclaw gateway restart
 ```
 
-### 7. 测试
+### 6. 测试
 
 ```
 创作一篇测试文章
@@ -96,31 +86,27 @@ openclaw gateway restart
 | ai-daily-news-get | AI 早报生成 | `生成早报` |
 | hotspot-tracker | 热点追踪 | `追踪热点` |
 | news-aggregator | 新闻聚合 | `聚合新闻` |
-| research-lobster | 研究龙虾 | `搜索研究` |
 
-### Agents（双系统）
+### Agents（创作链路）
 
-#### 龙虾军团 - 日常运维
-
-| Agent | 职责 |
-|-------|------|
-| 🦞 代码龙虾 | 脚本编写、自动化 |
-| 🎨 设计龙虾 | 封面设计、排版 |
-| 🔍 研究龙虾 | 热点追踪、素材 |
-| 📁 档案龙虾 | Memory 整理 |
-| 🏄 冲浪龙虾 | 爆款案例收集 |
-| 📱 运营龙虾 | 公众号运营 |
-
-#### 创作链路 - 内容生产
+6 个 Agent 协作完成内容生产：
 
 | Agent | 职责 |
 |-------|------|
-| 🎯 分流官 | 路由决策 |
+| 🎯 分流官 | 路由决策，分配任务 |
 | ✍️ 创作官 | 写初稿 |
 | 🔍 审阅官 | 质量检查 |
 | ✨ 润色官 | 语言优化 |
 | 📊 评估官 | 爆款评分 |
 | 🚀 发布官 | 最终发布 |
+
+**协作流程**：
+```
+分流官 → 创作官 → 审阅官 → 润色官 → 评估官 → 发布官
+              ↑__________|  (如有问题返回修改)
+```
+
+详见：`agents/README.md`
 
 ### Scripts（工具脚本）
 
@@ -140,11 +126,13 @@ openclaw gateway restart
 ```
 用户：创作一篇关于 DeepSeek V4 的公众号文章
 
-小咪执行：
-1. 调用 article-pipeline
-2. 分流官 → 公众号创作官
-3. 审阅 → 润色 → 评估
-4. 发布官上传到公众号草稿箱
+执行流程：
+1. 分流官 → 公众号创作官
+2. 创作官写初稿
+3. 审阅官质量检查
+4. 润色官优化
+5. 评估官评分
+6. 发布官上传到公众号草稿箱
 ```
 
 ### AI 早报生成
@@ -152,9 +140,9 @@ openclaw gateway restart
 ```
 用户：生成今天的 AI 早报
 
-小咪执行：
-1. 调用 news-aggregator 抓取最新新闻
-2. 调用 ai-daily-news-get 生成早报
+执行流程：
+1. 抓取最新新闻
+2. 生成早报内容
 3. 自动生成封面
 4. 上传到公众号
 ```
@@ -163,14 +151,13 @@ openclaw gateway restart
 
 ```
 article-pool/
-├── skills/                  # 7 个核心 Skills
+├── skills/                  # 6 个核心 Skills
 │   ├── article-pipeline/    # 创作链路
 │   ├── wechat-writer/       # 公众号写作
 │   ├── xiaohongshu-writer/  # 小红书写作
 │   ├── ai-daily-news-get/   # AI 早报
 │   ├── hotspot-tracker/     # 热点追踪
-│   ├── news-aggregator/     # 新闻聚合
-│   └── research-lobster/    # 研究龙虾
+│   └── news-aggregator/     # 新闻聚合
 │
 ├── scripts/                 # 工具脚本
 │   ├── wechat_publish.py
@@ -180,8 +167,8 @@ article-pool/
 │   └── ...
 │
 ├── agents/                  # Agent 配置模板
-│   ├── lobster-config.json  # 龙虾军团
-│   └── pipeline-config.json # 创作链路
+│   ├── pipeline-config.json # 创作链路配置
+│   └── README.md            # 说明文档
 │
 ├── templates/               # HTML 模板
 ├── config/                  # 配置模板

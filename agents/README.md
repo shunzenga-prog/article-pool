@@ -1,30 +1,8 @@
 # Agents 配置说明
 
-Article Pool 包含两套 Agent 系统：
+Article Pool 包含创作链路 Agent 系统：
 
-## 1. 龙虾军团 (lobster-config.json)
-
-**定位**：日常运维和执行团队
-
-| Agent | 职责 | 推荐 Model |
-|-------|------|------------|
-| 🦞 代码龙虾 | 脚本编写、自动化 | glm-5 |
-| 🎨 设计龙虾 | 封面设计、排版 | kimi-k2.5 |
-| 🔍 研究龙虾 | 热点追踪、素材整理 | glm-5 |
-| 📁 档案龙虾 | Memory 整理、归档 | qwen3.5-plus |
-| 🏄 冲浪龙虾 | 爆款案例收集 | kimi-k2.5 |
-| 📱 运营龙虾 | 公众号运营 | qwen3.5-plus |
-
-**使用方式**：
-```bash
-# 复制配置到 openclaw.json
-cat agents/lobster-config.json
-# 手动添加到 ~/.openclaw/openclaw.json 的 agents.list 中
-```
-
----
-
-## 2. 创作链路 (pipeline-config.json)
+## 创作链路 (pipeline-config.json)
 
 **定位**：内容生产流水线
 
@@ -52,35 +30,8 @@ cat agents/lobster-config.json
 
 ---
 
-## 两套系统的关系
+## 配置说明
 
-```
-用户请求
-    ↓
-article-pipeline skill
-    ↓
-┌─────────────────────────────────┐
-│  创作链路（pipeline-config.json）│
-│  分流官 → 创作官 → 审阅官...     │
-└─────────────────────────────────┘
-    ↓
-发布到公众号/小红书
-    ↓
-┌─────────────────────────────────┐
-│  龙虾军团（lobster-config.json） │
-│  研究龙虾：追踪热点               │
-│  运营龙虾：监控评论               │
-│  档案龙虾：整理 memory            │
-└─────────────────────────────────┘
-```
+创作链路 Agent 通过 `article-pipeline` skill 自动调用，无需在 `openclaw.json` 中配置。
 
----
-
-## 配置优先级
-
-1. **龙虾军团** - 需要在 `openclaw.json` 中配置
-2. **创作链路** - 通过 `article-pipeline` skill 自动调用
-
----
-
-*更多细节参考 `skills/article-pipeline/SKILL.md`*
+详见：`agents/pipeline-config.json`
