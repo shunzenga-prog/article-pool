@@ -1,0 +1,132 @@
+{
+  "$schema": "https://openclaw.ai/schemas/agents-config.json",
+  "description": "创作链路 Agent 配置模板 - 用于 article-pipeline 多 Agent 协作",
+  "usage": {
+    "note": "这些 Agent 在 article-pipeline skill 中通过 handoff 机制协作",
+    "steps": [
+      "1. 这些 Agent 不需要在 openclaw.json 中配置",
+      "2. 它们通过 article-pipeline skill 自动调用",
+      "3. 如需自定义，可修改 skills/article-pipeline/SKILL.md"
+    ]
+  },
+  "agents": {
+    "list": [
+      {
+        "id": "triage-agent",
+        "name": "分流官",
+        "description": "分类任务，分配到正确的创作 Agent",
+        "role": "路由决策",
+        "decision_logic": {
+          "小红书": "handoff_to(xiaohongshu-creator)",
+          "公众号": "handoff_to(wechat-creator)",
+          "知乎": "handoff_to(zhihu-creator)"
+        },
+        "context_output": ["platform", "topic", "stage"]
+      },
+      {
+        "id": "wechat-creator",
+        "name": "公众号创作官",
+        "description": "负责公众号文章初稿创作",
+        "role": "内容生产",
+        "skills": ["wechat-writer"],
+        "output": ["标题", "正文", "封面建议", "真实性标注"],
+        "constraints": {
+          "禁止": ["编造虚假体验", "使用过时信息"],
+          "必须": ["真实来源标注", "时效验证"]
+        }
+      },
+      {
+        "id": "xiaohongshu-creator",
+        "name": "小红书创作官",
+        "description": "负责小红书笔记创作",
+        "role": "内容生产",
+        "skills": ["xiaohongshu-writer"],
+        "output": ["标题", "正文", "封面建议", "标签"]
+      },
+      {
+        "id": "review-agent",
+        "name": "审阅官",
+        "description": "深度质量检查",
+        "role": "质量把关",
+        "checklist": [
+          "资料验证 - 搜索的资料是否验证时间",
+          "时效性验证 - >48h 的资料不当新闻写",
+          "真实性验证 - 是否辟谣？是否有最新进展",
+          "真实性检查 - 是否编造'我实践过'",
+          "论述质量检查 - 三层论述？对比分析？",
+          "5W1H 检查 - What/Why/Who/When/Where/How",
+          "逻辑性检查 - 观点连贯？",
+          "平台适配检查"
+        ],
+        "output": ["审阅报告", "问题列表", "修改建议"]
+      },
+      {
+        "id": "polish-agent",
+        "name": "润色官",
+        "description": "语言优化和配图插入",
+        "role": "内容优化",
+        "tasks": [
+          "标题吸引力优化",
+          "开头抓眼球",
+          "正文流畅度",
+          "结尾互动引导",
+          "配图插入（每300字）"
+        ],
+        "output": ["优化稿", "配图URL列表"]
+      },
+      {
+        "id": "evaluate-agent",
+        "name": "评估官",
+        "description": "爆款潜力评估",
+        "role": "效果预测",
+        "scoring": {
+          "标题": "30%",
+          "内容": "30%",
+          "体验": "20%",
+          "传播": "20%"
+        },
+        "output": ["总分", "爆款潜力预测", "改进建议"]
+      },
+      {
+        "id": "publish-agent",
+        "name": "发布官",
+        "description": "确认发布并上传",
+        "role": "最终发布",
+        "checklist": [
+          "内容终稿确认",
+          "智能封面图生成",
+          "发布时间选择",
+          "平台确认"
+        ],
+        "skills": ["wechat-article-publisher"],
+        "output": ["发布确认", "草稿ID", "文章URL"]
+      }
+    ]
+  },
+  "handoff_flow": {
+    "description": "Agent 间切换流程",
+    "flow": [
+      "分流官 → 创作官（根据平台）",
+      "创作官 → 审阅官",
+      "审阅官 → 创作官（如有问题）或 润色官（通过）",
+      "润色官 → 评估官",
+      "评估官 → 发布官（高分）或 创作官（低分重写）"
+    ]
+  },
+  "context_variables": {
+    "platform": "xiaohongshu|wechat|zhihu",
+    "topic": "选题内容",
+    "stage": "triage|creation|review|polish|evaluate|publish",
+    "revisions": 0,
+    "issues": [],
+    "score": 0,
+    "human_review": false,
+    "real_experience": [],
+    "hypothetical_parts": [],
+    "truth_check": {
+      "passed": true,
+      "fabricated_parts": [],
+      "suggestions": []
+    }
+  }
+}
