@@ -216,6 +216,7 @@ git add . && git commit -m "sync" && git push
 ## 文档
 
 - [安装指南](docs/INSTALL.md)
+- [依赖说明](docs/DEPENDENCIES.md)
 - [API 配置](docs/API-KEYS.md)
 - [同步维护](docs/SYNC.md)
 - [Agent 配置](agents/README.md)
