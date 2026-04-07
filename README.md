@@ -1,115 +1,115 @@
 # Article Pool - AI 内容创作生产线
 
-> 🐱 小咪的完整内容创作链路 - 一键安装，即刻生产
+> 🐱 小咪的完整内容创作链路 - 一键安装，智能同步
 
 ## 项目简介
 
-Article Pool 是一个完整的 AI 内容创作生产线，包含：
+Article Pool 是一个完整的 AI 内容创作生产线：
 
-- **创作链路**：从选题 → 创作 → 审阅 → 润色 → 评估 → 发布的全流程
-- **多平台支持**：微信公众号、小红书、知乎、抖音等
-- **自动化工具**：封面生成、图片处理、API 对接
-- **热点追踪**：实时追踪 AI 领域热点，智能选题
+- **完整创作链路** - 从选题 → 创作 → 审阅 → 发布的全流程
+- **多平台支持** - 微信公众号、小红书、知乎、抖音
+- **自动化工具** - 封面生成、新闻抓取、API 对接
+- **龙虾军团** - 6 个 Agent 协作，分工明确
+
+## 核心改进 🆕
+
+### 1. 单一目录架构
+
+所有创作相关文件都在一个目录中，同步更方便：
+
+```
+article-pool/
+├── skills/          # 完整 skills 目录（新增文件自动同步）
+├── scripts/         # 完整 scripts 目录（新增文件自动同步）
+├── templates/       # HTML 模板
+├── agents/          # Agent 配置模板（龙虾军团）
+├── config/          # API 配置模板
+├── install.sh       # 安装脚本
+└── sync.sh          # 智能同步（使用 rsync）
+```
+
+### 2. 智能同步方案
+
+使用 `rsync` 自动同步整个目录：
+
+```bash
+# 同步到 OpenClaw Workspace
+./sync.sh to
+
+# 从 Workspace 同步回项目
+./sync.sh from
+
+# 查看状态
+./sync.sh status
+```
+
+**关键改进：新增文件自动包含，无需手动更新脚本！**
 
 ## 快速安装
 
-```bash
-# 克隆仓库
-git clone https://github.com/xiaomi-ai/article-pool.git
+### 方式一：独立模式（推荐）
 
-# 安装到 OpenClaw
+```bash
+git clone https://github.com/shunzenga-prog/article-pool.git
 cd article-pool
-./install.sh
+
+# 安装
+./install.sh standalone
 
 # 配置 API Keys
-cp config/.env.example config/.env
-# 编辑 config/.env 填入你的 API Keys
+nano config/.env
+
+# 配置 Agents（参考 agents/lobster-config.json）
+# 重启 Gateway
+openclaw gateway restart
+```
+
+### 方式二：集成模式
+
+```bash
+git clone https://github.com/shunzenga-prog/article-pool.git
+cd article-pool
+
+# 安装到现有 Workspace
+./install.sh integrated
+
+# 配置后重启
+openclaw gateway restart
 ```
 
 ## 核心功能
 
-### 1. 创作链路 (Article Pipeline)
+### Skills（创作技能）
 
-多 Agent 协作的完整创作流程：
+| Skill | 功能 | 触发 |
+|-------|------|------|
+| article-pipeline | 完整创作链路 | `创作文章` |
+| wechat-writer | 公众号爆款写作 | `写公众号` |
+| xiaohongshu-writer | 小红书笔记 | `写小红书` |
+| ai-daily-news-get | AI 早报生成 | `生成早报` |
+| hotspot-tracker | 热点追踪 | `追踪热点` |
+| news-aggregator | 新闻聚合 | `聚合新闻` |
 
-```
-选题 → 分流 → 创作 → 审阅 → 润色 → 评估 → 发布
-```
+### Scripts（工具脚本）
 
-**触发命令**：`创作一篇文章`
+| Script | 功能 |
+|--------|------|
+| wechat_publish.py | 公众号发布 |
+| generate-cover.py | 封面生成 |
+| add-cover-text.py | 封面加文字 |
+| scrape-36kr-fixed.py | 36氪抓取 |
+| scrape-aibase-v2.py | AI Base 抓取 |
 
-### 2. 微信公众号写作 (WeChat Writer)
+### Agents（龙虾军团）
 
-深度长文创作，爆款公式驱动：
-
-- 爆款标题模板（6 个套路）
-- 黄金开头（3 秒留人）
-- SCQA 结构
-- 真人感检查清单
-
-**触发命令**：`写公众号文章`
-
-### 3. 小红书笔记 (Xiaohongshu Writer)
-
-小红书爆款笔记创作：
-
-- 标题 + 正文 + 封面建议 + 标签
-- CES 算法优化
-
-**触发命令**：`写小红书笔记`
-
-### 4. AI 早报 (AI Daily News)
-
-每日 AI 新闻自动聚合：
-
-- 新闻抓取 → 素材整理 → 早报创作 → 封面生成 → 上传
-
-**触发命令**：`生成 AI 早报`
-
-### 5. 热点追踪 (Hotspot Tracker)
-
-实时追踪 AI 领域热点：
-
-- 微博热搜、知乎热榜、AI 媒体动态
-- 智能选题建议
-
-**触发命令**：`追踪 AI 热点`
-
-## 项目结构
-
-```
-article-pool/
-├── skills/              # 核心创作技能
-│   ├── article-pipeline/    # 创作链路
-│   ├── wechat-writer/       # 公众号写作
-│   ├── xiaohongshu-writer/  # 小红书写作
-│   ├── ai-daily-news-get/   # AI 早报
-│   ├── hotspot-tracker/     # 热点追踪
-│   ├── news-aggregator/     # 新闻聚合
-│   └── research-lobster/    # 研究龙虾
-│
-├── scripts/             # 工具脚本
-│   ├── wechat_publish.py    # 公众号发布
-│   ├── generate-cover.py    # 封面生成
-│   ├── add-cover-text.py    # 封面加文字
-│   ├── scrape-36kr-fixed.py # 36氪抓取
-│   └── scrape-aibase-v2.py  # AI Base 抓取
-│
-├── config/              # 配置文件
-│   ├── .env.example         # API 配置模板
-│   └── brave-config.json    # Brave 搜索配置
-│
-├── docs/                # 文档
-│   ├── INSTALL.md           # 安装指南
-│   ├── USAGE.md             # 使用手册
-│   └── API-KEYS.md          # API 配置说明
-│
-├── templates/           # 模板文件
-│   └── article-template.html # 公众号文章模板
-│
-└── examples/            # 示例文章
-    └── sample-article.md    # 示例文章
-```
+| Agent | 职责 | 推荐 Model |
+|-------|------|------------|
+| 🦞 代码龙虾 | 脚本编写、自动化 | glm-5 |
+| 🎨 设计龙虾 | 封面设计、排版 | kimi-k2.5 |
+| 🔍 研究龙虾 | 热点追踪、素材整理 | glm-5 |
+| 📁 档案龙虾 | Memory 整理、归档 | qwen3.5-plus |
+| 🏄 冲浪龙虾 | 爆款案例收集 | kimi-k2.5 |
+| 📱 运营龙虾 | 公众号运营 | qwen3.5-plus |
 
 ## API 配置
 
@@ -117,11 +117,34 @@ article-pool/
 
 | API | 用途 | 获取方式 |
 |-----|------|----------|
-| Brave Search API | 网络搜索 | https://brave.com/search/api/ |
-| 微信公众号 API | 发布文章 | https://mp.weixin.qq.com |
-| Pollinations AI | 封面生成 | 免费，无需 API Key |
+| Brave Search | 网络搜索 | https://brave.com/search/api/ |
+| 微信公众号 | 发布文章 | https://mp.weixin.qq.com |
+| Pollinations AI | 封面生成 | 免费，无需 Key |
+
+配置文件：`config/.env`
 
 详见 [docs/API-KEYS.md](docs/API-KEYS.md)
+
+## 同步维护
+
+### 从项目同步到 Workspace
+
+```bash
+./sync.sh to
+```
+
+适用场景：从 GitHub 拉取更新后，同步到本地 OpenClaw
+
+### 从 Workspace 同步到项目
+
+```bash
+./sync.sh from
+git add . && git commit -m "sync" && git push
+```
+
+适用场景：修改了本地 Skills/Scripts 后，同步回 GitHub
+
+详见 [docs/SYNC.md](docs/SYNC.md)
 
 ## 使用示例
 
@@ -131,10 +154,9 @@ article-pool/
 用户：创作一篇关于 DeepSeek V4 的公众号文章
 
 小咪：
-1. 调用 hotspot-tracker 追踪 DeepSeek 热点
-2. 调用 article-pipeline 执行创作链路
-3. 自动生成封面图
-4. 上传到公众号草稿箱
+→ 调用 hotspot-tracker 追踪热点
+→ 调用 article-pipeline 执行创作链路
+→ 自动生成封面并上传
 ```
 
 ### AI 早报生成
@@ -143,42 +165,69 @@ article-pool/
 用户：生成今天的 AI 早报
 
 小咪：
-1. 调用 news-aggregator 抓取最新新闻
-2. 调用 ai-daily-news-get 生成早报
-3. 自动生成封面并上传
+→ 调用 news-aggregator 抓取最新新闻
+→ 调用 ai-daily-news-get 生成早报
+→ 自动封面 + 上传草稿箱
 ```
 
-## 同步维护
+## 项目结构
 
-本项目支持与 OpenClaw workspace 同步维护：
-
-```bash
-# 从 workspace 同步更新到项目
-./sync-from-workspace.sh
-
-# 从项目同步更新到 workspace
-./sync-to-workspace.sh
+```
+article-pool/
+├── skills/                      # 创作技能
+│   ├── article-pipeline/
+│   ├── wechat-writer/
+│   ├── xiaohongshu-writer/
+│   ├── ai-daily-news-get/
+│   ├── hotspot-tracker/
+│   ├── news-aggregator/
+│   └── research-lobster/
+│
+├── scripts/                     # 工具脚本
+│   ├── wechat_publish.py
+│   ├── generate-cover.py
+│   ├── add-cover-text.py
+│   ├── scrape-36kr-fixed.py
+│   └── ...
+│
+├── templates/                   # HTML 模板
+│   └── article-template.html
+│
+├── agents/                      # Agent 配置
+│   ├── lobster-config.json      # 龙虾配置模板
+│   └── lobster-farm/            # 龙虾 workspace 模板
+│       ├── code/
+│       ├── design/
+│       ├── research/
+│       ├── archive/
+│       ├── surf/
+│       └── growth/
+│
+├── config/                      # 配置模板
+│   └── .env.example
+│
+├── docs/                        # 文档
+│
+├── install.sh                   # 安装脚本
+├── sync.sh                      # 智能同步脚本
+└
+└── README.md
 ```
 
-详见 [docs/SYNC.md](docs/SYNC.md)
+## 文档
 
-## 贡献指南
-
-欢迎贡献代码、报告问题、提出建议！
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/amazing-feature`)
-3. 提交更改 (`git commit -m 'Add amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 创建 Pull Request
+- [安装指南](docs/INSTALL.md)
+- [API 配置](docs/API-KEYS.md)
+- [同步维护](docs/SYNC.md)
+- [架构设计](docs/ARCHITECTURE.md)
 
 ## 许可证
 
-MIT License - 详见 [LICENSE](LICENSE)
+MIT License
 
 ## 作者
 
-小咪 (Xiao Mi) 🐱 - AI 内容创作助手
+小咪 (Xiao Mi) 🐱
 
 ---
 
