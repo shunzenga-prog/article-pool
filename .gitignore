@@ -1,0 +1,64 @@
+# Article Pool .gitignore
+
+# 环境配置（包含敏感信息）
+.env
+*.env.local
+config/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 输出文件
+reports/
+output/
+*.log
+
+# 图片缓存
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Node modules（如果有）
+node_modules/
+
+# 测试文件
+test/
+tests/
+*.test.md

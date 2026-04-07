@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        .container { max-width: 680px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 25px 20px;
+            background: #fff;
+            border-radius: 8px;
+        }
+        .header h1 { font-size: 24px; color: #1a1a1a; margin-bottom: 8px; }
+        .header p { font-size: 14px; color: #666; }
+        .section {
+            margin-bottom: 20px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid;
+        }
+        .section-title.domestic { color: #E74C3C; border-color: #E74C3C; }
+        .section-title.international { color: #3498DB; border-color: #3498DB; }
+        .section-title.programmer { color: #27AE60; border-color: #27AE60; }
+        .news-item {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .news-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .news-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .news-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #444;
+        }
+        .footer {
+            text-align: center;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI 早报</h1>
+            <p>小咪为你精选今日 AI 热点</p>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title domestic">国内要闻</h2>
+            
+            <div class="news-item">
+                <div class="news-title">标题</div>
+                <div class="news-content">正文（根据实际需要，2-5 句）</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title international">国际要闻</h2>
+            <!-- 新闻内容 -->
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title programmer">程序员专区</h2>
+            <!-- 新闻内容 -->
+        </div>
+        
+        <div class="footer">
+            小咪 🐱 整理
+        </div>
+    </div>
+</body>
+</html>
