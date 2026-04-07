@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="format-detection" content="telephone=no">
+  <title>文章标题</title>
+  <style>
+    /* ===== 全局重置 ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ===== 容器 ===== */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      color: #333333;
+      background-color: #ffffff;
+      max-width: 670px;
+      margin: 0 auto;
+      padding: 20px 16px;
+      word-wrap: break-word;
+      word-break: break-word;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ===== 响应式适配 ===== */
+    @media (max-width: 480px) {
+      body {
+        font-size: 15px;
+        padding: 16px 12px;
+      }
+    }
+
+    /* ===== 暗黑模式适配 ===== */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+      }
+      h1, h2, h3 {
+        color: #f0f0f0;
+      }
+      blockquote {
+        background-color: #2a2a2a;
+        border-left-color: #7c87f0;
+      }
+      pre, code {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+      }
+      table {
+        background-color: #2a2a2a;
+      }
+      th, td {
+        border-color: #444444;
+      }
+    }
+
+    /* ===== 标题样式 ===== */
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.4;
+      margin: 40px 0 20px 0;
+      color: #1a1a1a;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      padding: 15px 0;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.5;
+      margin: 35px 0 15px 0;
+      color: #1a1a1a;
+      border-left: 4px solid #667eea;
+      padding-left: 12px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.5;
+      margin: 25px 0 12px 0;
+      color: #333333;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      h1 {
+        border-bottom-color: #333333;
+      }
+      h2 {
+        color: #f0f0f0;
+        border-left-color: #7c87f0;
+      }
+      h3 {
+        color: #e0e0e0;
+      }
+    }
+
+    /* ===== 段落 ===== */
+    p {
+      margin: 16px 0;
+      text-align: justify;
+      max-width: 100%;
+    }
+
+    /* ===== 引用块 ===== */
+    blockquote {
+      margin: 25px 0;
+      padding: 15px 20px;
+      background-color: #f8f9fa;
+      border-left: 4px solid #667eea;
+      color: #555555;
+      font-style: italic;
+      border-radius: 0 4px 4px 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      blockquote {
+        background-color: #2a2a2a;
+        border-left-color: #7c87f0;
+        color: #b0b0b0;
+      }
+    }
+
+    /* ===== 代码块 ===== */
+    pre {
+      margin: 20px 0;
+      padding: 16px;
+      background-color: #f5f5f5;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Mono", "Consolas", monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      border: 1px solid #e0e0e0;
+    }
+
+    code {
+      font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Mono", "Consolas", monospace;
+      font-size: 0.9em;
+      padding: 2px 6px;
+      background-color: #f5f5f5;
+      border-radius: 3px;
+      color: #e74c3c;
+    }
+
+    pre code {
+      padding: 0;
+      background: none;
+      color: inherit;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      pre, code {
+        background-color: #2a2a2a;
+        border-color: #444444;
+        color: #e0e0e0;
+      }
+      code {
+        color: #ff6b6b;
+      }
+    }
+
+    /* ===== 表格 ===== */
+    table {
+      width: 100%;
+      margin: 25px 0;
+      border-collapse: collapse;
+      font-size: 14px;
+      background-color: #ffffff;
+      overflow-x: auto;
+      display: block;
+    }
+
+    @media (min-width: 481px) {
+      table {
+        display: table;
+      }
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #e0e0e0;
+      text-align: left;
+    }
+
+    th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      table {
+        background-color: #2a2a2a;
+      }
+      th, td {
+        border-color: #444444;
+      }
+      tr:nth-child(even) {
+        background-color: #333333;
+      }
+    }
+
+    /* ===== 列表 ===== */
+    ul, ol {
+      margin: 16px 0;
+      padding-left: 24px;
+    }
+
+    li {
+      margin: 8px 0;
+      line-height: 1.8;
+    }
+
+    ul li {
+      list-style-type: disc;
+    }
+
+    ol li {
+      list-style-type: decimal;
+    }
+
+    /* ===== 图片 ===== */
+    figure {
+      margin: 25px 0;
+      text-align: center;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      border-radius: 6px;
+    }
+
+    figcaption {
+      font-size: 13px;
+      color: #999999;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      figcaption {
+        color: #888888;
+      }
+    }
+
+    /* ===== 链接 ===== */
+    a {
+      color: #667eea;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    a:hover {
+      border-bottom-color: #667eea;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      a {
+        color: #7c87f0;
+      }
+    }
+
+    /* ===== 强调文本 ===== */
+    strong {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    em {
+      font-style: italic;
+    }
+
+    .highlight {
+      background-color: #fff3cd;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .warning {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      strong {
+        color: #f0f0f0;
+      }
+      .highlight {
+        background-color: #4a4a3a;
+      }
+      .warning {
+        background-color: #5a3a3a;
+        color: #ffb3b3;
+      }
+      .success {
+        background-color: #3a5a4a;
+        color: #b3ffb3;
+      }
+    }
+
+    /* ===== 分割线 ===== */
+    hr {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 40px 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      hr {
+        border-top-color: #444444;
+      }
+    }
+
+    /* ===== 脚注 ===== */
+    .footnotes {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 2px solid #e0e0e0;
+      font-size: 13px;
+      color: #666666;
+    }
+
+    .footnotes ol {
+      padding-left: 20px;
+    }
+
+    .footnotes li {
+      margin: 8px 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .footnotes {
+        border-top-color: #444444;
+        color: #888888;
+      }
+    }
+
+    /* ===== 署名区域 ===== */
+    .signature {
+      margin-top: 50px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .signature p {
+      margin: 8px 0;
+      font-size: 14px;
+      color: #666666;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .signature {
+        background: linear-gradient(135deg, #2a2a2a 0%, #333333 100%);
+      }
+      .signature p {
+        color: #b0b0b0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 文章标题 -->
+  <h1>文章标题</h1>
+
+  <!-- 正文内容示例 -->
+  <p>这里是文章的开头。不要用"一、二、三"的序号，直接用有吸引力的小标题。</p>
+
+  <!-- 小标题示例 -->
+  <h2>这个工具为什么火</h2>
+
+  <p>用提问式或陈述式标题，而不是"一、核心观点"。</p>
+
+  <h2>怎么用</h2>
+
+  <p>直接说方法，不要写"二、使用方法"。</p>
+
+  <h2>适合谁</h2>
+
+  <p>不要写"三、适用人群"，直接说结论。</p>
+
+  <ul>
+    <li>无序列表项一：用于列举并列的要点</li>
+    <li>无序列表项二：保持简洁清晰的表达</li>
+    <li>无序列表项三：每项控制在 1-2 行内</li>
+  </ul>
+
+  <ol>
+    <li>有序列表项一：用于展示步骤或顺序</li>
+    <li>有序列表项二：逻辑清晰，层次分明</li>
+    <li>有序列表项三：便于读者跟随思路</li>
+  </ol>
+
+  <!-- 代码块示例 -->
+  <h2>二、代码示例</h2>
+
+  <p>行内代码示例：<code>console.log("Hello World")</code> 使用等宽字体和浅灰色背景。</p>
+
+  <p>代码块示例：</p>
+
+  <pre><code>// 这是一个代码块示例
+function helloWorld() {
+  console.log("Hello, WeChat!");
+  return true;
+}</code></pre>
+
+  <!-- 表格示例 -->
+  <h2>三、数据对比</h2>
+
+  <p>表格在移动端需要特别注意响应式设计，建议使用横向滚动或简化为列表形式。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>特性</th>
+        <th>方案 A</th>
+        <th>方案 B</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>性能</td>
+        <td>优秀</td>
+        <td>良好</td>
+      </tr>
+      <tr>
+        <td>成本</td>
+        <td>中等</td>
+        <td>较低</td>
+      </tr>
+      <tr>
+        <td>易用性</td>
+        <td>高</td>
+        <td>中等</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 图片示例 -->
+  <h2>四、配图展示</h2>
+
+  <figure>
+    <img src="https://via.placeholder.com/670x380/667eea/ffffff?text=Article+Cover+Image" alt="示例图片">
+    <figcaption>图：图片说明文字（13px，灰色）</figcaption>
+  </figure>
+
+  <p>图片应该使用<code>max-width: 100%</code>确保在移动端不溢出，同时保持合适的宽高比。</p>
+
+  <!-- 强调文本示例 -->
+  <h2>五、重点标注</h2>
+
+  <p>这是<span class="highlight">高亮文本</span>，用于强调重要内容。</p>
+
+  <p>这是<span class="warning">警告文本</span>，用于提示注意事项。</p>
+
+  <p>这是<span class="success">成功文本</span>，用于展示正面结果。</p>
+
+  <!-- 分割线 -->
+  <hr>
+
+  <!-- 最后一段 -->
+  <p>文章的最后一段应该有明确观点或行动建议，但不要写"结语"、"总结"这种标题。</p>
+
+  <blockquote>
+    金句或核心观点，便于读者转发。
+  </blockquote>
+
+  <!-- 署名区域 -->
+  <div class="signature">
+    <p><strong>小咪</strong> 🐱</p>
+    <p>用心创作每一篇文章</p>
+    <p>欢迎关注、点赞、转发</p>
+  </div>
+
+  <!-- 脚注区域（可选） -->
+  <div class="footnotes">
+    <ol>
+      <li>参考资料一：来源说明</li>
+      <li>参考资料二：链接或文档</li>
+    </ol>
+  </div>
+</body>
+</html>

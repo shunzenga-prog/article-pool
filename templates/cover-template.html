@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公众号封面生成器</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      color: #fff;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    .subtitle {
+      color: #888;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    /* 封面画布 - 900×383px */
+    .cover-container {
+      width: 900px;
+      height: 383px;
+      position: relative;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-size: cover;
+      background-position: center;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      border-radius: 8px;
+    }
+
+    /* 背景图 */
+    .cover-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.6;
+    }
+
+    /* 渐变遮罩 - 让文字更清晰 */
+    .cover-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        to right,
+        rgba(0,0,0,0.7) 0%,
+        rgba(0,0,0,0.5) 40%,
+        rgba(0,0,0,0.3) 70%,
+        transparent 100%
+      );
+    }
+
+    /* 内容区域 - 安全区居中 60% */
+    .cover-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60%;
+      text-align: left;
+      z-index: 10;
+    }
+
+    /* 主标题 */
+    .cover-title {
+      font-size: 72px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+      line-height: 1.4;
+      margin-bottom: 15px;
+      letter-spacing: 2px;
+    }
+
+    /* 副标题 */
+    .cover-subtitle {
+      font-size: 28px;
+      font-weight: 400;
+      color: #e0e0e0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      line-height: 1.5;
+    }
+
+    /* 控制面板 */
+    .controls {
+      margin-top: 40px;
+      background: #16213e;
+      padding: 30px;
+      border-radius: 12px;
+      width: 900px;
+      max-width: 100%;
+    }
+
+    .controls h2 {
+      color: #fff;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+
+    .control-group {
+      margin-bottom: 20px;
+    }
+
+    .control-group label {
+      display: block;
+      color: #aaa;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .control-group input[type="text"],
+    .control-group textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #333;
+      border-radius: 6px;
+      background: #0f3460;
+      color: #fff;
+      font-size: 16px;
+      font-family: inherit;
+    }
+
+    .control-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .control-group input[type="file"] {
+      display: none;
+    }
+
+    .file-btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #667eea;
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .file-btn:hover {
+      background: #764ba2;
+    }
+
+    .color-picker {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .color-option {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+
+    .color-option.active {
+      border-color: #fff;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #333;
+      color: #fff;
+    }
+
+    .tips {
+      margin-top: 20px;
+      padding: 15px;
+      background: #0f3460;
+      border-radius: 6px;
+      color: #aaa;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .tips strong {
+      color: #667eea;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 公众号封面生成器</h1>
+  <p class="subtitle">尺寸：900×383px | 直接截图保存即可</p>
+
+  <!-- 封面预览区域 -->
+  <div class="cover-container" id="cover">
+    <img class="cover-bg" id="coverBg" src="" style="display: none;" alt="">
+    <div class="cover-overlay"></div>
+    <div class="cover-content">
+      <div class="cover-title" id="titlePreview">AI 革命已来</div>
+      <div class="cover-subtitle" id="subtitlePreview">普通人如何抓住这波红利？</div>
+    </div>
+  </div>
+
+  <!-- 控制面板 -->
+  <div class="controls">
+    <h2>⚙️ 配置面板</h2>
+    
+    <div class="control-group">
+      <label>主标题（建议≤12 字）</label>
+      <input type="text" id="titleInput" value="AI 革命已来" maxlength="20" placeholder="输入主标题">
+    </div>
+
+    <div class="control-group">
+      <label>副标题（可选）</label>
+      <textarea id="subtitleInput" maxlength="50" placeholder="输入副标题">普通人如何抓住这波红利？</textarea>
+    </div>
+
+    <div class="control-group">
+      <label>背景图片（可选，不选则用渐变）</label>
+      <label class="file-btn">
+        📁 选择图片
+        <input type="file" id="bgInput" accept="image/*">
+      </label>
+      <span id="fileName" style="color: #666; font-size: 13px; margin-left: 10px;">未选择</span>
+    </div>
+
+    <div class="control-group">
+      <label>预设配色方案</label>
+      <div class="color-picker">
+        <div class="color-option active" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" data-bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-bg="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" data-bg="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" data-bg="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" data-bg="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);" data-bg="linear-gradient(135deg, #30cfd0 0%, #330867 100%)"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);" data-bg="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 900 383%22><rect fill=%22%231a1a2e%22 width=%22900%22 height=%22383%22/></svg>');" data-bg="#1a1a2e"></div>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="downloadCover()">📥 下载封面</button>
+      <button class="btn btn-secondary" onclick="resetCover()">🔄 重置</button>
+    </div>
+
+    <div class="tips">
+      <strong>💡 使用技巧：</strong><br>
+      1. 修改文字后封面实时更新<br>
+      2. 可上传自己的背景图（建议使用 Unsplash/Pexels 高清图）<br>
+      3. 点击"下载封面"保存 PNG，或直接截图（推荐用截图工具）<br>
+      4. 主标题控制在 12 字以内，手机上更清晰<br>
+      5. 保存后在手机上预览效果再发布
+    </div>
+  </div>
+
+  <script>
+    const cover = document.getElementById('cover');
+    const coverBg = document.getElementById('coverBg');
+    const titleInput = document.getElementById('titleInput');
+    const subtitleInput = document.getElementById('subtitleInput');
+    const titlePreview = document.getElementById('titlePreview');
+    const subtitlePreview = document.getElementById('subtitlePreview');
+    const bgInput = document.getElementById('bgInput');
+    const fileName = document.getElementById('fileName');
+    const colorOptions = document.querySelectorAll('.color-option');
+
+    // 实时更新标题
+    titleInput.addEventListener('input', (e) => {
+      titlePreview.textContent = e.target.value || '主标题';
+    });
+
+    // 实时更新副标题
+    subtitleInput.addEventListener('input', (e) => {
+      subtitlePreview.textContent = e.target.value || '';
+    });
+
+    // 背景图上传
+    bgInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          coverBg.src = event.target.result;
+          coverBg.style.display = 'block';
+          fileName.textContent = file.name;
+          // 移除渐变背景
+          cover.style.background = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // 配色方案切换
+    colorOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        colorOptions.forEach(o => o.classList.remove('active'));
+        option.classList.add('active');
+        const bg = option.getAttribute('data-bg');
+        cover.style.background = bg;
+        coverBg.style.display = 'none';
+        fileName.textContent = '未选择';
+        bgInput.value = '';
+      });
+    });
+
+    // 下载封面（使用 html2canvas）
+    function downloadCover() {
+      // 提示用户截图
+      alert('💡 推荐使用截图工具保存：\n\n1. 按 F11 全屏\n2. 使用系统截图工具（Win: Win+Shift+S / Mac: Cmd+Shift+4）\n3. 截取封面区域即可\n\n或者使用浏览器扩展 "Full Page Screen Capture" 下载高清 PNG');
+    }
+
+    // 重置
+    function resetCover() {
+      titleInput.value = 'AI 革命已来';
+      subtitleInput.value = '普通人如何抓住这波红利？';
+      titlePreview.textContent = 'AI 革命已来';
+      subtitlePreview.textContent = '普通人如何抓住这波红利？';
+      coverBg.style.display = 'none';
+      coverBg.src = '';
+      cover.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+      fileName.textContent = '未选择';
+      bgInput.value = '';
+      colorOptions.forEach(o => o.classList.remove('active'));
+      colorOptions[0].classList.add('active');
+    }
+
+    // 键盘快捷键
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 's') {
+          e.preventDefault();
+          downloadCover();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
