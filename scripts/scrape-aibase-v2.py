@@ -5,7 +5,12 @@
 
 from playwright.sync_api import sync_playwright
 import json
+import os
 import re
+import sys
+
+# 获取输出目录（支持环境变量或默认值）
+OUTPUT_DIR = os.environ.get('OUTPUT_DIR', os.path.expanduser('~/.openclaw/workspace/reports/materials'))
 
 def scrape_aibase():
     with sync_playwright() as p:
@@ -89,13 +94,21 @@ def scrape_aibase():
 if __name__ == "__main__":
     articles = scrape_aibase()
     
-    print(f"\n📊 AI Base 最新新闻：")
-    for i, article in enumerate(articles[:15], 1):
-        print(f"\n{i}. [{article['time']}] {article['title']}")
-        print(f"   URL: {article['url']}")
-    
-    # 保存
-    with open('/home/zengshun/.openclaw/workspace/reports/materials/aibase-latest.json', 'w', encoding='utf-8') as f:
-        json.dump(articles, f, ensure_ascii=False, indent=2)
-    
-    print(f"\n✅ 已保存到: reports/materials/aibase-latest.json")
+    # 输出到 stdout（方便管道处理）
+    if '--stdout' in sys.argv:
+        print(json.dumps(articles, ensure_ascii=False, indent=2))
+    else:
+        # 创建输出目录
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        
+        print(f"\n📊 AI Base 最新新闻：")
+        for i, article in enumerate(articles[:15], 1):
+            print(f"\n{i}. [{article['time']}] {article['title']}")
+            print(f"   URL: {article['url']}")
+        
+        # 保存到文件
+        output_path = os.path.join(OUTPUT_DIR, 'aibase-latest.json')
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(articles, f, ensure_ascii=False, indent=2)
+        
+        print(f"\n✅ 已保存到: {output_path}")

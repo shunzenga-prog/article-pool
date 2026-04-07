@@ -5,7 +5,11 @@
 
 from playwright.sync_api import sync_playwright
 import json
-import re
+import os
+import sys
+
+# 获取输出目录（支持环境变量或默认值）
+OUTPUT_DIR = os.environ.get('OUTPUT_DIR', os.path.expanduser('~/.openclaw/workspace/reports/materials'))
 
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
@@ -58,16 +62,23 @@ with sync_playwright() as p:
     
     print(f"✅ 获取 {len(articles)} 篇文章")
     
-    # 输出
-    print(f"\n📊 最新文章：")
-    for i, article in enumerate(articles[:15], 1):
-        print(f"\n{i}. {article['title']}")
-        print(f"   URL: {article['url']}")
-    
-    # 保存
-    with open('/home/zengshun/.openclaw/workspace/reports/materials/36kr-latest.json', 'w', encoding='utf-8') as f:
-        json.dump(articles, f, ensure_ascii=False, indent=2)
-    
-    print(f"\n✅ 已保存到: reports/materials/36kr-latest.json")
+    # 输出到 stdout（方便管道处理）
+    if '--stdout' in sys.argv:
+        print(json.dumps(articles, ensure_ascii=False, indent=2))
+    else:
+        # 创建输出目录
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        
+        # 保存到文件
+        output_path = os.path.join(OUTPUT_DIR, '36kr-latest.json')
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(articles, f, ensure_ascii=False, indent=2)
+        
+        print(f"\n📊 最新文章：")
+        for i, article in enumerate(articles[:15], 1):
+            print(f"\n{i}. {article['title']}")
+            print(f"   URL: {article['url']}")
+        
+        print(f"\n✅ 已保存到: {output_path}")
     
     browser.close()

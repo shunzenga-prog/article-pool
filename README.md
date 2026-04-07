@@ -219,6 +219,7 @@ git add . && git commit -m "sync" && git push
 - [依赖说明](docs/DEPENDENCIES.md)
 - [API 配置](docs/API-KEYS.md)
 - [同步维护](docs/SYNC.md)
+- [故障排除](docs/TROUBLESHOOTING.md)
 - [Agent 配置](agents/README.md)
 
 ## 常见问题
