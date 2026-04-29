@@ -2,7 +2,7 @@
 
 Article Pool 包含创作链路 Agent 系统：
 
-## 创作链路 (pipeline-config.json)
+## 创作链路
 
 **定位**：内容生产流水线
 
@@ -34,4 +34,4 @@ Article Pool 包含创作链路 Agent 系统：
 
 创作链路 Agent 通过 `article-pipeline` skill 自动调用，无需在 `openclaw.json` 中配置。
 
-详见：`agents/pipeline-config.json`
+详见：`skills/article-pipeline/SKILL.md`

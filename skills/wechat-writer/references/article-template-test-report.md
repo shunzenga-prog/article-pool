@@ -2,7 +2,7 @@
 
 ## 模板信息
 
-- **文件路径**: `skills/wechat-writer/references/article-template.html`
+- **文件路径**: `templates/article-template.html`
 - **文件大小**: 11,694 bytes
 - **创建时间**: 2026-04-03
 - **版本**: v1.0
@@ -134,7 +134,7 @@
 1. **本地浏览器测试**:
    ```bash
    # 直接在浏览器打开
-   open skills/wechat-writer/references/article-template.html
+   open templates/article-template.html
    ```
 
 2. **微信公众号后台测试**:
@@ -168,7 +168,7 @@
 
 ```bash
 # 使用 pandoc 转换
-pandoc article.md -o article.html --template=skills/wechat-writer/references/article-template.html
+pandoc article.md -o article.html --template=templates/article-template.html
 ```
 
 ### 方法三：脚本发布

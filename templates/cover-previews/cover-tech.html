@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>科技风封面模板</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    display:flex; justify-content:center; align-items:center;
+    min-height:100vh; background:#1a1a2e;
+    font-family: -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
+  }
+  .cover {
+    width:900px; height:500px;
+    background:linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    border-radius:12px; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:60px 70px; position:relative;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .cover::before {
+    content:''; position:absolute; top:-100px; right:-100px;
+    width:400px; height:400px;
+    background:radial-gradient(circle, rgba(0,212,255,.15) 0%, transparent 70%);
+    border-radius:50%;
+  }
+  .cover::after {
+    content:''; position:absolute; bottom:-80px; left:-80px;
+    width:350px; height:350px;
+    background:radial-gradient(circle, rgba(120,80,255,.12) 0%, transparent 70%);
+    border-radius:50%;
+  }
+  .tag {
+    position:relative; z-index:1;
+    display:inline-block; padding:6px 18px;
+    background:rgba(0,212,255,.15);
+    border:1px solid rgba(0,212,255,.3);
+    border-radius:20px;
+    color:#00d4ff; font-size:14px; letter-spacing:2px;
+    margin-bottom:30px; width:fit-content;
+  }
+  .title {
+    position:relative; z-index:1;
+    font-size:42px; font-weight:700; color:#ffffff;
+    line-height:1.4; margin-bottom:20px;
+    letter-spacing:1px;
+  }
+  .title span { color:#00d4ff; }
+  .subtitle {
+    position:relative; z-index:1;
+    font-size:16px; color:rgba(255,255,255,.55);
+    letter-spacing:1px; line-height:1.6;
+  }
+  .accent-line {
+    position:relative; z-index:1;
+    width:60px; height:4px;
+    background:linear-gradient(90deg, #00d4ff, #7850ff);
+    border-radius:2px; margin:25px 0;
+  }
+  .decor-grid {
+    position:absolute; top:40px; right:50px; z-index:0;
+    opacity:.08;
+  }
+  .decor-grid .dot {
+    display:inline-block; width:8px; height:8px;
+    background:#00d4ff; border-radius:2px; margin:4px;
+  }
+</style>
+</head>
+<body>
+<div class="cover">
+  <!-- ===== 可替换区域 ===== -->
+  <div class="tag">编程 · 工具</div>
+  <div class="title">掌握 <span>Python</span><br>高效数据分析的<br>10个核心技巧</div>
+  <div class="accent-line"></div>
+  <div class="subtitle">从 Pandas 到可视化，一套可复用的实战方法论</div>
+  <!-- ===== 可替换区域结束 ===== -->
+  <div class="decor-grid">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><br>
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><br>
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><br>
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><br>
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+  </div>
+</div>
+</body>
+</html>

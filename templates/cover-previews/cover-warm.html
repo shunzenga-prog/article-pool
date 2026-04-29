@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>温暖风封面模板</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    display:flex; justify-content:center; align-items:center;
+    min-height:100vh; background:#f5f0eb;
+    font-family: -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
+  }
+  .cover {
+    width:900px; height:500px;
+    background:linear-gradient(160deg, #fdf6f0 0%, #f7e8d7 40%, #eed3b5 100%);
+    border-radius:12px; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:60px 70px; position:relative;
+    box-shadow:0 20px 60px rgba(0,0,0,.1);
+  }
+  .cover::before {
+    content:''; position:absolute; top:30px; right:50px;
+    width:250px; height:250px;
+    border:2px solid rgba(210,150,100,.15);
+    border-radius:50%;
+  }
+  .cover::after {
+    content:''; position:absolute; bottom:40px; left:60px;
+    width:180px; height:180px;
+    background:radial-gradient(circle, rgba(190,130,80,.08) 0%, transparent 70%);
+    border-radius:50%;
+  }
+  .tag {
+    position:relative; z-index:1;
+    display:inline-block; padding:6px 18px;
+    background:rgba(180,120,70,.1);
+    border:1px solid rgba(180,120,70,.25);
+    border-radius:20px;
+    color:#a07050; font-size:14px; letter-spacing:2px;
+    margin-bottom:30px; width:fit-content;
+  }
+  .title {
+    position:relative; z-index:1;
+    font-size:42px; font-weight:700; color:#3d2b1f;
+    line-height:1.4; margin-bottom:20px;
+    letter-spacing:1px;
+  }
+  .title span { color:#c47a3a; }
+  .subtitle {
+    position:relative; z-index:1;
+    font-size:16px; color:rgba(61,43,31,.55);
+    letter-spacing:1px; line-height:1.6;
+  }
+  .accent-line {
+    position:relative; z-index:1;
+    width:60px; height:3px;
+    background:linear-gradient(90deg, #c47a3a, #d4a574);
+    border-radius:2px; margin:25px 0;
+  }
+  .decor-leaf {
+    position:absolute; bottom:40px; right:50px; z-index:0;
+    opacity:.12;
+    font-size:120px; color:#8b6914; line-height:1;
+    transform:rotate(15deg);
+  }
+</style>
+</head>
+<body>
+<div class="cover">
+  <!-- ===== 可替换区域 ===== -->
+  <div class="tag">成长 · 思考</div>
+  <div class="title">那些编程教会我的<br><span>思维习惯</span>与人生道理</div>
+  <div class="accent-line"></div>
+  <div class="subtitle">一个写了十年代码的人，想和你聊聊代码之外的事</div>
+  <!-- ===== 可替换区域结束 ===== -->
+  <div class="decor-leaf">❦</div>
+</div>
+</body>
+</html>

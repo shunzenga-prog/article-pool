@@ -1,0 +1,187 @@
+<!--
+========================================
+  微信公众号 · 技术教程模板（WeChat安全版）
+  适用场景：编程教学、工具使用教程、技术实践
+  设计风格：清爽、代码友好、步骤清晰
+  包含组件：代码块、命令行、提示框、步骤卡片、对比表、关键概念
+
+  ⚠️ 微信发布时会 div→p 并剥离 p 的 style，
+  所以所有容器用 table/td，所有文字样式用 span。
+========================================
+-->
+<table width="100%">
+<tr><td style="color:#333; line-height:1.9; font-size:15px; padding:0 16px;">
+
+  <!-- ===== 头部 ===== -->
+  <p style="text-align:center;"><span style="font-size:12px; color:#667eea; background:#eef0ff; padding:3px 12px;"><!-- REPLACE:分类 -->Python · 实战教程<!-- /REPLACE --></span></p>
+  <h1 style="font-size:23px; font-weight:700; color:#1a1a2e; margin:0; line-height:1.5; text-align:center;"><!-- REPLACE:标题 -->用 FastAPI 搭建你的第一个 AI API 服务<!-- /REPLACE --></h1>
+  <p style="text-align:center;"><span style="font-size:13px; color:#aaa;"><!-- REPLACE:元信息 -->2026.04.27 · 预计阅读 8 分钟<!-- /REPLACE --></span></p>
+
+  <p style="height:8px;"></p>
+
+  <!-- ===== 前提条件卡片 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8faff; border:1px solid #e3e8ff;">
+  <tr><td style="padding:18px 20px;">
+    <p><span style="font-size:15px; font-weight:600; color:#1a1a2e;">开始前的准备</span></p>
+    <!-- REPLACE:前提条件 -->
+    <p><span style="font-size:13px; color:#666; line-height:1.8;">▸ Python 3.10+ 已安装</span></p>
+    <p><span style="font-size:13px; color:#666; line-height:1.8;">▸ 基本的 Python 语法知识</span></p>
+    <p><span style="font-size:13px; color:#666; line-height:1.8;">▸ 一个 OpenAI API Key（或其他 LLM 服务）</span></p>
+    <!-- /REPLACE -->
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 步骤 1 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td width="28" style="vertical-align:middle;">
+      <span style="background:#667eea; color:#fff; font-size:14px; font-weight:700; padding:5px 9px;">1</span>
+    </td>
+    <td style="vertical-align:middle; padding-left:10px;">
+      <h2 style="font-size:18px; font-weight:600; color:#1a1a2e; margin:0;"><!-- REPLACE:步骤1标题 -->安装依赖<!-- /REPLACE --></h2>
+    </td>
+  </tr></table>
+  <p><span style="font-size:15px; color:#444; line-height:1.9;"><!-- REPLACE:步骤1说明 -->首先创建一个虚拟环境并安装所需的库。FastAPI 用于构建 API，uvicorn 作为 ASGI 服务器，openai 用于调用大模型。<!-- /REPLACE --></span></p>
+
+  <!-- 命令行代码块 -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e1e2e;">
+  <tr><td style="padding:14px 18px;">
+    <p>
+      <span style="background:#ff5f57; font-size:1px; padding:0 5px;">&nbsp;</span>
+      <span style="background:#febc2e; font-size:1px; padding:0 5px;">&nbsp;</span>
+      <span style="background:#28c840; font-size:1px; padding:0 5px;">&nbsp;</span>
+      <span style="font-size:11px; color:#999;">&nbsp;<!-- REPLACE:终端标签 -->终端<!-- /REPLACE --></span>
+    </p>
+    <pre style="color:#cdd6f4; font-size:13px; line-height:1.8; margin:8px 0 0;"><code><!-- REPLACE:命令 -->
+# 创建虚拟环境
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 安装依赖
+pip install fastapi uvicorn openai
+    <!-- /REPLACE --></code></pre>
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 步骤 2 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td width="28" style="vertical-align:middle;">
+      <span style="background:#667eea; color:#fff; font-size:14px; font-weight:700; padding:5px 9px;">2</span>
+    </td>
+    <td style="vertical-align:middle; padding-left:10px;">
+      <h2 style="font-size:18px; font-weight:600; color:#1a1a2e; margin:0;">编写核心代码</h2>
+    </td>
+  </tr></table>
+  <p><span style="font-size:15px; color:#444; line-height:1.9;">创建 <code style="background:#f0f0f0; padding:2px 6px; font-size:13px;">main.py</code> 文件，编写以下代码：</span></p>
+
+  <!-- 代码块 -->
+  <pre style="background:#1e1e2e; color:#cdd6f4; padding:16px 18px; overflow-x:auto; font-size:12px; line-height:1.7; margin:10px 0;"><code><!-- REPLACE:代码块 -->from fastapi import FastAPI
+from pydantic import BaseModel
+from openai import OpenAI
+
+app = FastAPI()
+client = OpenAI(api_key="your-api-key")
+
+class Prompt(BaseModel):
+    text: str
+
+@app.post("/api/chat")
+async def chat(prompt: Prompt):
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt.text}]
+    )
+    return {"reply": response.choices[0].message.content}</code></pre>
+
+  <!-- ===== 关键概念 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef9e7; border-left:3px solid #f1c40f;">
+  <tr><td style="padding:12px 16px;">
+    <p><span style="font-size:14px; font-weight:600; color:#7d6608;">关键概念</span></p>
+    <p><span style="font-size:13px; color:#666; line-height:1.7;"><!-- REPLACE:概念解释 -->FastAPI 的异步特性（async/await）使得它在处理 I/O 密集型任务（如调用外部 API）时效率极高，一个进程就能处理数千并发请求。<!-- /REPLACE --></span></p>
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 步骤 3 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td width="28" style="vertical-align:middle;">
+      <span style="background:#667eea; color:#fff; font-size:14px; font-weight:700; padding:5px 9px;">3</span>
+    </td>
+    <td style="vertical-align:middle; padding-left:10px;">
+      <h2 style="font-size:18px; font-weight:600; color:#1a1a2e; margin:0;">运行并测试</h2>
+    </td>
+  </tr></table>
+  <p><span style="font-size:15px; color:#444; line-height:1.9;">启动服务，然后访问自动生成的 API 文档：</span></p>
+
+  <pre style="background:#1e1e2e; color:#cdd6f4; padding:12px 18px; font-size:13px; margin:8px 0;">uvicorn main:app --reload</pre>
+
+  <p><span style="font-size:15px; color:#444;">打开浏览器访问：</span></p>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f7ff; border:1px solid #b8d4f0;">
+  <tr><td style="padding:8px 14px;"><span style="font-size:13px; color:#2980b9;">http://localhost:8000/docs</span></td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 输出/结果展示 ===== -->
+  <p><span style="font-size:15px; font-weight:600; color:#1a1a2e;">预期的 API 响应</span></p>
+  <pre style="background:#f8f9fa; color:#333; padding:14px 18px; overflow-x:auto; font-size:12px; line-height:1.7; border:1px solid #e9ecef;"><code>{
+  "reply": "你好！我是 GPT-4o，很高兴为你服务。
+            有什么可以帮助你的吗？"
+}</code></pre>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 常见问题 ===== -->
+  <p><span style="font-size:17px; font-weight:600; color:#1a1a2e; border-bottom:2px solid #667eea; padding-bottom:6px;">常见问题</span></p>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafa;">
+  <tr><td style="padding:16px 18px;">
+    <p><span style="font-size:14px; font-weight:500; color:#333;">Q: <!-- REPLACE:问题1 -->如何部署到生产环境？<!-- /REPLACE --></span></p>
+    <p><span style="font-size:13px; color:#666; line-height:1.7;">A: <!-- REPLACE:回答1 -->推荐使用 Railway、Fly.io 或自建 Docker 容器。FastAPI 官方文档有详细的部署指南。<!-- /REPLACE --></span></p>
+  </td></tr>
+  </table>
+  <p style="height:8px;"></p>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafa;">
+  <tr><td style="padding:16px 18px;">
+    <p><span style="font-size:14px; font-weight:500; color:#333;">Q: 如何添加流式响应？</span></p>
+    <p><span style="font-size:13px; color:#666; line-height:1.7;">A: 使用 FastAPI 的 <code style="background:#f0f0f0; padding:2px 6px;">StreamingResponse</code>，配合 OpenAI 的 <code style="background:#f0f0f0; padding:2px 6px;">stream=True</code> 参数即可实现。</span></p>
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 完整源码获取 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e1e2e;">
+  <tr><td style="padding:20px; text-align:center;">
+    <p><span style="font-size:15px; font-weight:600; color:#fff;">获取完整代码</span></p>
+    <p><span style="font-size:13px; color:#aaa;"><!-- REPLACE:源码链接说明 -->关注公众号，回复「fastapi」获取完整源码和配置文件<!-- /REPLACE --></span></p>
+    <p><span style="background:#667eea; color:#fff; padding:6px 20px; font-size:13px;">GitHub 仓库 →</span></p>
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 系列文章导航 ===== -->
+  <p><span style="font-size:15px; font-weight:600; color:#333;">本系列其他文章</span></p>
+  <!-- REPLACE:系列导航 -->
+  <p style="border-bottom:1px solid #f5f5f5;"><span style="font-size:13px; color:#888; line-height:2;">第一篇：FastAPI 入门与环境搭建 ← <strong style="color:#667eea;">当前</strong></span></p>
+  <p style="border-bottom:1px solid #f5f5f5;"><span style="font-size:13px; color:#888; line-height:2;">第二篇：用户认证与 API 安全（敬请期待）</span></p>
+  <p><span style="font-size:13px; color:#888; line-height:2;">第三篇：集成数据库与部署上线（敬请期待）</span></p>
+  <!-- /REPLACE -->
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 尾部 ===== -->
+  <p style="text-align:center;"><span style="color:#d4c5b9; font-size:20px;">···</span></p>
+  <p style="text-align:center;"><span style="font-size:14px; color:#555;"><!-- REPLACE:结尾语 -->如果这篇教程对你有帮助，别忘了 <strong style="color:#667eea;">点赞 · 在看 · 分享</strong><!-- /REPLACE --></span></p>
+  <!-- REPLACE:公众号信息 -->
+  <p style="text-align:center; border-top:1px solid #eee; padding:10px 0;"><span style="font-size:12px; color:#bbb;">每周更新实用编程教程，扫码关注不迷路</span></p>
+  <!-- /REPLACE -->
+
+</td></tr>
+</table>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 

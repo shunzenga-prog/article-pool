@@ -1,0 +1,134 @@
+<!--
+========================================
+  微信公众号 · 日报模板（WeChat安全版）
+  适用场景：每日技术/知识内容分享
+  设计风格：清爽、结构化、适合深度阅读
+  使用方式：替换 <!-- REPLACE:xxx --> 标记的内容
+
+  ⚠️ 微信发布时会 div→p 并剥离 p 的 style，
+  所以所有容器用 table/td，所有文字样式用 span。
+========================================
+-->
+<table width="100%">
+<tr><td style="color:#333; line-height:1.9; font-size:15px; padding:0 16px;">
+
+  <!-- ===== 头部 ===== -->
+  <p style="text-align:center;"><span style="background:#667eea; color:#fff; font-size:12px; padding:4px 14px;"><!-- REPLACE:栏目名 -->每日精选<!-- /REPLACE --></span></p>
+  <h1 style="font-size:22px; font-weight:700; color:#1a1a2e; margin:0; line-height:1.5; text-align:center;"><!-- REPLACE:主标题 -->用 Python 自动化你的日常工作：5个实用脚本分享<!-- /REPLACE --></h1>
+  <p style="text-align:center;"><span style="font-size:13px; color:#aaa;"><!-- REPLACE:日期与阅读信息 -->2026.04.27 · 阅读约 5 分钟<!-- /REPLACE --></span></p>
+
+  <p style="height:8px;"></p>
+
+  <!-- ===== 导语 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f9ff; border:1px solid #eef0ff;">
+  <tr><td style="padding:18px 20px;">
+    <p><span style="font-size:14px; color:#666; line-height:1.8;"><!-- REPLACE:导语 -->在日常开发中，总有一些重复性工作让人头疼——批量重命名文件、定时发送邮件、自动整理数据……今天分享 5 个我常用的 Python 脚本，帮助你从繁琐工作中解放出来。<!-- /REPLACE --></span></p>
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 正文内容区 ===== -->
+  <!-- SECTION: 每个大段复制此结构 -->
+  <h2 style="font-size:18px; font-weight:600; color:#1a1a2e; margin:0 0 12px; padding-left:12px; border-left:3px solid #667eea;"><!-- REPLACE:小标题 -->一、批量文件重命名<!-- /REPLACE --></h2>
+  <p><span style="font-size:15px; color:#444; line-height:2;"><!-- REPLACE:正文段落 -->在处理大量文件时，手动重命名不仅耗时而且容易出错。下面这个脚本可以根据自定义规则批量重命名文件。核心逻辑是遍历目标文件夹，用正则表达式匹配文件名并替换。<!-- /REPLACE --></span></p>
+  <!-- /SECTION -->
+
+  <!-- SECTION: 代码块示例 -->
+  <h2 style="font-size:18px; font-weight:600; color:#1a1a2e; margin:0 0 12px; padding-left:12px; border-left:3px solid #667eea;">二、自动发送日报邮件</h2>
+  <p><span style="font-size:15px; color:#444; line-height:2;">使用 smtplib 模块可以轻松实现邮件自动发送。以下是核心实现：</span></p>
+
+  <!-- 代码块 -->
+  <pre style="background:#1e1e2e; color:#cdd6f4; padding:18px 20px; overflow-x:auto; font-size:13px; line-height:1.7; margin:12px 0;"><code><!-- REPLACE:代码 -->import smtplib
+from email.mime.text import MIMEText
+
+def send_report(to_email, subject, body):
+    msg = MIMEText(body, 'html')
+    msg['Subject'] = subject
+    msg['From'] = 'your@email.com'
+    msg['To'] = to_email
+
+    with smtplib.SMTP('smtp.gmail.com', 587) as s:
+        s.starttls()
+        s.login('your@email.com', 'app_password')
+        s.send_message(msg)
+
+    print(f'Report sent to {to_email}')<!-- /REPLACE --></code></pre>
+
+  <!-- 代码说明 -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f9fa;">
+  <tr><td style="padding:14px 16px;">
+    <p><span style="font-size:13px; color:#666;"><strong>提示：</strong><!-- REPLACE:代码说明 -->使用 Gmail 需要先在账户设置中生成应用专用密码。<!-- /REPLACE --></span></p>
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- SECTION: 要点总结 -->
+  <h2 style="font-size:18px; font-weight:600; color:#1a1a2e; margin:0 0 12px; padding-left:12px; border-left:3px solid #667eea;">三、关键要点</h2>
+  <p><span style="font-size:15px; color:#444; line-height:2;">以上脚本的共性特点：</span></p>
+
+  <!-- 要点列表 -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8faff;">
+  <tr><td style="padding:16px 20px;">
+
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td width="20" style="vertical-align:top; padding:8px 0; border-bottom:1px solid #eef0ff;"><span style="color:#667eea; font-weight:700;">▸</span></td>
+      <td style="vertical-align:top; padding:8px 0; border-bottom:1px solid #eef0ff;"><span style="font-size:14px; color:#555;"><!-- REPLACE:要点1 -->使用标准库，无需额外安装依赖<!-- /REPLACE --></span></td>
+    </tr></table>
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td width="20" style="vertical-align:top; padding:8px 0; border-bottom:1px solid #eef0ff;"><span style="color:#667eea; font-weight:700;">▸</span></td>
+      <td style="vertical-align:top; padding:8px 0; border-bottom:1px solid #eef0ff;"><span style="font-size:14px; color:#555;">每个脚本不超过 50 行，易于理解和修改</span></td>
+    </tr></table>
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td width="20" style="vertical-align:top; padding:8px 0;"><span style="color:#667eea; font-weight:700;">▸</span></td>
+      <td style="vertical-align:top; padding:8px 0;"><span style="font-size:14px; color:#555;">包含完整的错误处理，生产环境可直接使用</span></td>
+    </tr></table>
+
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 引用/强调块 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0ff; border-left:4px solid #764ba2;">
+  <tr><td style="padding:16px 20px;">
+    <p><span style="font-size:14px; color:#666; line-height:1.8;"><!-- REPLACE:引用 -->"自动化的本质不是节省时间，而是让你把精力集中在更有创造性的工作上。"<!-- /REPLACE --></span></p>
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 结尾互动区 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafa;">
+  <tr><td style="padding:22px; text-align:center;">
+    <p><span style="font-size:16px; font-weight:600; color:#333;">你平时用 Python 自动化哪些工作？</span></p>
+    <p><span style="font-size:14px; color:#888;"><!-- REPLACE:互动引导 -->欢迎在评论区分享你的脚本，点赞最多的三位赠送《Python 自动化实战》电子书<!-- /REPLACE --></span></p>
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 推荐阅读 ===== -->
+  <p><span style="font-size:15px; font-weight:600; color:#333; border-bottom:2px solid #667eea; padding-bottom:6px;">推荐阅读</span></p>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:1px solid #f0f0f0;"><tr>
+    <td width="30" style="vertical-align:middle; padding:12px 0;"><span style="color:#667eea; font-size:20px;">01</span></td>
+    <td style="vertical-align:middle; padding:12px 0;"><span style="font-size:14px; color:#555;"><!-- REPLACE:推荐1 -->Python 异常处理最佳实践（附思维导图）<!-- /REPLACE --></span></td>
+  </tr></table>
+  <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:1px solid #f0f0f0;"><tr>
+    <td width="30" style="vertical-align:middle; padding:12px 0;"><span style="color:#667eea; font-size:20px;">02</span></td>
+    <td style="vertical-align:middle; padding:12px 0;"><span style="font-size:14px; color:#555;">5 个提升代码质量的 VS Code 插件</span></td>
+  </tr></table>
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td width="30" style="vertical-align:middle; padding:12px 0;"><span style="color:#667eea; font-size:20px;">03</span></td>
+    <td style="vertical-align:middle; padding:12px 0;"><span style="font-size:14px; color:#555;">如何用 ChatGPT 辅助写单元测试</span></td>
+  </tr></table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 尾部 ===== -->
+  <p style="text-align:center;"><span style="color:#d4c5b9; font-size:20px;">···</span></p>
+  <p style="text-align:center;"><span style="font-size:13px; color:#bbb;">如果这篇文章对你有帮助，欢迎 <strong style="color:#667eea;">点赞 · 在看 · 转发</strong></span></p>
+  <!-- REPLACE:公众号信息 -->
+  <p style="text-align:center; border-top:1px solid #f0f0f0; padding:10px 0;"><span sty

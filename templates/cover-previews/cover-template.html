@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>公众号封面生成器</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -13,7 +12,7 @@
     }
 
     body {
-      font-family: 'Noto Sans SC', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
       background: #1a1a2e;
       min-height: 100vh;
       display: flex;
@@ -34,7 +33,7 @@
       font-size: 14px;
     }
 
-    /* 封面画布 - 900×383px */
+    /* 封面画布 - 900x383px */
     .cover-container {
       width: 900px;
       height: 383px;
@@ -47,18 +46,7 @@
       border-radius: 8px;
     }
 
-    /* 背景图 */
-    .cover-bg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.6;
-    }
-
-    /* 渐变遮罩 - 让文字更清晰 */
+    /* 渐变遮罩 */
     .cover-overlay {
       position: absolute;
       top: 0;
@@ -74,31 +62,32 @@
       );
     }
 
-    /* 内容区域 - 安全区居中 60% */
+    /* 内容区域 */
     .cover-content {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 60%;
+      width: 65%;
       text-align: left;
       z-index: 10;
     }
 
-    /* 主标题 */
+    /* 主标题 - 自适应字号 */
     .cover-title {
-      font-size: 72px;
+      font-size: 52px;
       font-weight: 900;
       color: #fff;
       text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
-      line-height: 1.4;
+      line-height: 1.3;
       margin-bottom: 15px;
       letter-spacing: 2px;
+      word-break: break-all;
     }
 
     /* 副标题 */
     .cover-subtitle {
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 400;
       color: #e0e0e0;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
@@ -238,12 +227,11 @@
   </style>
 </head>
 <body>
-  <h1>🎨 公众号封面生成器</h1>
-  <p class="subtitle">尺寸：900×383px | 直接截图保存即可</p>
+  <h1>公众号封面生成器</h1>
+  <p class="subtitle">尺寸：900 x 383px | 编辑文字和配色后下载</p>
 
   <!-- 封面预览区域 -->
   <div class="cover-container" id="cover">
-    <img class="cover-bg" id="coverBg" src="" style="display: none;" alt="">
     <div class="cover-overlay"></div>
     <div class="cover-content">
       <div class="cover-title" id="titlePreview">AI 革命已来</div>
@@ -253,25 +241,16 @@
 
   <!-- 控制面板 -->
   <div class="controls">
-    <h2>⚙️ 配置面板</h2>
-    
+    <h2>配置面板</h2>
+
     <div class="control-group">
-      <label>主标题（建议≤12 字）</label>
+      <label>主标题（建议 4-12 字）</label>
       <input type="text" id="titleInput" value="AI 革命已来" maxlength="20" placeholder="输入主标题">
     </div>
 
     <div class="control-group">
       <label>副标题（可选）</label>
       <textarea id="subtitleInput" maxlength="50" placeholder="输入副标题">普通人如何抓住这波红利？</textarea>
-    </div>
-
-    <div class="control-group">
-      <label>背景图片（可选，不选则用渐变）</label>
-      <label class="file-btn">
-        📁 选择图片
-        <input type="file" id="bgInput" accept="image/*">
-      </label>
-      <span id="fileName" style="color: #666; font-size: 13px; margin-left: 10px;">未选择</span>
     </div>
 
     <div class="control-group">
@@ -284,34 +263,29 @@
         <div class="color-option" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" data-bg="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"></div>
         <div class="color-option" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);" data-bg="linear-gradient(135deg, #30cfd0 0%, #330867 100%)"></div>
         <div class="color-option" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);" data-bg="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"></div>
-        <div class="color-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); background-image: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 900 383%22><rect fill=%22%231a1a2e%22 width=%22900%22 height=%22383%22/></svg>');" data-bg="#1a1a2e"></div>
+        <div class="color-option" style="background: #1a1a2e;" data-bg="#1a1a2e"></div>
       </div>
     </div>
 
     <div class="btn-group">
-      <button class="btn btn-primary" onclick="downloadCover()">📥 下载封面</button>
-      <button class="btn btn-secondary" onclick="resetCover()">🔄 重置</button>
+      <button class="btn btn-primary" onclick="downloadCover()">下载封面 PNG</button>
+      <button class="btn btn-secondary" onclick="resetCover()">重置</button>
     </div>
 
     <div class="tips">
-      <strong>💡 使用技巧：</strong><br>
-      1. 修改文字后封面实时更新<br>
-      2. 可上传自己的背景图（建议使用 Unsplash/Pexels 高清图）<br>
-      3. 点击"下载封面"保存 PNG，或直接截图（推荐用截图工具）<br>
-      4. 主标题控制在 12 字以内，手机上更清晰<br>
-      5. 保存后在手机上预览效果再发布
+      <strong>使用技巧：</strong><br>
+      1. 修改文字后封面实时更新，主标题建议控制在 12 字以内<br>
+      2. 点击"下载封面"保存为 900x383 PNG，直接上传公众号后台<br>
+      3. Ctrl+S 也可以快速下载
     </div>
   </div>
 
   <script>
     const cover = document.getElementById('cover');
-    const coverBg = document.getElementById('coverBg');
     const titleInput = document.getElementById('titleInput');
     const subtitleInput = document.getElementById('subtitleInput');
     const titlePreview = document.getElementById('titlePreview');
     const subtitlePreview = document.getElementById('subtitlePreview');
-    const bgInput = document.getElementById('bgInput');
-    const fileName = document.getElementById('fileName');
     const colorOptions = document.querySelectorAll('.color-option');
 
     // 实时更新标题
@@ -324,39 +298,125 @@
       subtitlePreview.textContent = e.target.value || '';
     });
 
-    // 背景图上传
-    bgInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          coverBg.src = event.target.result;
-          coverBg.style.display = 'block';
-          fileName.textContent = file.name;
-          // 移除渐变背景
-          cover.style.background = 'none';
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-
     // 配色方案切换
     colorOptions.forEach(option => {
       option.addEventListener('click', () => {
         colorOptions.forEach(o => o.classList.remove('active'));
         option.classList.add('active');
-        const bg = option.getAttribute('data-bg');
-        cover.style.background = bg;
-        coverBg.style.display = 'none';
-        fileName.textContent = '未选择';
-        bgInput.value = '';
+        cover.style.background = option.getAttribute('data-bg');
       });
     });
 
-    // 下载封面（使用 html2canvas）
+    // 解析 CSS gradient 字符串为 canvas gradient
+    function parseGradientToCanvas(ctx, gradientStr, width, height) {
+      // 匹配 linear-gradient(135deg, #xxx 0%, #yyy 100%) 格式
+      var match = gradientStr.match(/linear-gradient\((\d+)deg,\s*(#[0-9a-fA-F]{6})\s*(\d+)%,\s*(#[0-9a-fA-F]{6})\s*(\d+)%\)/);
+      if (match) {
+        var angle = parseInt(match[1]) * Math.PI / 180;
+        var color1 = match[2];
+        var color2 = match[4];
+
+        var x0 = width / 2 - Math.cos(angle) * width / 2;
+        var y0 = height / 2 - Math.sin(angle) * height / 2;
+        var x1 = width / 2 + Math.cos(angle) * width / 2;
+        var y1 = height / 2 + Math.sin(angle) * height / 2;
+
+        var gradient = ctx.createLinearGradient(x0, y0, x1, y1);
+        gradient.addColorStop(0, color1);
+        gradient.addColorStop(1, color2);
+        return gradient;
+      }
+      return gradientStr;
+    }
+
+    // 真正的下载功能：用 Canvas 渲染封面并导出 PNG
     function downloadCover() {
-      // 提示用户截图
-      alert('💡 推荐使用截图工具保存：\n\n1. 按 F11 全屏\n2. 使用系统截图工具（Win: Win+Shift+S / Mac: Cmd+Shift+4）\n3. 截取封面区域即可\n\n或者使用浏览器扩展 "Full Page Screen Capture" 下载高清 PNG');
+      var canvas = document.createElement('canvas');
+      canvas.width = 900;
+      canvas.height = 383;
+      var ctx = canvas.getContext('2d');
+
+      // 绘制背景
+      var bgStyle = cover.style.background || getComputedStyle(cover).backgroundImage;
+      if (bgStyle && bgStyle !== 'none') {
+        var gradient = parseGradientToCanvas(ctx, bgStyle, 900, 383);
+        ctx.fillStyle = gradient;
+      } else {
+        ctx.fillStyle = '#667eea';
+      }
+      ctx.fillRect(0, 0, 900, 383);
+
+      // 绘制渐变遮罩
+      var overlay = ctx.createLinearGradient(0, 0, 900, 0);
+      overlay.addColorStop(0, 'rgba(0,0,0,0.7)');
+      overlay.addColorStop(0.4, 'rgba(0,0,0,0.5)');
+      overlay.addColorStop(0.7, 'rgba(0,0,0,0.3)');
+      overlay.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = overlay;
+      ctx.fillRect(0, 0, 900, 383);
+
+      // 绘制标题
+      var title = titlePreview.textContent;
+      var subtitle = subtitlePreview.textContent;
+
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 52px -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+      ctx.textBaseline = 'middle';
+
+      // 计算文本区域（居中偏左，宽度 65%）
+      var textX = 900 * 0.175;
+      var maxWidth = 900 * 0.65;
+      var lineHeight = 52 * 1.3;
+
+      // 处理标题换行
+      var titleLines = wrapText(ctx, title, maxWidth);
+      var totalHeight = titleLines.length * lineHeight + (subtitle ? 15 + 24 : 0);
+      var startY = (383 - totalHeight) / 2;
+
+      titleLines.forEach(function(line, i) {
+        ctx.fillText(line, textX, startY + i * lineHeight);
+      });
+
+      // 绘制副标题
+      if (subtitle) {
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        ctx.fillStyle = '#e0e0e0';
+        ctx.font = '400 24px -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+        ctx.fillText(subtitle, textX, startY + titleLines.length * lineHeight + 15);
+      }
+
+      ctx.restore();
+
+      // 触发下载
+      var link = document.createElement('a');
+      link.download = 'cover-' + Date.now() + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // 文字换行辅助函数
+    function wrapText(ctx, text, maxWidth) {
+      var lines = [];
+      var currentLine = '';
+      for (var i = 0; i < text.length; i++) {
+        var testLine = currentLine + text[i];
+        if (ctx.measureText(testLine).width > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = text[i];
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
+      return lines;
     }
 
     // 重置
@@ -365,22 +425,16 @@
       subtitleInput.value = '普通人如何抓住这波红利？';
       titlePreview.textContent = 'AI 革命已来';
       subtitlePreview.textContent = '普通人如何抓住这波红利？';
-      coverBg.style.display = 'none';
-      coverBg.src = '';
       cover.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-      fileName.textContent = '未选择';
-      bgInput.value = '';
       colorOptions.forEach(o => o.classList.remove('active'));
       colorOptions[0].classList.add('active');
     }
 
     // 键盘快捷键
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === 's') {
-          e.preventDefault();
-          downloadCover();
-        }
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        downloadCover();
       }
     });
   </script>

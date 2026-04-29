@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>新闻风封面模板</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    display:flex; justify-content:center; align-items:center;
+    min-height:100vh; background:#2a2a2a;
+    font-family: -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
+  }
+  .cover {
+    width:900px; height:500px;
+    background:#1a1a1a;
+    border-radius:12px; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:60px 70px; position:relative;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .cover::before {
+    content:''; position:absolute; top:0; left:0; right:0;
+    height:5px;
+    background:linear-gradient(90deg, #e63946, #f4a261, #e63946);
+  }
+  .cover::after {
+    content:''; position:absolute; bottom:0; left:0; right:0;
+    height:1px;
+    background:linear-gradient(90deg, transparent, rgba(230,57,70,.3), transparent);
+  }
+  .breaking {
+    position:relative; z-index:1;
+    display:inline-flex; align-items:center; gap:8px;
+    margin-bottom:25px; width:fit-content;
+  }
+  .breaking-dot {
+    width:8px; height:8px; background:#e63946;
+    border-radius:50%; animation:pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; }
+    50% { opacity:.3; }
+  }
+  .breaking-text {
+    color:#e63946; font-size:14px; font-weight:600;
+    letter-spacing:3px; text-transform:uppercase;
+  }
+  .title {
+    position:relative; z-index:1;
+    font-size:40px; font-weight:800; color:#ffffff;
+    line-height:1.4; margin-bottom:20px;
+    letter-spacing:1px;
+  }
+  .title span {
+    background:linear-gradient(180deg, transparent 60%, rgba(230,57,70,.3) 60%);
+  }
+  .subtitle {
+    position:relative; z-index:1;
+    font-size:16px; color:rgba(255,255,255,.5);
+    letter-spacing:1px; line-height:1.6;
+  }
+  .meta {
+    position:relative; z-index:1;
+    display:flex; gap:25px; margin-top:30px;
+  }
+  .meta-item {
+    font-size:13px; color:rgba(255,255,255,.35);
+    letter-spacing:1px;
+  }
+  .corner-decor {
+    position:absolute; top:50px; right:60px; z-index:0;
+    width:80px; height:80px;
+    border-top:2px solid rgba(255,255,255,.08);
+    border-right:2px solid rgba(255,255,255,.08);
+  }
+</style>
+</head>
+<body>
+<div class="cover">
+  <!-- ===== 可替换区域 ===== -->
+  <div class="breaking">
+    <span class="breaking-dot"></span>
+    <span class="breaking-text">重大事件</span>
+  </div>
+  <div class="title"><span>GPT-5 正式发布：</span><br>AI 编程迎来范式级变革</div>
+  <div class="subtitle">全面解读新一代大模型的核心突破与行业影响</div>
+  <div class="meta">
+    <span class="meta-item">2026.04.27</span>
+    <span class="meta-item">深度解读</span>
+    <span class="meta-item">约 3,500 字</span>
+  </div>
+  <!-- ===== 可替换区域结束 ===== -->
+  <div class="corner-decor"></div>
+</div>
+</body>
+</html>

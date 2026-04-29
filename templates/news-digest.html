@@ -1,0 +1,167 @@
+<!--
+========================================
+  微信公众号 · 资讯速递模板（WeChat安全版）
+  适用场景：新闻事件解读、行业动态速览、重大事件分析
+  设计风格：卡片式、信息密度高、层次分明
+  使用方式：替换 <!-- REPLACE:xxx --> 标记的内容
+
+  ⚠️ 微信发布时会 div→p 并剥离 p 的 style，
+  所以所有容器用 table/td，所有文字样式用 span。
+========================================
+-->
+<table width="100%">
+<tr><td style="color:#222; line-height:1.9; font-size:15px; padding:0 16px;">
+
+  <!-- ===== 头部 ===== -->
+  <p style="text-align:center;"><span style="background:#e63946; color:#fff; font-size:11px; padding:3px 12px;">资讯速递</span></p>
+  <h1 style="font-size:22px; font-weight:700; color:#111; margin:0; line-height:1.5; text-align:center;"><!-- REPLACE:主标题 -->GPT-5 正式发布：你需要知道的 8 个关键变化<!-- /REPLACE --></h1>
+  <p style="text-align:center;"><span style="font-size:12px; color:#999;"><!-- REPLACE:来源和时间 -->来源：综合报道 · 2026.04.27<!-- /REPLACE --></span></p>
+
+  <p style="height:8px;"></p>
+
+  <!-- ===== 一句话总结 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#111;">
+  <tr><td style="padding:18px 22px; text-align:center;">
+    <p><span style="font-size:12px; color:#e63946;">TL;DR</span></p>
+    <p><span style="font-size:16px; font-weight:600; color:#fff; line-height:1.6;"><!-- REPLACE:一句话总结 -->OpenAI 发布 GPT-5，推理性能提升 3 倍，API 价格降至 GPT-4 的 1/5，多模态能力全面增强<!-- /REPLACE --></span></p>
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 事件时间线 ===== -->
+  <p><span style="font-size:17px; font-weight:600; color:#111; border-bottom:2px solid #e63946; padding-bottom:6px;">事件时间线</span></p>
+
+  <!-- REPEAT 时间线条目（用左边框模拟时间线） -->
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td width="55" style="vertical-align:top; padding:10px 0; text-align:right;"><span style="font-size:12px; font-weight:600; color:#e63946;"><!-- REPLACE:时间点 -->04.27 02:00<!-- /REPLACE --></span></td>
+    <td width="10" style="vertical-align:top; padding:10px 0; text-align:center;"><span style="color:#e63946; font-size:10px;">●</span></td>
+    <td style="vertical-align:top; padding:10px 14px; border-left:1px solid #e8e8e8;"><span style="font-size:14px; color:#444; line-height:1.6;"><!-- REPLACE:事件描述 -->OpenAI 官方博客发布 GPT-5 公告，同时更新 API 文档<!-- /REPLACE --></span></td>
+  </tr></table>
+
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td width="55" style="vertical-align:top; padding:10px 0; text-align:right;"><span style="font-size:12px; font-weight:600; color:#e63946;">04.27 08:00</span></td>
+    <td width="10" style="vertical-align:top; padding:10px 0; text-align:center;"><span style="color:#e63946; font-size:10px;">●</span></td>
+    <td style="vertical-align:top; padding:10px 14px; border-left:1px solid #e8e8e8;"><span style="font-size:14px; color:#444; line-height:1.6;">CEO Sam Altman 发布推特长文，详细解读 GPT-5 的技术路线</span></td>
+  </tr></table>
+
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td width="55" style="vertical-align:top; padding:10px 0; text-align:right;"><span style="font-size:12px; font-weight:600; color:#e63946;">04.27 14:00</span></td>
+    <td width="10" style="vertical-align:top; padding:10px 0; text-align:center;"><span style="color:#e63946; font-size:10px;">●</span></td>
+    <td style="vertical-align:top; padding:10px 14px;"><span style="font-size:14px; color:#444; line-height:1.6;">首批开发者开始测试，社交媒体出现大量实测反馈</span></td>
+  </tr></table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 关键要点卡片 ===== -->
+  <p><span style="font-size:17px; font-weight:600; color:#111; border-bottom:2px solid #e63946; padding-bottom:6px;">8 个关键变化</span></p>
+
+  <!-- REPEAT 要点 -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef5f5;"><tr>
+    <td width="22" style="vertical-align:top; padding:14px; background:#e63946; text-align:center;"><span style="color:#fff; font-size:12px; font-weight:700;">1</span></td>
+    <td style="vertical-align:top; padding:14px;"><span style="font-size:14px; color:#333; line-height:1.6;"><strong><!-- REPLACE:要点标题 -->推理性能提升 3 倍：</strong><!-- REPLACE:要点说明 -->在 MATH、HumanEval 等基准测试中，GPT-5 的表现全面超越前代和竞品<!-- /REPLACE --></span></td>
+  </tr></table>
+  <p style="height:10px;"></p>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef5f5;"><tr>
+    <td width="22" style="vertical-align:top; padding:14px; background:#e63946; text-align:center;"><span style="color:#fff; font-size:12px; font-weight:700;">2</span></td>
+    <td style="vertical-align:top; padding:14px;"><span style="font-size:14px; color:#333; line-height:1.6;"><strong>API 价格大降：</strong>输入价格降至 $2.5/1M tokens，输出 $10/1M tokens</span></td>
+  </tr></table>
+  <p style="height:10px;"></p>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef5f5;"><tr>
+    <td width="22" style="vertical-align:top; padding:14px; background:#e63946; text-align:center;"><span style="color:#fff; font-size:12px; font-weight:700;">3</span></td>
+    <td style="vertical-align:top; padding:14px;"><span style="font-size:14px; color:#333; line-height:1.6;"><strong>原生多模态：</strong>支持图像、音频、视频的输入与理解，不再需要单独的模型</span></td>
+  </tr></table>
+  <p style="height:10px;"></p>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef5f5;"><tr>
+    <td width="22" style="vertical-align:top; padding:14px; background:#e63946; text-align:center;"><span style="color:#fff; font-size:12px; font-weight:700;">4</span></td>
+    <td style="vertical-align:top; padding:14px;"><span style="font-size:14px; color:#333; line-height:1.6;"><strong>上下文窗口翻倍：</strong>支持 256K token 上下文，可以一次性处理整本技术书籍</span></td>
+  </tr></table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 对比表格 ===== -->
+  <p><span style="font-size:17px; font-weight:600; color:#111;">与竞品对比</span></p>
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;">
+    <tr style="background:#111;">
+      <th style="padding:10px 14px; text-align:left; color:#fff; border-right:1px solid #333;">模型</th>
+      <th style="padding:10px 14px; text-align:center; color:#fff; border-right:1px solid #333;">推理得分</th>
+      <th style="padding:10px 14px; text-align:center; color:#fff; border-right:1px solid #333;">多模态</th>
+      <th style="padding:10px 14px; text-align:center; color:#fff;">API 价格</th>
+    </tr>
+    <!-- REPLACE/REPEAT 数据行 -->
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:10px 14px; font-weight:500;">GPT-5</td>
+      <td style="padding:10px 14px; text-align:center;"><span style="color:#e63946; font-weight:600;">92.4%</span></td>
+      <td style="padding:10px 14px; text-align:center;"><span style="color:#27ae60;">全支持</span></td>
+      <td style="padding:10px 14px; text-align:center;">$2.5/$10</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:10px 14px; font-weight:500;">Claude Opus 4</td>
+      <td style="padding:10px 14px; text-align:center;">90.1%</td>
+      <td style="padding:10px 14px; text-align:center;"><span style="color:#27ae60;">全支持</span></td>
+      <td style="padding:10px 14px; text-align:center;">$15/$75</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:10px 14px; font-weight:500;">Gemini 2.5 Pro</td>
+      <td style="padding:10px 14px; text-align:center;">88.7%</td>
+      <td style="padding:10px 14px; text-align:center;"><span style="color:#27ae60;">全支持</span></td>
+      <td style="padding:10px 14px; text-align:center;">$3.5/$10.5</td>
+    </tr>
+  </table>
+  <p style="text-align:center;"><span style="font-size:11px; color:#aaa;"><!-- REPLACE:数据来源 -->数据来源：各厂商官方公告及 LMSYS Chatbot Arena (2026.04)<!-- /REPLACE --></span></p>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 对我们的影响 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;">
+  <tr><td style="padding:20px;">
+    <p><span style="font-size:17px; font-weight:600; color:#111;">对开发者的影响</span></p>
+    <!-- REPLACE:影响分析 -->
+    <p><span style="font-size:14px; color:#555; line-height:1.8;">1. <strong>成本降低意味着更多实验空间：</strong>API 价格降至原来的 1/5，个人开发者和小团队也能负担得起复杂 AI 应用的开发。</span></p>
+    <p><span style="font-size:14px; color:#555; line-height:1.8;">2. <strong>多模态原生支持简化架构：</strong>不再需要串联多个模型分别处理文本、图像和音频，开发流程大幅简化。</span></p>
+    <p><span style="font-size:14px; color:#555; line-height:1.8;">3. <strong>256K 上下文带来新的应用场景：</strong>代码库级别的理解和重构、长文档分析成为可能。</span></p>
+    <!-- /REPLACE -->
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 互动投票 ===== -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e8e8;">
+  <tr><td style="padding:18px 20px; text-align:center;">
+    <p><span style="font-size:15px; font-weight:600; color:#333;">你怎么看？</span></p>
+    <!-- REPLACE:投票选项 -->
+    <p style="border-bottom:1px solid #f5f5f5;"><span style="font-size:13px; color:#888; line-height:2.2;">○ GPT-5 将彻底改变我的开发方式</span></p>
+    <p style="border-bottom:1px solid #f5f5f5;"><span style="font-size:13px; color:#888; line-height:2.2;">○ 功能和 GPT-4 差异不大，不值得升级</span></p>
+    <p><span style="font-size:13px; color:#888; line-height:2.2;">○ 想用但担心成本，再观望一段时间</span></p>
+    <!-- /REPLACE -->
+  </td></tr>
+  </table>
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 相关阅读 ===== -->
+  <p><span style="font-size:15px; font-weight:600; color:#333;">相关阅读</span></p>
+  <!-- REPLACE:相关链接 -->
+  <p><span style="font-size:13px; color:#e63946; line-height:2;">▸ GPT-5 技术报告全文 (openai.com)</span></p>
+  <p><span style="font-size:13px; color:#e63946; line-height:2;">▸ Sam Altman: "GPT-5 and the path to AGI"</span></p>
+  <p><span style="font-size:13px; color:#e63946; line-height:2;">▸ GPT-5 vs Claude vs Gemini: 横向评测</span></p>
+  <!-- /REPLACE -->
+
+  <p style="height:10px;"></p>
+
+  <!-- ===== 尾部 ===== -->
+  <p style="text-align:center;"><span style="color:#d4c5b9; font-size:20px;">···</span></p>
+  <p style="text-align:center;"><span style="font-size:14px; color:#555;">持续关注前沿科技动态</span></p>
+  <p style="text-align:center;"><span style="font-size:12px; color:#999;">点赞 · 在看 · 转发，让更多人看到</span></p>
+  <!-- REPLACE:公众号信息 -->
+  <p style="text-align:center; border-top:1px solid #eee; padding:10px 0;"><span style="font-size:11px; color:#ccc;">第一时间获取重大科技事件解读</span></p>
+  <!-- /REPLACE -->
+
+</td></tr>
+</table>
+                                                                                                                                                                                                                                                                                
