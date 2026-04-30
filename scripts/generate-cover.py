@@ -1,235 +1,250 @@
 #!/usr/bin/env python3
-"""
-🐱 智能封面图生成脚本
-根据文章内容自动生成封面图
-
-用法: python generate-cover.py <文章路径> [--output <输出路径>]
-
-支持的封面图来源：
-1. Pollinations AI（免费，无需 API）
-2. Unsplash（免费，高质量图片）
-3. 本地图片库（预设封面图）
+"""Smart cover image generator for WeChat articles.
+Sources: Pollinations AI (free, no API key) or Unsplash (free, high quality).
+Usage: python generate-cover.py <article_path> [--output <path>] [--template]
 """
 
-import requests
-import re
-import os
-import sys
-import hashlib
+import requests, re, os, sys, hashlib
+from datetime import datetime
 from urllib.parse import quote
 
-# 封面图模板库（按主题分类）- 使用可靠的图片源
 COVER_TEMPLATES = {
     "news": [
         "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=900&h=500&fit=crop",
         "https://images.unsplash.com/photo-1495020689067-958852a7765e?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1559526324-593bc073d938?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&h=500&fit=crop",
     ],
     "ai": [
         "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=900&h=500&fit=crop",
         "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1555255707-c07966a6a732?w=900&h=500&fit=crop",
     ],
     "gpt": [
         "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=900&h=500&fit=crop",
         "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1655720828018-edd2daec9349?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1677756119517-756a92e1c4fa?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1682687982501-1e58ab814714?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=900&h=500&fit=crop",
     ],
     "coding": [
         "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=900&h=500&fit=crop",
         "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1515879218367-8466d910e7f7?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1555099962-4199c345e5dd?w=900&h=500&fit=crop",
     ],
     "business": [
         "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&h=500&fit=crop",
         "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1590283603385-17ffb3a7ce44?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1507679799987-c73785c6b1c2?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1552664730-d307ca884978?w=900&h=500&fit=crop",
     ],
     "money": [
         "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=900&h=500&fit=crop",
         "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1559526324-593bc073d938?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1633158829875-e5310d358f58?w=900&h=500&fit=crop",
     ],
     "innovation": [
         "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=900&h=500&fit=crop",
         "https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1555255707-c07966a6a732?w=900&h=500&fit=crop",
     ],
     "default": [
         "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=900&h=500&fit=crop",
         "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&h=500&fit=crop",
+        "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&h=500&fit=crop",
     ]
 }
 
-# 关键词到主题的映射
 KEYWORD_TO_THEME = {
-    # 新闻/日报
-    "日报": "news", "新闻": "news", "热点": "news", "快讯": "news",
-    
-    # AI 相关
-    "ai": "ai", "人工智能": "ai", "机器学习": "ai", "深度学习": "ai",
-    
-    # GPT 相关
+    "daily": "news", "news": "news", "hotspot": "news", "brief": "news",
+    "ai": "ai", "artificial intelligence": "ai", "ml": "ai", "deep learning": "ai",
     "gpt": "gpt", "chatgpt": "gpt", "openai": "gpt", "claude": "gpt",
-    "llm": "gpt", "大模型": "gpt", "语言模型": "gpt",
-    
-    # 编程相关
-    "代码": "coding", "编程": "coding", "开发": "coding", "插件": "coding",
-    "api": "coding", "sdk": "coding", "开发者": "coding",
-    
-    # 商业相关
-    "广告": "business", "商业": "business", "企业": "business", "转型": "business",
-    
-    # 金钱相关
-    "赚钱": "money", "收入": "money", "变现": "money", "成本": "money",
-    
-    # 创新相关
-    "创新": "innovation", "更新": "innovation", "发布": "innovation", "推出": "innovation",
+    "llm": "gpt", "gemini": "gpt", "deepseek": "gpt", "llama": "gpt",
+    "code": "coding", "programming": "coding", "dev": "coding", "api": "coding",
+    "python": "coding", "javascript": "coding", "open source": "coding",
+    "business": "business", "enterprise": "business", "strategy": "business",
+    "revenue": "business", "acquisition": "business", "ipo": "business",
+    "money": "money", "funding": "money", "valuation": "money", "stock": "money",
+    "investment": "money", "cost": "money",
+    "innovation": "innovation", "breakthrough": "innovation", "launch": "innovation",
 }
 
+STYLE_MODIFIERS = [
+    "cinematic lighting, professional",
+    "minimalist design, clean composition",
+    "abstract geometric, futuristic",
+    "dark moody, dramatic shadows",
+    "bright vibrant, high contrast",
+    "soft gradient, ethereal glow",
+    "tech corporate, sleek modern",
+    "warm ambient, golden hour",
+    "cool blue tones, cyberpunk aesthetic",
+    "paper texture, editorial style",
+    "glass morphism, translucent layers",
+    "isometric 3D, depth of field",
+]
 
-def extract_keywords(content, max_keywords=5):
-    """从文章内容提取关键词"""
-    # 提取标题
+PROMPT_TEMPLATES = [
+    (["gpt", "openai"], "OpenAI GPT AI language model hologram interface"),
+    (["gpt", "launch"], "new AI model launch announcement stage lights"),
+    (["openai", "stock"], "stock market chart AI company valuation"),
+    (["openai", "revenue"], "business revenue growth chart technology"),
+    (["ai", "chip"], "AI processor chip semiconductor circuits blue glow"),
+    (["ai", "funding"], "venture capital investment funding abstract money"),
+    (["ai", "agent"], "AI agent network autonomous nodes connections"),
+    (["ai", "search"], "AI search engine magnifying glass data streams"),
+    (["ai", "robot"], "futuristic robot AI automation mechanical"),
+    (["ai", "security"], "cybersecurity shield AI protection digital"),
+    (["ai", "education"], "AI education learning digital transformation"),
+    (["tutorial", "guide"], "step by step tutorial guide lightbulb creative"),
+    (["code", "dev"], "code screen programming syntax dark theme"),
+    (["api", "sdk"], "API developer interface programming connections"),
+    (["stock", "crash"], "stock market crash red decline financial"),
+    (["stock", "surge"], "stock market bull rally growth green"),
+    (["funding", "valuation"], "startup funding venture capital investment"),
+    (["acquisition"], "company merger acquisition handshake corporate deal"),
+    (["revenue", "growth"], "revenue growth chart upward trend success"),
+    (["cost", "price"], "cost reduction savings efficiency optimization"),
+    (["google"], "Google technology campus headquarters modern"),
+    (["microsoft"], "Microsoft technology software corporate modern"),
+    (["nvidia"], "NVIDIA GPU chip technology green circuit board"),
+    (["meta"], "Meta virtual reality metaverse technology digital"),
+    (["innovation", "breakthrough"], "scientific breakthrough discovery light"),
+    (["launch", "release"], "product launch reveal stage spotlight"),
+    (["quantum"], "quantum computing physics particles futuristic"),
+    (["geopolitics", "chip"], "geopolitics technology chess global chips"),
+    (["regulation", "policy"], "government regulation policy document gavel"),
+    ([], ""),
+]
+
+STYLE_SEEDS = [
+    "futuristic technology digital art",
+    "modern tech corporate professional",
+    "abstract data visualization infographic",
+    "minimal clean concept illustration",
+    "dark theme cyberpunk neon glow",
+    "bright vibrant gradient modern design",
+]
+
+def extract_keywords(content, max_keywords=8):
     title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
     title = title_match.group(1) if title_match else ""
-    
-    # 合并标题和前 500 字
-    text = title + " " + content[:500]
-    
-    # 提取关键词
-    keywords = []
-    text_lower = text.lower()
-    
-    for keyword, theme in KEYWORD_TO_THEME.items():
-        if keyword in text_lower:
-            keywords.append(keyword)
-            if len(keywords) >= max_keywords:
-                break
-    
-    return keywords
-
+    text = (title + " " + content[:2000]).lower()
+    scored = []
+    for keyword in KEYWORD_TO_THEME:
+        count = text.count(keyword)
+        if count > 0:
+            scored.append((keyword, count))
+    scored.sort(key=lambda x: -x[1])
+    return [k for k, _ in scored[:max_keywords]]
 
 def get_theme_from_keywords(keywords):
-    """根据关键词确定主题"""
-    theme_counts = {}
-    
-    for keyword in keywords:
-        if keyword in KEYWORD_TO_THEME:
-            theme = KEYWORD_TO_THEME[keyword]
-            theme_counts[theme] = theme_counts.get(theme, 0) + 1
-    
-    if theme_counts:
-        return max(theme_counts, key=theme_counts.get)
-    return "default"
+    counts = {}
+    for kw in keywords:
+        if kw in KEYWORD_TO_THEME:
+            t = KEYWORD_TO_THEME[kw]
+            counts[t] = counts.get(t, 0) + 1
+    return max(counts, key=counts.get) if counts else "default"
 
+def generate_pollinations_url(prompt, seed=None):
+    url = f"https://image.pollinations.ai/prompt/{quote(prompt)}?width=900&height=500&nologo=true"
+    if seed:
+        url += f"&seed={seed}"
+    return url
 
-def generate_pollinations_url(prompt, style="modern tech"):
-    """生成 Pollinations AI 图片 URL"""
-    # 添加风格关键词
-    full_prompt = f"{prompt}, {style}, high quality, professional, 16:9 aspect ratio"
-    encoded_prompt = quote(full_prompt)
-    
-    return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=900&height=500&nologo=true"
-
-
-def generate_custom_cover(keywords, title):
-    """根据关键词和标题生成自定义封面图 URL"""
-    # 从标题提取关键概念
+def generate_custom_cover(keywords, title, date_seed=0):
     title_lower = title.lower()
-    
-    # 根据关键词组合生成 prompt
-    if any(k in title_lower for k in ["gpt", "openai", "chatgpt"]):
-        prompt = "OpenAI GPT AI assistant futuristic hologram blue purple"
-    elif any(k in title_lower for k in ["成本", "省钱", "价格"]):
-        prompt = "cost reduction money saving business growth chart"
-    elif any(k in title_lower for k in ["架构", "代理", "agent"]):
-        prompt = "AI agent network architecture diagram nodes connections"
-    elif any(k in title_lower for k in ["教程", "入门", "指南"]):
-        prompt = "step by step tutorial guide book lightbulb idea"
-    else:
-        # 根据关键词组合
-        keyword_str = " ".join(keywords[:3]) if keywords else "technology"
-        prompt = f"{keyword_str} modern tech illustration"
-    
-    return generate_pollinations_url(prompt)
+    kw_lower = [k.lower() for k in keywords]
+    matched = None
+    for tkeys, prompt in PROMPT_TEMPLATES:
+        if not tkeys:
+            continue
+        if all(tk in title_lower or any(tk in kw for kw in kw_lower) for tk in tkeys):
+            matched = prompt
+            break
+    if not matched:
+        kws = keywords[:4] if keywords else ["technology"]
+        base = " ".join(kws)
+        si = date_seed % len(STYLE_SEEDS)
+        matched = f"{base} {STYLE_SEEDS[si]}"
+    style = STYLE_MODIFIERS[date_seed % len(STYLE_MODIFIERS)]
+    full_prompt = f"{matched}, {style}, 16:9 aspect ratio"
+    return generate_pollinations_url(full_prompt, seed=date_seed)
 
-
-def get_cover_url(keywords, title, use_template=False):
-    """获取封面图 URL"""
+def get_cover_url(keywords, title, use_template=False, date_seed=0):
     theme = get_theme_from_keywords(keywords)
-    
-    # 默认使用 Pollinations AI（免费稳定）
     if not use_template:
-        # 根据关键词和标题生成 Pollinations URL
-        return generate_custom_cover(keywords, title)
-    
-    # 方案2：使用 Unsplash 模板库（可选）
+        return generate_custom_cover(keywords, title, date_seed)
     templates = COVER_TEMPLATES.get(theme, COVER_TEMPLATES["default"])
-    title_hash = int(hashlib.md5(title.encode()).hexdigest(), 16) % len(templates)
-    return templates[title_hash]
-
+    th = int(hashlib.md5(title.encode()).hexdigest(), 16)
+    return templates[(th + date_seed) % len(templates)]
 
 def download_image(url, output_path):
-    """下载图片"""
-    print(f"📥 下载封面图: {url[:80]}...")
-    
-    resp = requests.get(url, timeout=30)
-    if resp.status_code == 200:
-        with open(output_path, "wb") as f:
-            f.write(resp.content)
-        print(f"✅ 封面图已保存: {output_path}")
-        return True
-    else:
-        print(f"❌ 下载失败: HTTP {resp.status_code}")
+    print(f"Downloading: {url[:80]}...")
+    try:
+        resp = requests.get(url, timeout=30)
+        if resp.status_code == 200:
+            with open(output_path, "wb") as f:
+                f.write(resp.content)
+            print(f"Saved: {output_path}")
+            return True
+        print(f"Failed: HTTP {resp.status_code}")
         return False
-
+    except Exception as e:
+        print(f"Failed: {e}")
+        return False
 
 def main():
     if len(sys.argv) < 2:
-        print("用法: python generate-cover.py <文章路径> [--output <输出路径>] [--template]")
-        print("\n选项:")
-        print("  --output  指定输出路径（默认同目录 images/cover.jpg）")
-        print("  --template  使用 Unsplash 模板库（默认用 Pollinations AI）")
+        print("Usage: python generate-cover.py <article_path> [--output <path>] [--template]")
         sys.exit(1)
-    
     article_path = sys.argv[1]
     use_template = "--template" in sys.argv
-    
-    # 默认使用 Pollinations AI（稳定、免费）
-    
-    # 解析输出路径
     if "--output" in sys.argv:
-        output_idx = sys.argv.index("--output") + 1
-        output_path = sys.argv[output_idx] if output_idx < len(sys.argv) else None
+        oi = sys.argv.index("--output") + 1
+        output_path = sys.argv[oi] if oi < len(sys.argv) else None
     else:
-        # 默认输出到文章同目录的 images 文件夹
-        article_dir = os.path.dirname(article_path)
-        images_dir = os.path.join(article_dir, "images")
-        os.makedirs(images_dir, exist_ok=True)
-        output_path = os.path.join(images_dir, "cover.jpg")
-    
-    # 读取文章
+        ad = os.path.dirname(article_path)
+        idir = os.path.join(ad, "images")
+        os.makedirs(idir, exist_ok=True)
+        output_path = os.path.join(idir, "cover.jpg")
     with open(article_path, "r", encoding="utf-8") as f:
         content = f.read()
-    
-    # 提取标题
-    title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
-    title = title_match.group(1) if title_match else "article"
-    
-    # 提取关键词
+    tm = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+    title = tm.group(1) if tm else "article"
     keywords = extract_keywords(content)
-    print(f"📝 标题: {title}")
-    print(f"🔑 关键词: {keywords}")
-    
-    # 获取封面图 URL
-    cover_url = get_cover_url(keywords, title, use_template=use_template)
-    print(f"🎨 主题: {get_theme_from_keywords(keywords)}")
-    print(f"📌 方案: {'Unsplash 模板库' if use_template else 'Pollinations AI'}")
-    
-    # 下载图片
+    date_seed = int(datetime.now().strftime("%Y%m%d"))
+    print(f"Title: {title}")
+    print(f"Keywords: {keywords}")
+    print(f"Theme: {get_theme_from_keywords(keywords)}")
+    print(f"Source: {'Unsplash' if use_template else 'Pollinations AI'}")
+    print(f"Seed: {date_seed}")
+    cover_url = get_cover_url(keywords, title, use_template=use_template, date_seed=date_seed)
     if download_image(cover_url, output_path):
-        print(f"\n✅ 封面图生成成功！")
-        print(f"📂 路径: {output_path}")
+        print(f"\nOK! Path: {output_path}")
         return output_path
-    else:
-        # 失败时使用默认图片
-        print("\n⚠️ 使用备用封面图")
-        return None
-
+    print("\nFallback needed")
+    return None
 
 if __name__ == "__main__":
     main()
