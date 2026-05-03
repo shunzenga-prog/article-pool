@@ -148,6 +148,36 @@ python scripts/illustration_gen.py article.html --type 技术教程 --max-images
 
 详情见 `skills/illustration-gen/SKILL.md`。
 
+## 工作目录配置
+
+项目通过 `scripts/paths.py` 集中管理所有输出/临时文件路径，可通过 `config/.env` 覆盖默认值。
+
+### 默认路径（不配任何东西）
+- 插图本地副本：`test_images/illustrations/`
+- 报告/日志/缓存：`reports/`
+- 通用输出：`output/`
+- 爬虫素材：`~/.openclaw/workspace/reports/materials/`
+
+### 一键配置 WORK_DIR
+
+```bash
+# 所有临时文件统一到一个目录
+echo "WORK_DIR=E:/WorkSpace/创作/temp" >> config/.env
+# → temp/illustrations/  temp/reports/  temp/output/
+```
+
+### 细粒度覆盖
+
+```bash
+# 报告留在项目内，其余到 WORK_DIR
+echo "REPORTS_DIR=reports" >> config/.env
+
+# 爬虫输出单独配置
+echo "SCRAPE_OUTPUT_DIR=E:/data/news" >> config/.env
+```
+
+优先级：`独立 *_DIR` > `WORK_DIR` > 硬编码默认值
+
 ## 文章发布
 
 ```bash

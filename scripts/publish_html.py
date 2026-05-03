@@ -13,32 +13,24 @@ import sys
 import argparse
 import re
 
+try:
+    from preferences import get_prefs as _get_prefs
+    _pub_prefs = _get_prefs()
+except Exception:
+    _pub_prefs = {}
+
 
 def load_env():
     """加载 .env 配置，唯一来源：config/.env"""
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    config_path = os.path.join(project_root, 'config', '.env')
-    search_paths = [config_path]
-    for env_path in search_paths:
-        if os.path.exists(env_path):
-            with open(env_path, encoding='utf-8') as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#') and '=' in line:
-                        key, value = line.split('=', 1)
-                        os.environ[key.strip()] = value.strip()
-            print(f"📋 已加载配置: {env_path}")
-            return
-    print("⚠️ 未找到 .env 配置文件（请将密钥放在 config/.env）")
+    from paths import load_env as _load
+    _load()
 
 
 def log_publish(title, media_id, cover_path, author):
-    """记录发布到 reports/publish_log.json"""
+    """记录发布到 PUBLISH_LOG_FILE"""
     from datetime import datetime
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    log_file = os.path.join(project_root, 'reports', 'publish_log.json')
+    from paths import PUBLISH_LOG_FILE as log_file
 
-    # 读取现有日志
     log = []
     if os.path.exists(log_file):
         try:
@@ -150,7 +142,8 @@ def main():
     parser.add_argument("article", help="HTML 文章文件路径")
     parser.add_argument("title", nargs="?", default=None, help="文章标题（可选，默认从 h1 提取）")
     parser.add_argument("--cover", default=None, help="封面图路径（可选）")
-    parser.add_argument("--author", default="小咪", help="作者名（默认：小咪）")
+    default_author = _pub_prefs.get('author', {}).get('name', '小咪')
+    parser.add_argument("--author", default=default_author, help=f"作者名（默认：{default_author}）")
     args = parser.parse_args()
 
     # 加载配置
@@ -160,7 +153,7 @@ def main():
 
     if not appid or not secret or "your_" in appid.lower():
         print("\n❌ 请先配置微信公众号 API 密钥！")
-        print("\n将 config/.env.example 复制为 scripts/.env 或 config/.env，填入：")
+        print("\n将 config/.env.example 复制为 config/.env，填入：")
         print("  WECHAT_APPID=你的AppID")
         print("  WECHAT_SECRET=你的AppSecret")
         print("\n获取方式：登录 mp.weixin.qq.com → 设置与开发 → 基本配置")
@@ -211,4 +204,31 @@ def main():
 
     if "media_id" in result:
         print(f"\n{'='*50}")
-        pr
+        print(f"✅ 草稿创建成功！")
+        print(f"📝 草稿 ID: {result['media_id']}")
+        print(f"👉 请登录公众号后台 → 草稿箱 查看并群发")
+        print(f"{'='*50}")
+
+        # 记录发布日志
+        log_publish(title, result['media_id'], cover_path, args.author)
+    else:
+        print(f"\n❌ 创建失败: {json.dumps(result, ensure_ascii=False, indent=2)}")
+        if "errcode" in result:
+            # 常见错误提示
+            err_codes = {
+                40001: "AppSecret 错误或 access_token 无效",
+                40007: "不合法的媒体文件 id（封面图问题）",
+                40014: "不合法的 access_token",
+                40164: "未上传封面图（thumb_media_id 必填）",
+                41001: "缺少 access_token 参数",
+                42001: "access_token 超时",
+                45009: "接口调用超过限制",
+            }
+            hint = err_codes.get(result["errcode"], "")
+            if hint:
+                print(f"💡 {hint}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

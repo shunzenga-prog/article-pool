@@ -12,17 +12,8 @@ import re
 import os
 import sys
 
-# 从 .env 文件读取敏感信息
-def load_env():
-    env_path = os.path.join(os.path.dirname(__file__), '.env')
-    if os.path.exists(env_path):
-        with open(env_path) as f:
-            for line in f:
-                if '=' in line and not line.startswith('#'):
-                    key, value = line.strip().split('=', 1)
-                    os.environ[key] = value
-
-load_env()
+from paths import load_env as _load_env, SCRIPTS_DIR
+_load_env()
 APPID = os.getenv("WECHAT_APPID")
 SECRET = os.getenv("WECHAT_SECRET")
 
@@ -190,8 +181,7 @@ def get_article_cover(article_path):
     
     # 生成新封面
     print("🎨 正在生成智能封面图...")
-    script_dir = os.path.dirname(__file__)
-    gen_script = os.path.join(script_dir, "generate-cover.py")
+    gen_script = os.path.join(SCRIPTS_DIR, "generate-cover.py")
     
     if os.path.exists(gen_script):
         try:
@@ -210,7 +200,7 @@ def get_article_cover(article_path):
             print(f"⚠️ 封面生成异常: {e}")
     
     # 降级方案：使用默认封面
-    default_cover = os.path.join(script_dir, "default-cover.jpg")
+    default_cover = os.path.join(SCRIPTS_DIR, "default-cover.jpg")
     if os.path.exists(default_cover):
         print(f"⚠️ 使用默认封面: {default_cover}")
         return default_cover
@@ -222,8 +212,7 @@ def process_article_images(content, access_token):
     """处理文章配图"""
     import importlib.util
     
-    script_dir = os.path.dirname(__file__)
-    image_script = os.path.join(script_dir, "generate-article-images.py")
+    image_script = os.path.join(SCRIPTS_DIR, "generate-article-images.py")
     
     if os.path.exists(image_script):
         # 动态导入配图模块

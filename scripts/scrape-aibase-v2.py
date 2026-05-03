@@ -9,8 +9,7 @@ import os
 import re
 import sys
 
-# 获取输出目录（支持环境变量或默认值）
-OUTPUT_DIR = os.environ.get('OUTPUT_DIR', os.path.expanduser('~/.openclaw/workspace/reports/materials'))
+from paths import SCRAPE_OUTPUT_DIR as OUTPUT_DIR
 
 def scrape_aibase():
     with sync_playwright() as p:

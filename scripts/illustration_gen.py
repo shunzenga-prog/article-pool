@@ -39,32 +39,16 @@ except ImportError:
     HAS_REQUESTS = False
 
 # ── Paths ──
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
-CONFIG_DIR = PROJECT_ROOT / "config"
-REPORTS_DIR = PROJECT_ROOT / "reports"
-RULES_FILE = CONFIG_DIR / "illustration_rules.json"
-USED_IMAGES_FILE = REPORTS_DIR / "used_images.json"
-OUTPUT_DIR = PROJECT_ROOT / "test_images" / "illustrations"
+from paths import (
+    CONFIG_DIR, REPORTS_DIR, ILLUSTRATIONS_DIR as OUTPUT_DIR,
+    ILLUSTRATION_RULES_FILE as RULES_FILE, USED_IMAGES_FILE,
+    get_wechat_config, get_env,
+)
 
-# ── WeChat config loader ──
-def _load_wechat_env():
-    """Load WECHAT_APPID/SECRET from config/.env."""
-    env = {}
-    env_file = CONFIG_DIR / ".env"
-    if env_file.exists():
-        with open(env_file, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if "=" in line and not line.startswith("#"):
-                    k, v = line.split("=", 1)
-                    env[k] = v.strip().strip('"').strip("'")
-    return env
-
-_WECHAT_ENV = _load_wechat_env()
-WECHAT_APPID = _WECHAT_ENV.get("WECHAT_APPID", "")
-WECHAT_SECRET = _WECHAT_ENV.get("WECHAT_SECRET", "")
-BRAVE_API_KEY = _WECHAT_ENV.get("BRAVE_API_KEY", "")
+_WECHAT_APPID, _WECHAT_SECRET = get_wechat_config()
+WECHAT_APPID = _WECHAT_APPID
+WECHAT_SECRET = _WECHAT_SECRET
+BRAVE_API_KEY = get_env("BRAVE_API_KEY") or ""
 
 
 # ======================================================================

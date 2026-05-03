@@ -208,4 +208,48 @@ S 情境 → C 冲突 → Q 疑问 → A 答案
 - [ ] 时效新鲜？ [ ] 真人感≥6 项？
 ### 排版
 - [ ] 字号 15-16px？ [ ] 行距 1.75-1.8？ [ ] 段落≤5 行？
-- [ ] 标题清晰
+- [ ] 标题清晰？ [ ] 颜色≤4 种？ [ ] 手机预览正常？
+### ⚠️ 终审（必做）⭐
+**清单**：`references/final-review-checklist.md`（8 大维度）
+
+---
+
+## 参考
+- `references/viral-guide.md` - 爆款指南
+- `references/anti-ai-patterns.md` - 反 AI 指南 ⭐
+- `references/final-review-checklist.md` - 终审清单 ⭐
+- `templates/article-template.html` - 通用 HTML 模板
+- `templates/tech-tutorial.html` - 技术教程模板
+- `templates/daily-report.html` - 深度分享模板
+- `templates/README.md` - 完整模板清单（含 WeChat 兼容性说明）
+- `skills/cover-gen/SKILL.md` - 封面图生成技能 ⭐
+
+---
+
+## ⭐ 封面图生成（必做）
+
+详见 `skills/cover-gen/SKILL.md`。
+
+### 使用 gen_cover.py 生成封面
+
+```bash
+# 编辑 scripts/gen_cover.py 中的标题、副标题、日期等
+# 然后运行：
+python3 scripts/gen_cover.py
+```
+
+封面图规格：1200×675px PNG，16:9 比例，深蓝黑底色 + 双色渐变 + 几何装饰。
+
+### 发布到公众号
+
+```bash
+# HTML 文章直接发布到草稿箱
+python3 scripts/publish_html.py <文章.html> --cover <封面图.png> --author "小咪"
+```
+
+### ⚠️ 模板注意
+所有文章模板（`templates/*.html`）已适配微信公众号 CSS 兼容性：flex→table，gradient→solid，border-radius/letter-spacing 已移除。详见 `templates/README.md`。
+
+### ⚠️ 禁止
+- ❌ 下期预告（除非已规划）
+- ❌ 承诺后续更新

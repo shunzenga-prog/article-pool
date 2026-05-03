@@ -17,15 +17,14 @@ import json
 import sys
 import os
 from datetime import datetime, timedelta
-from pathlib import Path
 
-DATA_FILE = Path(__file__).resolve().parent.parent / "reports" / "used_topics.json"
+from paths import USED_TOPICS_FILE as DATA_FILE
 
 
 def load() -> dict:
     """加载 used_topics.json"""
     if not DATA_FILE.exists():
-        print("❌ reports/used_topics.json 不存在，请先创建。", file=sys.stderr)
+        print(f"❌ {DATA_FILE} 不存在，请先创建。", file=sys.stderr)
         sys.exit(1)
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         return json.load(f)

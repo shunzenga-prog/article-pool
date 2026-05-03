@@ -9,17 +9,8 @@ import json
 import os
 import sys
 
-# 从 .env 文件读取敏感信息
-def load_env():
-    env_path = os.path.join(os.path.dirname(__file__), '.env')
-    if os.path.exists(env_path):
-        with open(env_path) as f:
-            for line in f:
-                if '=' in line and not line.startswith('#'):
-                    key, value = line.strip().split('=', 1)
-                    os.environ[key] = value
-
-load_env()
+from paths import load_env as _load_env
+_load_env()
 APPID = os.getenv("WECHAT_APPID")
 SECRET = os.getenv("WECHAT_SECRET")
 

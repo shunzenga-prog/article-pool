@@ -48,6 +48,7 @@ output/
 *.jpg
 *.jpeg
 *.gif
+test_images/
 
 # 临时文件
 tmp/
@@ -60,5 +61,4 @@ node_modules/
 
 # 测试文件
 test/
-tests/
-*.test.md
+tes
