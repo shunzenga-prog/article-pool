@@ -1,0 +1,242 @@
+{
+  "version": "1.0",
+  "_comment": "文章插图规则 — 按文章类型定义图片来源、匹配策略和插入位置。新增文章类型只需添加条目，无需改代码。",
+
+  "defaults": {
+    "max_images_total": 20,
+    "min_chars_between": 200,
+    "max_width_px": 670,
+    "format": "png",
+    "dedup_ttl_days": 30,
+    "wechat_upload": true,
+    "output_dir": "test_images/illustrations",
+    "img_table_template": "<table width=\"100%\"><tr><td style=\"text-align:center; padding:6px 0 14px;\">\n  <img src=\"{url}\" style=\"max-width:100%;\" />\n</td></tr></table>"
+  },
+
+  "article_types": {
+    "项目推荐": {
+      "description": "GitHub项目/工具推荐 — 每个项目配一张截图或演示图",
+      "triggers": {
+        "github_repo_urls": true,
+        "project_names": true,
+        "tool_names": true
+      },
+      "sources": {
+        "github_screenshot": {
+          "enabled": true,
+          "priority": 1,
+          "per_item": 1,
+          "_note": "T1: opengraph.githubassets.com 社交预览图，无需认证"
+        },
+        "og_image": {
+          "enabled": true,
+          "priority": 2,
+          "per_item": 0,
+          "_note": "T2: 从文章链接中提取 og:image"
+        },
+        "web_search": {
+          "enabled": true,
+          "priority": 3,
+          "per_item": 1,
+          "search_query_template": "{name} screenshot demo interface",
+          "_note": "T3: Brave 图片搜索，搜索词模板可自定义"
+        },
+        "ai_generate": {
+          "enabled": true,
+          "priority": 4,
+          "per_item": 0,
+          "style_modifiers": ["clean UI screenshot", "professional software tool", "modern tech interface"],
+          "_note": "T4: Pollinations.ai AI 生成"
+        },
+        "fallback_pattern": {
+          "enabled": true,
+          "priority": 5,
+          "_note": "T5: PIL 几何抽象图案兜底"
+        }
+      },
+      "placement": "after_project_intro"
+    },
+
+    "技术教程": {
+      "description": "编程/工具教程 — 代码块截图 + 工具界面 + 步骤图示",
+      "triggers": {
+        "code_blocks": true,
+        "tool_names": true,
+        "sections": true
+      },
+      "sources": {
+        "code_screenshot": {
+          "enabled": true,
+          "priority": 1,
+          "per_section": 1,
+          "_note": "T1: 用 code_image_generator.py 生成代码截图"
+        },
+        "og_image": {
+          "enabled": true,
+          "priority": 2,
+          "per_item": 1
+        },
+        "web_search": {
+          "enabled": true,
+          "priority": 3,
+          "per_item": 1,
+          "search_query_template": "{name} tutorial screenshot"
+        },
+        "ai_generate": {
+          "enabled": true,
+          "priority": 4,
+          "per_section": 1,
+          "style_modifiers": ["tutorial illustration", "step by step diagram", "educational infographic"]
+        },
+        "fallback_pattern": {
+          "enabled": true,
+          "priority": 5
+        }
+      },
+      "placement": "after_code_block_or_section"
+    },
+
+    "深度解析": {
+      "description": "行业深度分析 — 概念插图 + 数据图表 + 公司Logo",
+      "triggers": {
+        "concepts": true,
+        "company_names": true,
+        "data_points": true,
+        "sections": true
+      },
+      "sources": {
+        "og_image": {
+          "enabled": true,
+          "priority": 1,
+          "per_section": 1,
+          "_note": "T1: 从文章引用的链接提取 og:image"
+        },
+        "ai_generate": {
+          "enabled": true,
+          "priority": 2,
+          "per_section": 1,
+          "style_modifiers": ["editorial illustration", "conceptual art", "abstract technology", "dark theme"]
+        },
+        "web_search": {
+          "enabled": true,
+          "priority": 3,
+          "per_item": 1,
+          "search_query_template": "{name} technology concept"
+        },
+        "fallback_pattern": {
+          "enabled": true,
+          "priority": 4
+        }
+      },
+      "placement": "after_section_header"
+    },
+
+    "早报_晚报": {
+      "description": "每日/早晚报 — 每条新闻配源Logo或摘要图",
+      "triggers": {
+        "news_items": true,
+        "company_names": true,
+        "sections": true
+      },
+      "sources": {
+        "og_image": {
+          "enabled": true,
+          "priority": 1,
+          "per_section": 1
+        },
+        "web_search": {
+          "enabled": true,
+          "priority": 2,
+          "per_item": 1,
+          "search_query_template": "{name} logo transparent"
+        },
+        "ai_generate": {
+          "enabled": false,
+          "priority": 3,
+          "per_section": 0,
+          "style_modifiers": ["news graphic", "clean infographic"]
+        },
+        "fallback_pattern": {
+          "enabled": true,
+          "priority": 4
+        }
+      },
+      "placement": "before_section"
+    }
+  },
+
+  "_company_names_comment": "可扩展的公司/组织名称列表，用于 extract_company_names 匹配。添加到此列表的公司名会自动与默认列表合并。",
+  "company_names": [
+    "三星", "英伟达", "软银", "Oracle", "IBM", "SAP", "Adobe", "Uber", "Airbnb"
+  ],
+
+  "auto_detect": {
+    "_comment": "未指定 --type 时，根据内容特征自动判定文章类型",
+    "rules": {
+      "项目推荐": {
+        "patterns": ["github.com/", "开源项目", "GitHub"],
+        "min_matches": 2
+      },
+      "技术教程": {
+        "patterns": ["<pre><code>", "教程", "入门", "实战", "pip install", "npm install"],
+        "min_matches": 2
+      },
+      "深度解析": {
+        "patterns": ["深度", "解析", "趋势", "格局", "分析"],
+        "min_matches": 2
+      },
+      "早报_晚报": {
+        "patterns": ["早报", "晚报", "日报", "简报"],
+        "min_matches": 1
+      }
+    }
+  },
+
+  "github_screenshot": {
+    "_comment": "T1: GitHub 项目截图获取配置",
+    "og_url_template": "https://opengraph.githubassets.com/1/{owner}/{repo}",
+    "fallback_paths": [
+      "screenshot.png",
+      "demo.png",
+      "preview.png",
+      "public/screenshot.png",
+      "public/openscreen.png",
+      "assets/screenshot.png",
+      "assets/MTools_Dark.png",
+      "assets/MTools_Light.png",
+      "public/og-image.png",
+      "public/logo.png"
+    ],
+    "fallback_url_template": "https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}",
+    "timeout_seconds": 15
+  },
+
+  "web_search": {
+    "_comment": "T3: Brave 图片搜索配置",
+    "use_brave_api": true,
+    "timeout_seconds": 12,
+    "min_image_width": 500,
+    "results_per_search": 5
+  },
+
+  "ai_generate": {
+    "_comment": "T4: AI 图片生成配置",
+    "provider": "pollinations.ai",
+    "width": 670,
+    "height": 380,
+    "model": "flux",
+    "timeout_seconds": 120
+  },
+
+  "fallback_pattern": {
+    "_comment": "T5: 几何抽象图案兜底",
+    "width": 670,
+    "height": 380,
+    "themes": [
+      {"name": "ocean", "colors": ["#0a1628", "#1a3a5c", "#2e86c1", "#5dade2"]},
+      {"name": "sunset", "colors": ["#1a0a14", "#5c1a3a", "#c1285e", "#e2748b"]},
+      {"name": "forest", "colors": ["#0a1a0a", "#1a4a1a", "#2e7d32", "#66bb6a"]},
+      {"name": "neon", "colors": ["#0a0a1a", "#1a1a5c", "#7c3aed", "#a78bfa"]}
+    ]
+  }
+}

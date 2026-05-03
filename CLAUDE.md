@@ -74,4 +74,96 @@ article-pool/
 | ❌ 会失效 | ✅ 替代方案 |
 |-----------|-----------|
 | `<div>` `<section>` 标签 | `<table><tr><td>` 表格布局 |
-| `disp
+| `display:flex` / `grid` | `<table><tr><td>` 表格布局 |
+| `display:inline-block` | 省略（span 内联即可） |
+| `gap` / `align-items` | `<td>` + `padding` / `vertical-align` |
+| `linear-gradient(...)` | 实色 `background:#色值` |
+| `border-radius` | 移除（微信不支持） |
+| `letter-spacing` | 移除 |
+| `font-style:italic` | 移除 |
+| `text-transform:uppercase` | 直接大写 |
+| `opacity` | 直接色值 |
+| `font-family` 自定义字体 | 移除 |
+
+所有 `templates/` 下的 HTML 模板已完成转换。新建模板时必须遵守以上规则。
+
+### 模板编写规范
+
+**文件头部**：注释块后必须紧跟 `<meta charset="UTF-8">`，否则 Windows 浏览器默认用 GBK 解码导致乱码。
+
+```html
+<!-- 模板注释 -->
+-->
+<meta charset="UTF-8">
+<table width="100%">
+```
+
+**占位符系统**：
+| 标记 | 用途 | 示例 |
+|------|------|------|
+| `<!-- REPLACE:key -->default<!-- /REPLACE -->` | 单值替换 | `<!-- REPLACE:标题 -->默认标题<!-- /REPLACE -->` |
+| `<!-- REPEAT:名称 -->...<!-- /REPEAT -->` | 列表循环 | 夹在重复区块的首尾 |
+| `<!-- REPLACE:keyN -->` (N=1,2,3...) | 固定编号替换 | `<!-- REPLACE:前提条件1 -->条件1<!-- /REPLACE -->` |
+
+**REPEAT 区块规则**：
+- ✅ 标题、表头放在 REPEAT 区块**外部**，避免每项重复
+- ✅ `_strip_replace_comments` 会自动清理所有未替换的 REPLACE 和 REPEAT 标记
+- ✅ `template_filler.py` 的 `_fill_repeat_*` 方法匹配 `<!-- REPEAT:名称 -->` 前缀
+
+**注释规范**：
+- 章节分隔注释中使用 "循环区块" 而非 "REPEAT 区块"（避免干扰自动化测试）
+
+## 封面图生成
+
+```bash
+# 编辑 scripts/gen_cover.py 修改标题等信息，然后：
+python3 scripts/gen_cover.py
+```
+
+详情见 `skills/cover-gen/SKILL.md`。
+
+## 插图生成
+
+在审阅官确认内容定稿后（Stage 4.5），自动分析文章内容并生成配图：
+
+```bash
+# 自动检测文章类型
+python scripts/illustration_gen.py article.html
+
+# 指定文章类型
+python scripts/illustration_gen.py article.html --type 项目推荐
+
+# 干跑测试
+python scripts/illustration_gen.py article.html --type 项目推荐 --dry-run
+
+# 限制图片数量
+python scripts/illustration_gen.py article.html --type 技术教程 --max-images 5
+```
+
+**5 级图片源级联：** GitHub截图 → 网页OG图片 → Brave搜索 → AI生成 → 几何兜底
+
+**配置驱动：** `config/illustration_rules.json` 按文章类型定义规则，新增类型只需加 JSON 条目。
+
+**输出：** `*_illustrated.html`（不覆盖原文件）+ `reports/illustrations_*.json`
+
+详情见 `skills/illustration-gen/SKILL.md`。
+
+## 文章发布
+
+```bash
+python3 scripts/publish_html.py <文章.html> --cover <封面图.png> --author "小咪"
+```
+
+或手动：浏览器打开 HTML → 全选复制 → 粘贴到公众号后台编辑器。
+
+## 文件命名
+
+文章：`E:\WorkSpace\创作\微信公众号\文章\{年份}年{月份}月\{日期}-{标题}.html`
+封面：同目录，`.png` 后缀，与文章同名。
+
+## 参考
+
+- 完整写作规范：`skills/wechat-writer/SKILL.md`
+- 模板清单与配色：`templates/README.md`
+- 封面生成：`skills/cover-gen/SKILL.md`
+- 发布脚本：`scripts/publish_html.py`
