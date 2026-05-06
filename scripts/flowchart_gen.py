@@ -269,11 +269,11 @@ def _node_style(nid: str, node: dict, palette: dict) -> str:
     )
 
 
-def _node_def(node: dict) -> str:
+def _node_def(node: dict, palette: dict | None = None) -> str:
     """Generate a Mermaid node definition with optional icon and description.
 
-    Strategy: Mermaid node delimiters use double quotes; inner HTML attributes use
-    single quotes. Only text content that contains single quotes needs HTML escaping.
+    Uses explicit px font sizes (not em) to avoid Mermaid layout miscalculation.
+    Uses palette text_dim color instead of CSS opacity for description dimming.
     """
     nid = node["id"]
     label = node.get("label", nid)
@@ -282,17 +282,23 @@ def _node_def(node: dict) -> str:
     shape = node.get("shape", "rounded")
 
     # Escape single quotes in text values using HTML entity
+    # Also convert literal \n to <br/> for proper multi-line in HTML context
     label_safe = label.replace("'", "&#39;")
-    desc_safe = desc.replace("'", "&#39;") if desc else ""
+    desc_safe = desc.replace("'", "&#39;").replace("\n", "<br/>") if desc else ""
 
-    # Build rich label: icon + bold title + optional description
+    # Get dim text color for descriptions (avoids CSS opacity which Mermaid may not support)
+    dim_color = "#888"
+    if palette:
+        dim_color = palette.get("text_dim", "#888")
+
+    # Build rich label: icon (18px) + bold title + optional dim description (12px)
     parts = []
     if icon:
-        parts.append(f"<span style='font-size:1.3em'>{icon}</span>")
+        parts.append(f"<span style='font-size:18px'>{icon}</span>")
     parts.append(f"<b>{label_safe}</b>")
     text = " ".join(parts)
     if desc_safe:
-        text += f"<br/><span style='font-size:0.85em;opacity:0.75'>{desc_safe}</span>"
+        text += f"<br/><span style='font-size:12px;color:{dim_color}'>{desc_safe}</span>"
 
     template = _SHAPE_MAP.get(shape, _SHAPE_MAP["rounded"])
     return f"""{nid}{template.format(t=text)}"""
@@ -313,7 +319,7 @@ def _edge_def(edge: dict) -> str:
     }.get(category, "-->")
 
     if label:
-        line = f"  {frm} {edge_spec} |\"<span style='font-size:0.8em'>{label}</span>\"| {to}"
+        line = f"  {frm} {edge_spec} |\"<span style='font-size:11px'>{label}</span>\"| {to}"
     else:
         line = f"  {frm} {edge_spec} {to}"
 
@@ -353,7 +359,7 @@ config:
     useMaxWidth: false
     htmlLabels: true
     curve: basis
-    padding: 24
+    padding: 36
 ---"""
 
 
@@ -387,7 +393,7 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
         title_id = "TITLE"
         lines.append("  %% ── Title ──")
         if "desc" in flow:
-            title_text = f"<b>{title}</b><br/><span style='font-size:0.75em;opacity:0.6'>{flow['desc']}</span>"
+            title_text = f"<b>{title}</b><br/><span style='font-size:11px;color:{p['text_dim']}'>{flow['desc']}</span>"
         else:
             title_text = f"<b>{title}</b>"
         lines.append(f'  {title_id}["{title_text}"]')
@@ -416,10 +422,10 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
             if not sg_open[sg_idx]:
                 lines.append(f"  subgraph {sg_id} [\"{sg_title}\"]")
                 sg_open[sg_idx] = True
-            lines.append(f"    {_node_def(node)}")
+            lines.append(f"    {_node_def(node, p)}")
             lines.append(f"    {_node_style(nid, node, p)}")
         else:
-            lines.append(f"  {_node_def(node)}")
+            lines.append(f"  {_node_def(node, p)}")
             lines.append(f"  {_node_style(nid, node, p)}")
     # Close open subgraphs
     for sg_idx, is_open in enumerate(sg_open):
