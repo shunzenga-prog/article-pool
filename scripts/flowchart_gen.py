@@ -4,9 +4,10 @@ Flowchart generator — Design-grade Mermaid.js charts rendered via Playwright.
 
 A complete design system for WeChat tutorial flowcharts. Every visual decision
 is governed by design tokens organized into content-aware palettes. Node categories
-auto-generate classDef styles; edges get linkStyle directives.
+auto-generate per-node `style` directives; edges get linkStyle directives.
 
-Philosophy: "Designers should weep at the beauty of our flowcharts."
+NOTE: We use per-node `style` instead of `classDef` because Mermaid v11.12+
+has a parser regression that breaks classDef with syntax errors.
 
 Usage:
   python flowchart_gen.py --file flow.json -o chart.png
@@ -252,29 +253,20 @@ _SHAPE_MAP = {
 # Mermaid Markup Generation
 # ═══════════════════════════════════════════════════════════════
 
-def _category_classdefs(palette: dict) -> list[str]:
-    """Generate classDef lines for each node category from palette tokens."""
-    lines = []
-    for cat, tokens in palette["categories"].items():
-        lines.append(
-            f"  classDef {cat} "
-            f"fill:{tokens['fill']},stroke:{tokens['border']},"
-            f"color:{tokens['text']},stroke-width:2px,rx:8,ry:8"
-        )
-    return lines
+def _node_style(nid: str, node: dict, palette: dict) -> str:
+    """Generate a per-node `style` directive from the category palette tokens.
 
-
-def _category_class_assignments(nodes: list[dict]) -> list[str]:
-    """Generate class assignments grouping nodes by category."""
-    buckets = {}
-    for node in nodes:
-        cat = node.get("category", "step")
-        buckets.setdefault(cat, []).append(node["id"])
-
-    lines = []
-    for cat, ids in buckets.items():
-        lines.append(f"  class {','.join(ids)} {cat}")
-    return lines
+    NOTE: We use per-node `style` directives instead of `classDef` because
+    Mermaid v11.12+ has a parser regression that breaks classDef (syntax error).
+    Per-node `style` is more verbose but reliably supported.
+    """
+    cat = node.get("category", "step")
+    tokens = palette["categories"].get(cat, palette["categories"]["step"])
+    return (
+        f"  style {nid}"
+        f" fill:{tokens['fill']},stroke:{tokens['border']},"
+        f"color:{tokens['text']},stroke-width:2px"
+    )
 
 
 def _node_def(node: dict) -> str:
@@ -306,7 +298,7 @@ def _node_def(node: dict) -> str:
     return f"""{nid}{template.format(t=text)}"""
 
 
-def _edge_def(edge: dict) -> tuple[str, str | None]:
+def _edge_def(edge: dict) -> str:
     """Return (edge_line, link_style_line_or_none) for an edge."""
     frm = edge["from"]
     to = edge["to"]
@@ -329,10 +321,10 @@ def _edge_def(edge: dict) -> tuple[str, str | None]:
 
 
 def _theme_init(palette_name: str) -> str:
-    """Generate YAML frontmatter config block (compatible with classDef).
+    """Generate YAML frontmatter config block.
 
-    NOTE: The %%{init}%% JSON format conflicts with classDef in Mermaid v11.
-    YAML frontmatter (---/---) is the correct format for theme + classDef usage.
+    Uses YAML format (---/---) for Mermaid config. The %%{init}%% JSON format
+    is avoided because it conflicts with advanced features in Mermaid v11.
     """
     p = PALETTES.get(palette_name, PALETTES["tech-dark"])
     c = p["categories"]["step"]
@@ -366,7 +358,10 @@ config:
 
 
 def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
-    """Convert a flow dict to complete Mermaid.js markup with full design system."""
+    """Convert a flow dict to complete Mermaid.js markup with full design system.
+
+    Uses per-node `style` directives instead of `classDef` (broken in Mermaid v11.12+).
+    """
     p = PALETTES.get(palette_name, PALETTES["tech-dark"])
     direction = flow.get("direction", "LR")
     title = flow.get("title", "")
@@ -376,44 +371,40 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
 
     lines = []
 
-    # 1. Theme init
+    # 1. Theme init (YAML frontmatter)
     lines.append(_theme_init(palette_name))
     lines.append("")
 
-    # 2. Class definitions (design tokens → visual styles)
-    lines.append("  %% ── Node category styles ──")
-    lines.extend(_category_classdefs(p))
-    lines.append("")
-
-    # 3. Flowchart direction
+    # 2. Flowchart direction
     lines.append(f"flowchart {direction}")
     lines.append("")
 
-    # 4. Title node (centered above content)
+    # Track the invisible-title-edge index for linkStyle offset
+    has_title_edge = bool(title and nodes)
+
+    # 3. Title node
     if title:
         title_id = "TITLE"
-        lines.append(f"  %% ── Title ──")
+        lines.append("  %% ── Title ──")
         if "desc" in flow:
             title_text = f"<b>{title}</b><br/><span style='font-size:0.75em;opacity:0.6'>{flow['desc']}</span>"
         else:
             title_text = f"<b>{title}</b>"
         lines.append(f'  {title_id}["{title_text}"]')
-        lines.append(f"  style {title_id} fill:{p['canvas']},stroke:none,color:{p['text']},font-size:1.2em")
-        # Connect title to first node if available
+        lines.append(f"  style {title_id} fill:{p['canvas']},stroke:none,color:{p['text']}")
         if nodes:
             lines.append(f"  {title_id} ~~~ {nodes[0]['id']}")
         lines.append("")
 
-    # 5. Build subgraph membership map
+    # 4. Build subgraph membership map
     sg_map = {}  # node_id → subgraph_index
     if subgraphs:
         for sg_idx, sg in enumerate(subgraphs):
             for nid in sg.get("nodes", []):
                 sg_map[nid] = sg_idx
 
-    # 6. Nodes (grouped by subgraph membership)
+    # 5. Nodes + per-node style directives
     lines.append("  %% ── Nodes ──")
-    rendered_in_sg = set()
     sg_open = [False] * len(subgraphs) if subgraphs else []
     for node in nodes:
         nid = node["id"]
@@ -426,9 +417,10 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
                 lines.append(f"  subgraph {sg_id} [\"{sg_title}\"]")
                 sg_open[sg_idx] = True
             lines.append(f"    {_node_def(node)}")
-            rendered_in_sg.add(nid)
+            lines.append(f"    {_node_style(nid, node, p)}")
         else:
             lines.append(f"  {_node_def(node)}")
+            lines.append(f"  {_node_style(nid, node, p)}")
     # Close open subgraphs
     for sg_idx, is_open in enumerate(sg_open):
         if is_open:
@@ -441,12 +433,7 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
                         f"stroke-width:1px,stroke-dasharray:6 4")
     lines.append("")
 
-    # 7. Class assignments
-    lines.append("  %% ── Class assignments ──")
-    lines.extend(_category_class_assignments(nodes))
-    lines.append("")
-
-    # 8. Edges
+    # 6. Edges
     lines.append("  %% ── Edges ──")
     edge_categories = []
     for edge in edges:
@@ -455,9 +442,10 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
         edge_categories.append(edge.get("category", "main"))
     lines.append("")
 
-    # 9. linkStyle directives (apply edge styling by index)
+    # 7. linkStyle directives (offset by 1 if title invisible edge exists)
     if edge_categories:
         lines.append("  %% ── Edge styles ──")
+        offset = 1 if has_title_edge else 0
         for i, ecat in enumerate(edge_categories):
             et = p["edges"].get(ecat, p["edges"]["main"])
             color = et["color"]
@@ -466,7 +454,7 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
             style_parts = [f"stroke:{color}", f"stroke-width:{width}px"]
             if dash:
                 style_parts.append(f"stroke-dasharray:{dash}")
-            lines.append(f"  linkStyle {i} {','.join(style_parts)}")
+            lines.append(f"  linkStyle {i + offset} {','.join(style_parts)}")
 
     return "\n".join(lines)
 
