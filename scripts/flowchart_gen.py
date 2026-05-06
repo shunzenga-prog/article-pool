@@ -67,7 +67,7 @@ PALETTES = {
     # ── Tech Dark: AI / coding tutorials (default) ──
     "tech-dark": {
         "meta": {"name": "科技暗色", "mood": "专业、冷静、未来感"},
-        "canvas": "#13141f",
+        "canvas": "#0a0d18",
         "surface": "#1c1d2e",
         "text": "#c8cde0",
         "text_dim": "#7c8099",
@@ -90,6 +90,19 @@ PALETTES = {
             "trigger":  {"color": "#5c5e6e", "width": 1.0, "dash": "2,4"},
         },
         "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(59,130,246,0.06)",
+            "canvas_glow_bottom": "rgba(139,92,246,0.04)",
+            "card_bg_start": "rgba(22,25,42,0.88)",
+            "card_bg_end": "rgba(28,31,52,0.88)",
+            "card_border": "rgba(99,102,241,0.12)",
+            "card_highlight": "rgba(255,255,255,0.03)",
+            "accent_from": "#3b82f6",
+            "accent_to": "#8b5cf6",
+            "edge_gradient_from": "#5865f2",
+            "edge_gradient_to": "#a78bfa",
+            "gradient_boost": 0.18,
+        },
     },
 
     # ── Ocean: system architecture / infrastructure ──
@@ -118,6 +131,19 @@ PALETTES = {
             "trigger":  {"color": "#405060", "width": 1.0, "dash": "2,4"},
         },
         "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(52,152,219,0.06)",
+            "canvas_glow_bottom": "rgba(41,128,185,0.04)",
+            "card_bg_start": "rgba(10,20,35,0.88)",
+            "card_bg_end": "rgba(15,28,48,0.88)",
+            "card_border": "rgba(52,152,219,0.10)",
+            "card_highlight": "rgba(255,255,255,0.02)",
+            "accent_from": "#3498db",
+            "accent_to": "#2980b9",
+            "edge_gradient_from": "#3498db",
+            "edge_gradient_to": "#5dade2",
+            "gradient_boost": 0.15,
+        },
     },
 
     # ── Forest: nature / energy / sustainability ──
@@ -146,6 +172,19 @@ PALETTES = {
             "trigger":  {"color": "#3a5040", "width": 1.0, "dash": "2,4"},
         },
         "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(46,204,113,0.05)",
+            "canvas_glow_bottom": "rgba(26,188,156,0.03)",
+            "card_bg_start": "rgba(8,22,14,0.88)",
+            "card_bg_end": "rgba(14,32,24,0.88)",
+            "card_border": "rgba(46,204,113,0.10)",
+            "card_highlight": "rgba(255,255,255,0.02)",
+            "accent_from": "#2ecc71",
+            "accent_to": "#1abc9c",
+            "edge_gradient_from": "#2ecc71",
+            "edge_gradient_to": "#58d68d",
+            "gradient_boost": 0.15,
+        },
     },
 
     # ── Sunset: creative / opinion / lifestyle ──
@@ -174,6 +213,19 @@ PALETTES = {
             "trigger":  {"color": "#4a3a2a", "width": 1.0, "dash": "2,4"},
         },
         "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(230,126,34,0.05)",
+            "canvas_glow_bottom": "rgba(241,196,15,0.03)",
+            "card_bg_start": "rgba(26,18,14,0.88)",
+            "card_bg_end": "rgba(35,24,20,0.88)",
+            "card_border": "rgba(230,126,34,0.10)",
+            "card_highlight": "rgba(255,255,255,0.02)",
+            "accent_from": "#e67e22",
+            "accent_to": "#f1c40f",
+            "edge_gradient_from": "#e67e22",
+            "edge_gradient_to": "#f39c12",
+            "gradient_boost": 0.15,
+        },
     },
 
     # ── Midnight: startup / innovation / VC ──
@@ -202,6 +254,19 @@ PALETTES = {
             "trigger":  {"color": "#404050", "width": 1.0, "dash": "2,4"},
         },
         "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(124,58,237,0.06)",
+            "canvas_glow_bottom": "rgba(236,72,153,0.04)",
+            "card_bg_start": "rgba(10,10,18,0.88)",
+            "card_bg_end": "rgba(16,16,28,0.88)",
+            "card_border": "rgba(124,58,237,0.12)",
+            "card_highlight": "rgba(255,255,255,0.02)",
+            "accent_from": "#7c3aed",
+            "accent_to": "#ec4899",
+            "edge_gradient_from": "#7c3aed",
+            "edge_gradient_to": "#a78bfa",
+            "gradient_boost": 0.18,
+        },
     },
 
     # ── Paper: literature / history / education ──
@@ -230,6 +295,19 @@ PALETTES = {
             "trigger":  {"color": "#b0a898", "width": 1.0, "dash": "2,4"},
         },
         "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(74,103,65,0.04)",
+            "canvas_glow_bottom": "rgba(107,140,92,0.03)",
+            "card_bg_start": "rgba(255,252,244,0.90)",
+            "card_bg_end": "rgba(248,244,232,0.90)",
+            "card_border": "rgba(180,160,140,0.25)",
+            "card_highlight": "rgba(255,255,255,0.6)",
+            "accent_from": "#4a6741",
+            "accent_to": "#6b8c5c",
+            "edge_gradient_from": "#4a6741",
+            "edge_gradient_to": "#6b8c5c",
+            "gradient_boost": -0.08,
+        },
     },
 }
 
@@ -380,24 +458,7 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
     lines.append(f"flowchart {direction}")
     lines.append("")
 
-    # Track the invisible-title-edge index for linkStyle offset
-    has_title_edge = bool(title and nodes)
-
-    # 3. Title node
-    if title:
-        title_id = "TITLE"
-        lines.append("  %% ── Title ──")
-        if "desc" in flow:
-            title_text = f"<b>{title}</b><br/>{flow['desc']}"
-        else:
-            title_text = f"<b>{title}</b>"
-        lines.append(f'  {title_id}["{title_text}"]')
-        lines.append(f"  style {title_id} fill:{p['canvas']},stroke:none,color:{p['text']}")
-        if nodes:
-            lines.append(f"  {title_id} ~~~ {nodes[0]['id']}")
-        lines.append("")
-
-    # 4. Build subgraph membership map
+    # 3. Build subgraph membership map
     sg_map = {}  # node_id → subgraph_index
     if subgraphs:
         for sg_idx, sg in enumerate(subgraphs):
@@ -443,10 +504,9 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
         edge_categories.append(edge.get("category", "main"))
     lines.append("")
 
-    # 7. linkStyle directives (offset by 1 if title invisible edge exists)
+    # 7. linkStyle directives
     if edge_categories:
         lines.append("  %% ── Edge styles ──")
-        offset = 1 if has_title_edge else 0
         for i, ecat in enumerate(edge_categories):
             et = p["edges"].get(ecat, p["edges"]["main"])
             color = et["color"]
@@ -455,7 +515,7 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
             style_parts = [f"stroke:{color}", f"stroke-width:{width}px"]
             if dash:
                 style_parts.append(f"stroke-dasharray:{dash}")
-            lines.append(f"  linkStyle {i + offset} {','.join(style_parts)}")
+            lines.append(f"  linkStyle {i} {','.join(style_parts)}")
 
     return "\n".join(lines)
 
@@ -473,27 +533,79 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
   body {{
-    background: {bg};
+    background-color: {bg};
+    background-image:
+      radial-gradient(ellipse at 50% 0%, {canvas_glow_top} 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, {canvas_glow_bottom} 0%, transparent 50%);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: {padding}px;
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
   }}
 
-  /* ── Card wrapper ── */
+  /* ── Glass card wrapper ── */
   .chart-card {{
-    background: {surface};
-    border-radius: 16px;
+    background: linear-gradient(135deg, {card_bg_start}, {card_bg_end});
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 20px;
     padding: {card_pad}px;
     max-width: {max_width}px;
     width: 100%;
     box-shadow:
-      0 4px 24px {shadow_heavy},
-      0 1px 4px {shadow_light};
-    border: 1px solid {border};
+      0 8px 40px {shadow_heavy},
+      0 2px 8px {shadow_light},
+      inset 0 1px 0 {card_highlight};
+    border: 1px solid {card_border};
+    position: relative;
+    overflow: hidden;
+  }}
+
+  /* ── Dot pattern decoration (top-left corner) ── */
+  .chart-card::before {{
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    width: 36px;
+    height: 36px;
+    background-image:
+      radial-gradient(circle, {dot_color} 1px, transparent 1px);
+    background-size: 12px 12px;
+    pointer-events: none;
+  }}
+
+  /* ── Title block ── */
+  .chart-title-block {{
+    text-align: center;
+    margin-bottom: 28px;
+  }}
+  .chart-title {{
+    font-size: 22px;
+    font-weight: 700;
+    color: {title_text};
+    letter-spacing: 0.02em;
+    margin: 0 0 6px 0;
+    line-height: 1.3;
+  }}
+  .chart-subtitle {{
+    font-size: 13px;
+    color: {text_dim};
+    letter-spacing: 0.04em;
+    margin: 0 0 14px 0;
+    line-height: 1.4;
+  }}
+  /* ── Accent line below title ── */
+  .accent-line {{
+    display: block;
+    width: 60px;
+    height: 2px;
+    margin: 0 auto;
+    border-radius: 1px;
+    background: linear-gradient(90deg, {accent_from}, {accent_to}, transparent);
   }}
 
   /* ── Mermaid container ── */
@@ -506,7 +618,6 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   .mermaid svg {{
     max-width: 100%;
     height: auto;
-    border-radius: 4px;
   }}
 
   /* ── Watermark badge ── */
@@ -516,12 +627,13 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     font-size: 10px;
     color: {text_dim};
     letter-spacing: 0.05em;
-    opacity: 0.5;
+    opacity: 0.4;
   }}
 </style>
 </head>
 <body>
 <div class="chart-card">
+  {title_block}
   <pre class="mermaid">
 {mermaid}
   </pre>
@@ -535,62 +647,127 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 </html>"""
 
 
+def _hex_to_rgb(hex_color: str) -> tuple:
+    """Convert hex color to (r,g,b) tuple."""
+    h = hex_color.lstrip('#')
+    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+
+def _rgb_to_hex(rgb: tuple) -> str:
+    """Convert (r,g,b) tuple to #rrggbb."""
+    return '#{:02x}{:02x}{:02x}'.format(*rgb)
+
+
+def _lighten_hex(hex_color: str, amount: float) -> str:
+    """Lighten (amount>0) or darken (amount<0) a hex color."""
+    r, g, b = _hex_to_rgb(hex_color)
+    if amount >= 0:
+        r = min(255, int(r + (255 - r) * amount))
+        g = min(255, int(g + (255 - g) * amount))
+        b = min(255, int(b + (255 - b) * amount))
+    else:
+        r = max(0, int(r * (1 + amount)))
+        g = max(0, int(g * (1 + amount)))
+        b = max(0, int(b * (1 + amount)))
+    return _rgb_to_hex((r, g, b))
+
+
 def render_mermaid_to_png(mermaid_markup: str, output_path: str,
                           palette_name: str = "tech-dark",
                           width: int = 720, device_scale: float = 2.0,
-                          padding: int = 32, card_padding: int = 40,
-                          watermark: str = ""):
-    """Render Mermaid markup → centered, card-wrapped PNG via Playwright.
+                          padding: int = 32, card_padding: int = 48,
+                          watermark: str = "",
+                          chart_title: str = "",
+                          chart_subtitle: str = ""):
+    """Render Mermaid markup → glass-card PNG via Playwright.
 
     Args:
-        mermaid_markup: Complete Mermaid.js markup
-        output_path:  Output PNG path
-        palette_name: Design palette key
-        width:        Viewport width (canvas)
-        device_scale: Retina multiplier (2.0 = crisp on HiDPI)
-        padding:      Outer page padding
-        card_padding: Inner card padding around the chart
-        watermark:    Optional footer text
+        mermaid_markup:  Complete Mermaid.js markup
+        output_path:     Output PNG path
+        palette_name:    Design palette key
+        width:           Viewport width (canvas)
+        device_scale:    Retina multiplier (2.0 = crisp on HiDPI)
+        padding:         Outer page padding
+        card_padding:    Inner card padding around the chart
+        watermark:       Optional footer text
+        chart_title:     Title displayed in the card header
+        chart_subtitle:  Subtitle displayed below the title
     """
     if not HAS_PLAYWRIGHT:
         print("ERROR: playwright not installed. pip install playwright && playwright install chromium")
         sys.exit(1)
 
     p = PALETTES.get(palette_name, PALETTES["tech-dark"])
+    fx = p.get("effects", PALETTES["tech-dark"]["effects"])
 
-    # Build light/shadow colors from canvas
-    canvas = p["canvas"]
-    surface = p["surface"]
-    border = p["line"]
-    text_dim = p["text_dim"]
-
-    # Synthesize shadow colors: lighter or darker depending on palette mood
-    # For dark palettes: shadow = darker, for light: shadow_light = lighter border
-    if palette_name == "paper":
-        shadow_heavy = "rgba(0,0,0,0.04)"
-        shadow_light = "rgba(0,0,0,0.03)"
+    # Dark/Light shadow synthesis
+    is_light = palette_name == "paper"
+    if is_light:
+        shadow_heavy = "rgba(0,0,0,0.05)"
+        shadow_light = "rgba(0,0,0,0.04)"
+        dot_color = "rgba(0,0,0,0.06)"
     else:
-        shadow_heavy = "rgba(0,0,0,0.35)"
-        shadow_light = "rgba(0,0,0,0.15)"
+        shadow_heavy = "rgba(0,0,0,0.40)"
+        shadow_light = "rgba(0,0,0,0.20)"
+        dot_color = "rgba(255,255,255,0.08)"
+
+    text_dim = p["text_dim"]
+    title_text = "#f1f5f9" if not is_light else "#1a1a2e"
 
     if not watermark:
         pmeta = p["meta"]
         watermark = f"{pmeta['name']} · {pmeta['mood']}"
 
+    # Build conditional title block
+    if chart_title:
+        title_block = f"""<div class="chart-title-block">
+    <h1 class="chart-title">{chart_title}</h1>
+    <p class="chart-subtitle">{chart_subtitle}</p>
+    <span class="accent-line"></span>
+  </div>"""
+    else:
+        title_block = ""
+
     html = _HTML_TEMPLATE.format(
-        bg=canvas,
-        surface=surface,
-        border=border,
+        bg=p["canvas"],
+        canvas_glow_top=fx["canvas_glow_top"],
+        canvas_glow_bottom=fx["canvas_glow_bottom"],
+        card_bg_start=fx["card_bg_start"],
+        card_bg_end=fx["card_bg_end"],
+        card_border=fx["card_border"],
+        card_highlight=fx["card_highlight"],
+        dot_color=dot_color,
+        title_text=title_text,
         text_dim=text_dim,
+        accent_from=fx["accent_from"],
+        accent_to=fx["accent_to"],
         shadow_heavy=shadow_heavy,
         shadow_light=shadow_light,
         padding=padding,
         card_pad=card_padding,
         max_width=width - padding * 2,
+        title_block=title_block,
         mermaid=mermaid_markup,
         cdn=MERMAID_CDN,
         watermark=watermark,
     )
+
+    # Pre-compute node gradient colors for SVG post-processing
+    boost = fx.get("gradient_boost", 0.15)
+    node_gradients = {}
+    for cat_key, cat in p["categories"].items():
+        node_gradients[cat_key] = {
+            "top": _lighten_hex(cat["fill"], boost),
+            "bottom": cat["fill"],
+            "border": cat["border"],
+        }
+    edge_grad = {
+        "from": fx["edge_gradient_from"],
+        "to": fx["edge_gradient_to"],
+    }
+    import json as _json
+    node_gradients_json = _json.dumps(node_gradients)
+    edge_grad_json = _json.dumps(edge_grad)
 
     with tempfile.NamedTemporaryFile(suffix=".html", mode="w", encoding="utf-8", delete=False) as f:
         f.write(html)
@@ -610,34 +787,95 @@ def render_mermaid_to_png(mermaid_markup: str, output_path: str,
             page.wait_for_selector(".mermaid svg", timeout=15000)
             page.wait_for_timeout(800)  # extra render settling
 
-            # ── Post-processing: fix foreignObject overflow ──
-            # Mermaid's canvas-based text measurement underestimates CJK + emoji
-            # widths by ~10-15px, causing content to be clipped inside foreignObject.
-            # This expands narrow foreignObjects and re-centers their label groups.
-            page.evaluate("""() => {
+            # ── Post-processing: foreignObject overflow + SVG gradient/shadow injection ──
+            page.evaluate(f"""() => {{
                 const svg = document.querySelector('.mermaid svg');
                 if (!svg) return;
-                svg.querySelectorAll('foreignObject').forEach(fo => {
+                const NS = 'http://www.w3.org/2000/svg';
+                const nodeGradients = {node_gradients_json};
+                const edgeGrad = {edge_grad_json};
+
+                // Get or create <defs>
+                let defs = svg.querySelector('defs');
+                if (!defs) {{
+                    defs = document.createElementNS(NS, 'defs');
+                    svg.insertBefore(defs, svg.firstChild);
+                }}
+
+                // ── Create SVG shadow filter ──
+                const shadowFilter = document.createElementNS(NS, 'filter');
+                shadowFilter.setAttribute('id', 'fc-shadow');
+                shadowFilter.setAttribute('x', '-20%');
+                shadowFilter.setAttribute('y', '-20%');
+                shadowFilter.setAttribute('width', '140%');
+                shadowFilter.setAttribute('height', '140%');
+                shadowFilter.innerHTML = '<feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.18"/>';
+                defs.appendChild(shadowFilter);
+
+                // ── Create edge gradient ──
+                const edgeGradient = document.createElementNS(NS, 'linearGradient');
+                edgeGradient.setAttribute('id', 'fc-edge-grad');
+                edgeGradient.setAttribute('x1', '0'); edgeGradient.setAttribute('y1', '0');
+                edgeGradient.setAttribute('x2', '1'); edgeGradient.setAttribute('y2', '0');
+                edgeGradient.innerHTML = '<stop offset="0%" stop-color="' + edgeGrad.from + '"/><stop offset="100%" stop-color="' + edgeGrad.to + '"/>';
+                defs.appendChild(edgeGradient);
+
+                // ── Fix foreignObject overflow ──
+                svg.querySelectorAll('foreignObject').forEach(fo => {{
                     const div = fo.querySelector('div');
                     if (!div) return;
                     const scrollW = div.scrollWidth;
                     const attrW = parseFloat(fo.getAttribute('width')) || 0;
                     const extra = scrollW - attrW;
-                    if (extra > 2) {
+                    if (extra > 2) {{
                         fo.setAttribute('width', String(scrollW));
-                        // Re-center the parent label group
                         const labelG = fo.closest('g.label');
-                        if (labelG) {
+                        if (labelG) {{
                             const t = labelG.getAttribute('transform') || '';
                             const m = t.match(/translate\\(([^,]+),\\s*([^)]+)\\)/);
-                            if (m) {
+                            if (m) {{
                                 labelG.setAttribute('transform',
                                     'translate(' + (parseFloat(m[1]) - extra/2) + ', ' + m[2] + ')');
-                            }
-                        }
-                    }
-                });
-            }""")
+                            }}
+                        }}
+                    }}
+                }});
+
+                // ── Apply node gradient fills + shadows ──
+                const nodeRects = svg.querySelectorAll('.node:not(.cluster) rect.basic');
+                const catKeys = Object.keys(nodeGradients);
+                nodeRects.forEach((rect, i) => {{
+                    const catKey = catKeys[i % catKeys.length] || 'step';
+                    const gc = nodeGradients[catKey];
+                    if (!gc) return;
+
+                    const gradId = 'fc-node-grad-' + i;
+                    const grad = document.createElementNS(NS, 'linearGradient');
+                    grad.setAttribute('id', gradId);
+                    grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
+                    grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
+                    grad.innerHTML = '<stop offset="0%" stop-color="' + gc.top + '"/><stop offset="100%" stop-color="' + gc.bottom + '"/>';
+                    defs.appendChild(grad);
+
+                    rect.setAttribute('fill', 'url(#' + gradId + ')');
+                    // Keep the inline stroke from Mermaid (per-node style directive),
+                    // just add shadow filter
+                    rect.setAttribute('filter', 'url(#fc-shadow)');
+                }});
+
+                // ── Apply edge gradient + arrow colors ──
+                const edgePaths = svg.querySelectorAll('.flowchart-link');
+                edgePaths.forEach(path => {{
+                    path.setAttribute('stroke', 'url(#fc-edge-grad)');
+                }});
+
+                // Color the arrowhead markers to match edge gradient end
+                const arrowPaths = svg.querySelectorAll('marker[id*="pointEnd"] .arrowMarkerPath, marker[id*="pointEnd"] path');
+                arrowPaths.forEach(p => {{
+                    p.setAttribute('stroke', edgeGrad.to);
+                    p.setAttribute('fill', edgeGrad.to);
+                }});
+            }}""")
 
             # Screenshot the card, not the full page (focus on content)
             card = page.locator(".chart-card")
@@ -673,7 +911,12 @@ def generate_flowchart(flow: str | dict, output_path: str,
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     markup = generate_mermaid(flow, flow_palette)
-    render_mermaid_to_png(markup, output_path, palette_name=flow_palette, width=width)
+    render_mermaid_to_png(
+        markup, output_path,
+        palette_name=flow_palette, width=width,
+        chart_title=flow.get("title", ""),
+        chart_subtitle=flow.get("desc", ""),
+    )
 
     size_kb = os.path.getsize(output_path) / 1024
     pmeta = PALETTES.get(flow_palette, PALETTES["tech-dark"])["meta"]
