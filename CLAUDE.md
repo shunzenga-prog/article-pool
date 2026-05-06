@@ -54,6 +54,13 @@ article-pool/
 - 表格 ≤2 个/篇，段落 ≤5 行
 - 金句 ≥1 句/篇，行动号召必须
 
+### 7. 教程文章必须带实操截图
+- 每 1500 字至少 1 张真实截图（终端执行、浏览器界面、原文内容）
+- 关键步骤（执行命令 → 中间输出 → 最终结果）必须有图
+- **禁止用文字代码块模拟终端输出**——真实截图才有说服力
+- **禁止在文章中出现本地文件路径**（如 `教程资源/xx/xx.py`、`E:\xxx`）——公众号读者看不到本地文件，用"后台回复 xxx 获取"替代
+- 详细规范见 `skills/wechat-writer/SKILL.md` 「教程类文章截图规范」
+
 ## ⚠️ 微信公众号 CSS 兼容性
 
 ### 最严重的坑：发布时 DOM 改写（预览看不出来！）
@@ -147,6 +154,22 @@ python scripts/illustration_gen.py article.html --type 技术教程 --max-images
 **输出：** `*_illustrated.html`（不覆盖原文件）+ `reports/illustrations_*.json`
 
 详情见 `skills/illustration-gen/SKILL.md`。
+
+## 代码图片生成
+
+从 Markdown 文章中的代码块自动生成配图（代码截图、终端输出、图表、动画）：
+
+```bash
+# 从文章生成所有配图
+python3 scripts/code_image_generator.py process article.md -o output_dir --execute --animate
+
+# 单独生成某类图
+python3 scripts/code_image_generator.py chart code.py -o chart.png
+```
+
+5 种图片类型：code01(代码截图)、code02(终端)、code03(代码+注释)、code04(matplotlib图表)、code05(动画)。
+
+**CJK 字体依赖**：matplotlib 图表使用合并字体 `fonts/DroidSansCJK.ttf`（ASCII + CJK 字形合一，EM=2048），由 `scripts/rebuild_cjk_font.py` 从系统 DroidSansFallbackFull + DejaVu Sans 构建。
 
 ## 工作目录配置
 

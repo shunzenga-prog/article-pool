@@ -61,4 +61,5 @@ node_modules/
 
 # 测试文件
 test/
-tes
+tests/
+*.test.md
