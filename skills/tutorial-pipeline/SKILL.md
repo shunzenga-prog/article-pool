@@ -95,7 +95,7 @@ context = {
 step = {
     "id": 1,
     "title": "环境准备：安装 Python 和依赖",
-    "type": "setup|code|execute|output|config|summary",
+    "type": "overview|setup|code|execute|output|config|summary",
     "screenshots_needed": [
         {"type": "terminal", "desc": "python --version 命令输出"},
     ],
@@ -108,6 +108,7 @@ step = {
 
 | 步骤类型 | 必须截图 | 截图类型 | 示例 |
 |---------|---------|---------|------|
+| overview | 1 张 | 流程图 | 流水线架构全景图 |
 | setup | 1 张 | 终端安装输出 | pip install 的输出 |
 | code | 1-2 张 | 代码编辑器 + 终端运行 | 完整代码块 + 运行结果 |
 | execute | 1 张 | 终端彩色输出 | python script.py 的真实输出 |
@@ -178,6 +179,9 @@ for step in steps:
 ### 截图生成工具速查
 
 ```bash
+# 流程图 / 架构全景图 → Mermaid 流程图
+python scripts/flowchart_gen.py --file flow.json -o step0_flowchart.png
+
 # 终端命令输出 → 终端风格截图
 python scripts/code_image_generator.py exec script.py -o stepN_terminal.png
 

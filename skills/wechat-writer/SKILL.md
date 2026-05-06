@@ -231,6 +231,7 @@ S 情境 → C 冲突 → Q 疑问 → A 答案
 
 | 优先级 | 类型 | 说明 | 生成工具 |
 |--------|------|------|---------|
+| 0 | 流程图/架构图 | 流水线全景、系统架构、数据流 | Mermaid + Playwright 渲染 |
 | 1 | 终端执行截图 | 命令运行的真实输出，彩色命令行风格 | PIL 渲染（暗色主题 + 彩色文字） |
 | 2 | 界面/浏览器截图 | 生成的页面、工具界面、最终效果 | Playwright 全页截图 |
 | 3 | 原文/源数据截图 | 点击链接后的实际内容页，证明数据真实 | Playwright viewport 截图 |
@@ -246,6 +247,9 @@ S 情境 → C 冲突 → Q 疑问 → A 答案
 ### 截图生成命令
 
 ```bash
+# 流程图/架构图：从 JSON 生成 Mermaid 流程图
+python scripts/flowchart_gen.py --file flow.json -o flowchart.png
+
 # 终端执行截图：运行脚本 + 捕获真实输出
 python scripts/code_image_generator.py exec script.py -o stepN_terminal.png
 
