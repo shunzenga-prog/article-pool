@@ -1,0 +1,25 @@
+{
+  "direction": "TB",
+  "title": "AI 自动化内容流水线",
+  "desc": "从信息抓取到公众号发布的全流程架构",
+  "palette": "tech-dark",
+  "style": "glass",
+  "nodes": [
+    {"id":"a","label":"1. 信息抓取","desc":"Hacker News API · 免费 JSON 接口 · 每小时轮询","icon":"📥","shape":"rounded","category":"start"},
+    {"id":"b","label":"2. AI 筛选过滤","desc":"GPT-4o 评估相关性 · 过滤低质内容 · 提取关键字段","icon":"🔍","shape":"rounded","category":"step"},
+    {"id":"c","label":"3. 深度分析","desc":"解读技术要点 · 对比业界方案 · 提炼核心观点","icon":"🧠","shape":"rounded","category":"highlight"},
+    {"id":"d","label":"4. 内容生成","desc":"结构化写作 · 去 AI 味润色 · 金句 + 行动号召","icon":"✍️","shape":"subroutine","category":"highlight"},
+    {"id":"e","label":"5. 排版渲染","desc":"HTML 模板适配 · 微信公众号 CSS · 代码截图生成","icon":"🎨","shape":"rounded","category":"step"},
+    {"id":"f","label":"6. 推送发布","desc":"API 直推草稿箱 · 封面图自动生成 · 定时发送","icon":"🚀","shape":"rounded","category":"end"},
+    {"id":"log","label":"运行日志","desc":"记录每次执行 · 异常告警 · 选题去重校验","icon":"📊","shape":"cylinder","category":"data"}
+  ],
+  "edges": [
+    {"from":"a","to":"b","label":"原始数据","category":"main"},
+    {"from":"b","to":"c","label":"候选列表","category":"main"},
+    {"from":"c","to":"d","label":"分析摘要","category":"main"},
+    {"from":"d","to":"e","label":"文章草稿","category":"main"},
+    {"from":"e","to":"f","label":"HTML成品","category":"main"},
+    {"from":"f","to":"log","label":"发布结果","category":"data"},
+    {"from":"log","to":"a","label":"调度触发","category":"feedback"}
+  ]
+}

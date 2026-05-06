@@ -49,6 +49,7 @@ Edge categories → automatic linkStyle:
 import argparse
 import json
 import os
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -309,9 +310,400 @@ PALETTES = {
             "gradient_boost": -0.08,
         },
     },
+
+    # ── Cyberpunk: neon cyan/magenta on deep dark, for gaming / creative tech ──
+    "cyberpunk": {
+        "meta": {"name": "赛博朋克", "mood": "霓虹、反叛、未来感"},
+        "canvas": "#050510",
+        "surface": "#0e0e1a",
+        "text": "#c8e8ff",
+        "text_dim": "#5a8099",
+        "line": "#1a2040",
+        "line_strong": "#2a5090",
+        "categories": {
+            "step":    {"fill": "#0d1a28", "border": "#00f0ff", "text": "#b8f0ff"},
+            "start":   {"fill": "#0d1a10", "border": "#00ff88", "text": "#b0ffc8"},
+            "end":     {"fill": "#1a0d20", "border": "#ff00aa", "text": "#f0b8d8"},
+            "decision":{"fill": "#1a1808", "border": "#ffe600", "text": "#f0e8b0"},
+            "data":    {"fill": "#0a1628", "border": "#4488ff", "text": "#b0c8f0"},
+            "highlight":{"fill":"#180d28", "border": "#cc44ff", "text": "#d8b8f0"},
+            "external":{"fill": "#0e0e18", "border": "#304060", "text": "#8090b0"},
+        },
+        "subgraph": {"fill": "#06060e", "border": "#1a3050", "text": "#4a6090"},
+        "edges": {
+            "main":     {"color": "#00f0ff", "width": 2.5},
+            "data":     {"color": "#4488ff", "width": 1.5},
+            "feedback": {"color": "#ff00aa", "width": 1.5, "dash": "4,4"},
+            "trigger":  {"color": "#ffe600", "width": 1.0, "dash": "2,4"},
+        },
+        "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(0,240,255,0.10)",
+            "canvas_glow_bottom": "rgba(255,0,170,0.06)",
+            "card_bg_start": "rgba(8,8,20,0.90)",
+            "card_bg_end": "rgba(14,14,26,0.90)",
+            "card_border": "rgba(0,240,255,0.15)",
+            "card_border_glow": "rgba(0,240,255,0.25)",
+            "card_highlight": "rgba(0,240,255,0.04)",
+            "glow_ring": "rgba(0,240,255,0.08)",
+            "accent_from": "#00f0ff",
+            "accent_to": "#ff00aa",
+            "edge_gradient_from": "#00f0ff",
+            "edge_gradient_to": "#ff00aa",
+            "gradient_boost": 0.25,
+        },
+    },
+
+    # ── Ember: warm amber/orange on dark, for opinion / hot takes ──
+    "ember": {
+        "meta": {"name": "炭火余烬", "mood": "炽热、态度、情感"},
+        "canvas": "#1a0e08",
+        "surface": "#241610",
+        "text": "#e8d0b8",
+        "text_dim": "#8a6050",
+        "line": "#3a2018",
+        "line_strong": "#6a3828",
+        "categories": {
+            "step":    {"fill": "#2a1808", "border": "#f59e0b", "text": "#f0d8b0"},
+            "start":   {"fill": "#1a2408", "border": "#84cc16", "text": "#c8e0a0"},
+            "end":     {"fill": "#240a10", "border": "#ef4444", "text": "#e8b0b0"},
+            "decision":{"fill": "#241808", "border": "#ea580c", "text": "#e8c898"},
+            "data":    {"fill": "#1a1008", "border": "#d97706", "text": "#d8b890"},
+            "highlight":{"fill":"#240818", "border": "#f97316", "text": "#e8b8a0"},
+            "external":{"fill": "#181008", "border": "#4a3020", "text": "#a08070"},
+        },
+        "subgraph": {"fill": "#0e0804", "border": "#2a1810", "text": "#6a4030"},
+        "edges": {
+            "main":     {"color": "#f59e0b", "width": 2.5},
+            "data":     {"color": "#d97706", "width": 1.5},
+            "feedback": {"color": "#ef4444", "width": 1.5, "dash": "4,4"},
+            "trigger":  {"color": "#ea580c", "width": 1.0, "dash": "2,4"},
+        },
+        "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(245,158,11,0.08)",
+            "canvas_glow_bottom": "rgba(239,68,68,0.04)",
+            "card_bg_start": "rgba(26,14,6,0.88)",
+            "card_bg_end": "rgba(32,20,14,0.88)",
+            "card_border": "rgba(245,158,11,0.12)",
+            "card_border_glow": "rgba(245,158,11,0.22)",
+            "card_highlight": "rgba(255,255,255,0.03)",
+            "glow_ring": "rgba(245,158,11,0.06)",
+            "accent_from": "#f59e0b",
+            "accent_to": "#ef4444",
+            "edge_gradient_from": "#f59e0b",
+            "edge_gradient_to": "#ea580c",
+            "gradient_boost": 0.18,
+        },
+    },
+
+    # ── Aurora: teal/cyan/violet northern lights, for nature / science ──
+    "aurora": {
+        "meta": {"name": "极光幻境", "mood": "通透、自然、科技感"},
+        "canvas": "#0a1628",
+        "surface": "#0e2038",
+        "text": "#b8e0e8",
+        "text_dim": "#4a8090",
+        "line": "#1a3850",
+        "line_strong": "#2a6890",
+        "categories": {
+            "step":    {"fill": "#0a2828", "border": "#14b8a6", "text": "#b0f0e0"},
+            "start":   {"fill": "#0a2818", "border": "#10b981", "text": "#a0e8b8"},
+            "end":     {"fill": "#200a28", "border": "#8b5cf6", "text": "#c8b0e8"},
+            "decision":{"fill": "#182008", "border": "#22d3ee", "text": "#b8e8d0"},
+            "data":    {"fill": "#0a1828", "border": "#06b6d4", "text": "#a0d0e0"},
+            "highlight":{"fill":"#180a28", "border": "#a78bfa", "text": "#d0b8f0"},
+            "external":{"fill": "#0e1820", "border": "#305060", "text": "#80a0b0"},
+        },
+        "subgraph": {"fill": "#060e18", "border": "#1a3850", "text": "#3a6880"},
+        "edges": {
+            "main":     {"color": "#14b8a6", "width": 2.5},
+            "data":     {"color": "#06b6d4", "width": 1.5},
+            "feedback": {"color": "#8b5cf6", "width": 1.5, "dash": "4,4"},
+            "trigger":  {"color": "#22d3ee", "width": 1.0, "dash": "2,4"},
+        },
+        "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(20,184,166,0.06)",
+            "canvas_glow_bottom": "rgba(139,92,246,0.05)",
+            "card_bg_start": "rgba(8,18,32,0.88)",
+            "card_bg_end": "rgba(14,26,46,0.88)",
+            "card_border": "rgba(20,184,166,0.12)",
+            "card_border_glow": "rgba(20,184,166,0.22)",
+            "card_highlight": "rgba(255,255,255,0.03)",
+            "glow_ring": "rgba(20,184,166,0.06)",
+            "accent_from": "#14b8a6",
+            "accent_to": "#8b5cf6",
+            "edge_gradient_from": "#14b8a6",
+            "edge_gradient_to": "#06b6d4",
+            "gradient_boost": 0.18,
+        },
+    },
+
+    # ── Navy: navy blue + gold, for business / finance / enterprise ──
+    "navy": {
+        "meta": {"name": "海军蓝金", "mood": "权威、信赖、高端"},
+        "canvas": "#0c1628",
+        "surface": "#14203a",
+        "text": "#c8d8f0",
+        "text_dim": "#5a7099",
+        "line": "#1a3060",
+        "line_strong": "#2a50a0",
+        "categories": {
+            "step":    {"fill": "#101e38", "border": "#38bdf8", "text": "#c0ddf8"},
+            "start":   {"fill": "#102018", "border": "#22c55e", "text": "#a8d8b8"},
+            "end":     {"fill": "#201020", "border": "#f87171", "text": "#e0b8b8"},
+            "decision":{"fill": "#1a1808", "border": "#eab308", "text": "#e0d090"},
+            "data":    {"fill": "#0e1828", "border": "#60a5fa", "text": "#b0c8e8"},
+            "highlight":{"fill":"#181030", "border": "#a78bfa", "text": "#d0b8f0"},
+            "external":{"fill": "#101420", "border": "#304870", "text": "#8098b8"},
+        },
+        "subgraph": {"fill": "#080e18", "border": "#1a3060", "text": "#4a6090"},
+        "edges": {
+            "main":     {"color": "#38bdf8", "width": 2.5},
+            "data":     {"color": "#60a5fa", "width": 1.5},
+            "feedback": {"color": "#eab308", "width": 1.5, "dash": "4,4"},
+            "trigger":  {"color": "#f87171", "width": 1.0, "dash": "2,4"},
+        },
+        "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(56,189,248,0.06)",
+            "canvas_glow_bottom": "rgba(234,179,8,0.04)",
+            "card_bg_start": "rgba(10,18,34,0.88)",
+            "card_bg_end": "rgba(16,26,50,0.88)",
+            "card_border": "rgba(56,189,248,0.10)",
+            "card_border_glow": "rgba(56,189,248,0.20)",
+            "card_highlight": "rgba(255,255,255,0.03)",
+            "glow_ring": "rgba(56,189,248,0.06)",
+            "accent_from": "#38bdf8",
+            "accent_to": "#eab308",
+            "edge_gradient_from": "#38bdf8",
+            "edge_gradient_to": "#60a5fa",
+            "gradient_boost": 0.16,
+        },
+    },
+
+    # ── Slate: cool gray/blue-gray professional, for analysis / research ──
+    "slate": {
+        "meta": {"name": "岩板灰", "mood": "理性、冷静、专业"},
+        "canvas": "#1a1f2e",
+        "surface": "#242a3a",
+        "text": "#c8cdd8",
+        "text_dim": "#6a7088",
+        "line": "#303650",
+        "line_strong": "#485878",
+        "categories": {
+            "step":    {"fill": "#262c40", "border": "#94a3b8", "text": "#d0d4e0"},
+            "start":   {"fill": "#1e2824", "border": "#86a898", "text": "#b8c8c0"},
+            "end":     {"fill": "#281e24", "border": "#b89090", "text": "#d0b8b8"},
+            "decision":{"fill": "#28281c", "border": "#a89860", "text": "#d0c8a8"},
+            "data":    {"fill": "#1e242c", "border": "#7088a8", "text": "#b0bcc8"},
+            "highlight":{"fill":"#24203a", "border": "#9890c8", "text": "#c8c0e0"},
+            "external":{"fill": "#1e2030", "border": "#485060", "text": "#8890a0"},
+        },
+        "subgraph": {"fill": "#121620", "border": "#2a3048", "text": "#586080"},
+        "edges": {
+            "main":     {"color": "#94a3b8", "width": 2.5},
+            "data":     {"color": "#7088a8", "width": 1.5},
+            "feedback": {"color": "#a89860", "width": 1.5, "dash": "4,4"},
+            "trigger":  {"color": "#485060", "width": 1.0, "dash": "2,4"},
+        },
+        "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(148,163,184,0.04)",
+            "canvas_glow_bottom": "rgba(112,136,168,0.03)",
+            "card_bg_start": "rgba(24,30,42,0.90)",
+            "card_bg_end": "rgba(32,38,52,0.90)",
+            "card_border": "rgba(148,163,184,0.10)",
+            "card_border_glow": "rgba(148,163,184,0.18)",
+            "card_highlight": "rgba(255,255,255,0.02)",
+            "glow_ring": "rgba(148,163,184,0.05)",
+            "accent_from": "#94a3b8",
+            "accent_to": "#7088a8",
+            "edge_gradient_from": "#94a3b8",
+            "edge_gradient_to": "#7088a8",
+            "gradient_boost": 0.06,
+        },
+    },
+
+    # ── Rose: rose gold + soft pink, for lifestyle / fashion / beauty ──
+    "rose": {
+        "meta": {"name": "玫瑰金粉", "mood": "温柔、精致、生活感"},
+        "canvas": "#1a1018",
+        "surface": "#2a1828",
+        "text": "#e8c8d8",
+        "text_dim": "#8a6078",
+        "line": "#3a2038",
+        "line_strong": "#6a3868",
+        "categories": {
+            "step":    {"fill": "#2a1028", "border": "#f472b6", "text": "#f0c8e0"},
+            "start":   {"fill": "#182410", "border": "#a3e635", "text": "#c0d8a8"},
+            "end":     {"fill": "#241020", "border": "#fb7185", "text": "#e8b8c0"},
+            "decision":{"fill": "#241808", "border": "#fbbf24", "text": "#e8d098"},
+            "data":    {"fill": "#1a1028", "border": "#e879f9", "text": "#d8b8f0"},
+            "highlight":{"fill":"#201030", "border": "#c084fc", "text": "#e0c8f8"},
+            "external":{"fill": "#181020", "border": "#483848", "text": "#a090a8"},
+        },
+        "subgraph": {"fill": "#0e0810", "border": "#2a1830", "text": "#6a3870"},
+        "edges": {
+            "main":     {"color": "#f472b6", "width": 2.5},
+            "data":     {"color": "#e879f9", "width": 1.5},
+            "feedback": {"color": "#fbbf24", "width": 1.5, "dash": "4,4"},
+            "trigger":  {"color": "#fb7185", "width": 1.0, "dash": "2,4"},
+        },
+        "font": {"family": "system-ui, sans-serif", "size": 14},
+        "effects": {
+            "canvas_glow_top": "rgba(244,114,182,0.06)",
+            "canvas_glow_bottom": "rgba(232,121,249,0.04)",
+            "card_bg_start": "rgba(24,14,22,0.88)",
+            "card_bg_end": "rgba(36,20,34,0.88)",
+            "card_border": "rgba(244,114,182,0.12)",
+            "card_border_glow": "rgba(244,114,182,0.22)",
+            "card_highlight": "rgba(255,255,255,0.03)",
+            "glow_ring": "rgba(244,114,182,0.06)",
+            "accent_from": "#f472b6",
+            "accent_to": "#e879f9",
+            "edge_gradient_from": "#f472b6",
+            "edge_gradient_to": "#e879f9",
+            "gradient_boost": 0.18,
+        },
+    },
 }
 
 MERMAID_CDN = "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"
+
+# ═══════════════════════════════════════════════════════════════
+# Card Visual Style Presets — 4 distinct container treatments
+# ═══════════════════════════════════════════════════════════════
+
+CARD_STYLES = {
+    # ── Glass: glassmorphism card (default) ──
+    "glass": {
+        "name": "玻璃拟态",
+        "desc": "半透明模糊卡片，适合科技/现代/AI教程",
+        # Background
+        "body_bg_extra": (
+            "radial-gradient(ellipse at 50% 0%, {glow_top} 0%, transparent 60%),\n"
+            "      radial-gradient(ellipse at 80% 100%, {glow_bottom} 0%, transparent 50%)"
+        ),
+        "body_bg_only": "{bg}",
+        # Card
+        "card_bg_css": "linear-gradient(135deg, {card_bg_start}, {card_bg_end})",
+        "card_backdrop": (
+            "backdrop-filter: blur(16px);\n"
+            "    -webkit-backdrop-filter: blur(16px);"
+        ),
+        "card_shadow_css": (
+            "0 8px 40px {shadow_heavy},\n"
+            "      0 2px 8px {shadow_light},\n"
+            "      inset 0 1px 0 {card_highlight}"
+        ),
+        "card_border_css": "1px solid {card_border}",
+        "card_radius": "20px",
+        # Decorations
+        "dot_grid_size": 12,          # 0 = no dots
+        "dot_color_dark": "rgba(255,255,255,0.08)",
+        "dot_color_light": "rgba(0,0,0,0.06)",
+        "accent_line": "gradient",    # "gradient" | "solid" | "none"
+        "accent_line_width": 60,      # px
+        "accent_line_height": 2,      # px
+        # Padding
+        "card_pad_default": 48,       # px
+        # SVG effects
+        "node_gradient_boost": 0.18,
+        "node_gradient": True,
+        "node_shadow": True,
+        "node_shadow_extra": True,    # second lighter shadow
+        "node_glow": False,
+        "edge_gradient": True,
+    },
+
+    # ── Solid: clean opaque card for business / formal ──
+    "solid": {
+        "name": "实色卡片",
+        "desc": "纯色卡片+单层阴影，适合商务/正式/数据报告",
+        "body_bg_extra": "",          # no radial glow
+        "body_bg_only": "{bg}",
+        "card_bg_css": "{surface}",
+        "card_backdrop": "",
+        "card_shadow_css": "0 4px 24px {shadow_heavy}",
+        "card_border_css": "1px solid {line}",
+        "card_radius": "12px",
+        "dot_grid_size": 0,           # no dots
+        "accent_line": "solid",
+        "accent_line_width": 40,
+        "accent_line_height": 2,
+        "card_pad_default": 48,
+        "node_gradient_boost": 0.08,
+        "node_gradient": True,
+        "node_shadow": True,
+        "node_shadow_extra": False,
+        "node_glow": False,
+        "edge_gradient": False,
+    },
+
+    # ── Neon: high-contrast glow for creative / gaming ──
+    "neon": {
+        "name": "霓虹辉光",
+        "desc": "强发光边框+节点辉光，适合创意/游戏/潮流内容",
+        "body_bg_extra": (
+            "radial-gradient(ellipse at 50% 0%, {glow_strong_top} 0%, transparent 50%),\n"
+            "      radial-gradient(ellipse at 80% 100%, {glow_strong_bottom} 0%, transparent 50%)"
+        ),
+        "body_bg_only": "{bg}",
+        "card_bg_css": "linear-gradient(135deg, {card_bg_start}, {card_bg_end})",
+        "card_backdrop": (
+            "backdrop-filter: blur(20px);\n"
+            "    -webkit-backdrop-filter: blur(20px);"
+        ),
+        "card_shadow_css": (
+            "0 8px 48px {shadow_heavy},\n"
+            "      0 2px 12px {shadow_light},\n"
+            "      0 0 24px {glow_ring},\n"
+            "      inset 0 1px 0 {card_highlight}"
+        ),
+        "card_border_css": "1px solid {card_border_glow}",
+        "card_radius": "20px",
+        "dot_grid_size": 16,
+        "dot_color_dark": "rgba(255,255,255,0.12)",
+        "dot_color_light": "rgba(0,0,0,0.10)",
+        "accent_line": "gradient",
+        "accent_line_width": 80,
+        "accent_line_height": 2,
+        "card_pad_default": 48,
+        "node_gradient_boost": 0.25,
+        "node_gradient": True,
+        "node_shadow": True,
+        "node_shadow_extra": True,
+        "node_glow": True,            # feGaussianBlur outer glow
+        "edge_gradient": True,
+    },
+
+    # ── Minimal: ultra-clean, thin border, no decorations ──
+    "minimal": {
+        "name": "极简留白",
+        "desc": "细线边框+呼吸感留白，适合文学/生活方式/高端品牌",
+        "body_bg_extra": "",
+        "body_bg_only": "{bg}",
+        "card_bg_css": "{surface}",
+        "card_backdrop": "",
+        "card_shadow_css": "0 1px 4px {shadow_heavy}",
+        "card_border_css": "1px solid {line}",
+        "card_radius": "8px",
+        "dot_grid_size": 0,
+        "accent_line": "none",
+        "accent_line_width": 0,
+        "accent_line_height": 0,
+        "card_pad_default": 56,       # more breathing room
+        "node_gradient_boost": 0.0,
+        "node_gradient": False,
+        "node_shadow": False,
+        "node_shadow_extra": False,
+        "node_glow": False,
+        "edge_gradient": False,
+    },
+}
+
 
 # ── Shape to Mermaid mapping ──
 
@@ -521,10 +913,182 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
 
 
 # ═══════════════════════════════════════════════════════════════
-# Playwright Rendering — Beautiful centered HTML wrapper
+# HTML Builder — card-style-aware template generation
 # ═══════════════════════════════════════════════════════════════
 
-_HTML_TEMPLATE = """<!DOCTYPE html>
+
+def _parse_rgba_alpha(rgba_str: str) -> float:
+    """Extract alpha value from an rgba() color string."""
+    m = re.search(r'[\d.]+(?=\s*\)\s*$)', rgba_str.strip())
+    return float(m.group()) if m else 1.0
+
+
+def _boost_rgba_alpha(rgba_str: str, multiplier: float) -> str:
+    """Multiply the alpha channel of an rgba() color, clamped to [0,1]."""
+    parts = [p.strip() for p in rgba_str.strip('rgba()').split(',')]
+    if len(parts) >= 4:
+        parts[3] = f'{min(float(parts[3]) * multiplier, 1.0):.2f}'
+    return f'rgba({", ".join(parts)})'
+
+
+def _build_html(*, palette, card_style, mermaid, cdn,
+                chart_title="", chart_subtitle="",
+                width=720, padding=32, card_padding=None, watermark=""):
+    """Generate the complete HTML page with card-style-aware CSS.
+
+    All visual decisions flow from {palette × card_style}. The template
+    is a single format string with conditional blocks keyed by card_style flags.
+    """
+
+    p = palette
+    fx = p.get("effects", {})
+    cs = CARD_STYLES.get(card_style, CARD_STYLES["glass"])
+
+    # ── Compute all template parameters ──
+
+    bg = p["canvas"]
+    surface = p["surface"]
+    line_color = p["line"]
+    text_dim = p["text_dim"]
+
+    is_light = (p.get("meta", {}).get("name", "") == "宣纸白" or
+                p.get("canvas", "").startswith("#f"))
+
+    # Shadows
+    if is_light:
+        shadow_heavy = "rgba(0,0,0,0.05)"
+        shadow_light = "rgba(0,0,0,0.04)"
+        dot_color = cs.get("dot_color_light", "rgba(0,0,0,0.06)")
+    else:
+        shadow_heavy = "rgba(0,0,0,0.40)"
+        shadow_light = "rgba(0,0,0,0.20)"
+        dot_color = cs.get("dot_color_dark", "rgba(255,255,255,0.08)")
+
+    title_text = "#f1f5f9" if not is_light else "#1a1a2e"
+
+    # Card background
+    card_bg_start = fx.get("card_bg_start", p["surface"])
+    card_bg_end = fx.get("card_bg_end", p["surface"])
+    card_border = fx.get("card_border", p["line"])
+    card_highlight = fx.get("card_highlight", "rgba(255,255,255,0.02)")
+
+    # Accent line
+    accent_from = fx.get("accent_from", p["categories"]["step"]["border"])
+    accent_to = fx.get("accent_to", accent_from)
+
+    # Neon-specific: boosted glow colors
+    glow_top = fx.get("canvas_glow_top", "transparent")
+    glow_bottom = fx.get("canvas_glow_bottom", "transparent")
+    glow_strong_top = _boost_rgba_alpha(glow_top, 2.0) if glow_top != "transparent" else "transparent"
+    glow_strong_bottom = _boost_rgba_alpha(glow_bottom, 2.0) if glow_bottom != "transparent" else "transparent"
+    card_border_glow = fx.get("card_border_glow",
+                              _boost_rgba_alpha(card_border, 1.8))
+    glow_ring = fx.get("glow_ring", card_border)
+
+    # Body background
+    if cs["body_bg_extra"] and card_style == "neon":
+        body_bg_image = cs["body_bg_extra"].format(
+            glow_strong_top=glow_strong_top,
+            glow_strong_bottom=glow_strong_bottom)
+        body_bg = f"{cs['body_bg_only'].format(bg=bg)};\n    background-image:\n      {body_bg_image}"
+    elif cs["body_bg_extra"]:
+        body_bg_image = cs["body_bg_extra"].format(
+            glow_top=glow_top, glow_bottom=glow_bottom)
+        body_bg = f"{cs['body_bg_only'].format(bg=bg)};\n    background-image:\n      {body_bg_image}"
+    else:
+        body_bg = bg
+
+    # Card shadow
+    card_shadow = cs["card_shadow_css"].format(
+        shadow_heavy=shadow_heavy,
+        shadow_light=shadow_light,
+        card_highlight=card_highlight,
+        glow_ring=glow_ring)
+
+    # Card border
+    if card_style == "neon":
+        card_border_css = cs["card_border_css"].format(card_border_glow=card_border_glow)
+    else:
+        card_border_css = cs["card_border_css"].format(
+            card_border=card_border, line=line_color)
+
+    # Card radius
+    card_radius = cs["card_radius"]
+
+    # Backdrop
+    card_backdrop = cs["card_backdrop"]
+
+    # Card background CSS
+    card_bg_css = cs["card_bg_css"].format(
+        card_bg_start=card_bg_start, card_bg_end=card_bg_end,
+        surface=surface)
+
+    # Padding
+    card_pad = card_padding if card_padding is not None else cs["card_pad_default"]
+    max_width = width - padding * 2
+
+    # ── Dot decoration ──
+    dot_css = ""
+    if cs["dot_grid_size"] > 0:
+        gs = cs["dot_grid_size"]
+        dot_css = f"""
+      .chart-card::before {{
+        content: '';
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        width: {gs * 3}px;
+        height: {gs * 3}px;
+        background-image:
+          radial-gradient(circle, {dot_color} 1px, transparent 1px);
+        background-size: {gs}px {gs}px;
+        pointer-events: none;
+      }}"""
+
+    # ── Accent line ──
+    accent_line_css = ""
+    if cs["accent_line"] == "gradient":
+        w_ = cs["accent_line_width"]
+        h_ = cs["accent_line_height"]
+        accent_line_css = f"""
+      .accent-line {{
+        display: block;
+        width: {w_}px;
+        height: {h_}px;
+        margin: 0 auto;
+        border-radius: 1px;
+        background: linear-gradient(90deg, {accent_from}, {accent_to}, transparent);
+      }}"""
+    elif cs["accent_line"] == "solid":
+        w_ = cs["accent_line_width"]
+        h_ = cs["accent_line_height"]
+        accent_line_css = f"""
+      .accent-line {{
+        display: block;
+        width: {w_}px;
+        height: {h_}px;
+        margin: 0 auto;
+        border-radius: 1px;
+        background: {accent_from};
+      }}"""
+
+    # ── Title block ──
+    if chart_title:
+        title_block = f"""<div class="chart-title-block">
+        <h1 class="chart-title">{chart_title}</h1>
+        <p class="chart-subtitle">{chart_subtitle}</p>
+        <span class="accent-line"></span>
+      </div>"""
+    else:
+        title_block = ""
+
+    # ── Watermark ──
+    if not watermark:
+        pmeta = p.get("meta", {})
+        watermark = f"{pmeta.get('name', '')} · {pmeta.get('mood', '')}"
+
+    # ── Assemble HTML ──
+    html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -533,10 +1097,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
   body {{
-    background-color: {bg};
-    background-image:
-      radial-gradient(ellipse at 50% 0%, {canvas_glow_top} 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 100%, {canvas_glow_bottom} 0%, transparent 50%);
+    background: {body_bg};
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -546,38 +1107,21 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     font-family: "Segoe UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
   }}
 
-  /* ── Glass card wrapper ── */
+  /* ── Card wrapper ── */
   .chart-card {{
-    background: linear-gradient(135deg, {card_bg_start}, {card_bg_end});
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-radius: 20px;
+    background: {card_bg_css};
+    {card_backdrop}
+    border-radius: {card_radius};
     padding: {card_pad}px;
     max-width: {max_width}px;
     width: 100%;
     box-shadow:
-      0 8px 40px {shadow_heavy},
-      0 2px 8px {shadow_light},
-      inset 0 1px 0 {card_highlight};
-    border: 1px solid {card_border};
+      {card_shadow};
+    border: {card_border_css};
     position: relative;
     overflow: hidden;
   }}
-
-  /* ── Dot pattern decoration (top-left corner) ── */
-  .chart-card::before {{
-    content: '';
-    position: absolute;
-    top: 18px;
-    left: 18px;
-    width: 36px;
-    height: 36px;
-    background-image:
-      radial-gradient(circle, {dot_color} 1px, transparent 1px);
-    background-size: 12px 12px;
-    pointer-events: none;
-  }}
-
+{dot_css}
   /* ── Title block ── */
   .chart-title-block {{
     text-align: center;
@@ -598,16 +1142,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     margin: 0 0 14px 0;
     line-height: 1.4;
   }}
-  /* ── Accent line below title ── */
-  .accent-line {{
-    display: block;
-    width: 60px;
-    height: 2px;
-    margin: 0 auto;
-    border-radius: 1px;
-    background: linear-gradient(90deg, {accent_from}, {accent_to}, transparent);
-  }}
-
+{accent_line_css}
   /* ── Mermaid container ── */
   .mermaid {{
     display: flex;
@@ -645,6 +1180,163 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 </script>
 </body>
 </html>"""
+    return html
+
+
+def _build_svg_postprocess_js(*, node_gradients, edge_grad,
+                               node_gradient, node_shadow, node_shadow_extra,
+                               node_glow, edge_gradient, node_border_color):
+    """Build the JS string for SVG post-processing, conditioned on style flags.
+
+    This avoids string concat in the hot path — all logic is in this builder.
+    The JS is injected via page.evaluate() after Mermaid renders.
+    """
+    import json as _json
+    ng_json = _json.dumps(node_gradients)
+    eg_json = _json.dumps(edge_grad)
+
+    # ── Build JS blocks conditionally ──
+    js_parts = ["""() => {
+        const svg = document.querySelector('.mermaid svg');
+        if (!svg) return;
+        const NS = 'http://www.w3.org/2000/svg';
+
+        // Get or create <defs>
+        let defs = svg.querySelector('defs');
+        if (!defs) {
+            defs = document.createElementNS(NS, 'defs');
+            svg.insertBefore(defs, svg.firstChild);
+        }"""]
+
+    # Shadow filter
+    if node_shadow:
+        if node_shadow_extra:
+            shadow_html = ('<feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/>'
+                           '<feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.18"/>')
+        else:
+            shadow_html = '<feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.25"/>'
+        js_parts.append(f"""
+        // ── Shadow filter ──
+        const shadowFilter = document.createElementNS(NS, 'filter');
+        shadowFilter.setAttribute('id', 'fc-shadow');
+        shadowFilter.setAttribute('x', '-20%');
+        shadowFilter.setAttribute('y', '-20%');
+        shadowFilter.setAttribute('width', '140%');
+        shadowFilter.setAttribute('height', '140%');
+        shadowFilter.innerHTML = '{shadow_html}';
+        defs.appendChild(shadowFilter);""")
+
+    # Glow filter (neon style)
+    if node_glow:
+        glow_color = node_border_color
+        js_parts.append(f"""
+        // ── Glow filter ──
+        const glowFilter = document.createElementNS(NS, 'filter');
+        glowFilter.setAttribute('id', 'fc-glow');
+        glowFilter.setAttribute('x', '-30%');
+        glowFilter.setAttribute('y', '-30%');
+        glowFilter.setAttribute('width', '160%');
+        glowFilter.setAttribute('height', '160%');
+        glowFilter.innerHTML = '<feGaussianBlur stdDeviation="3.5" result="blur"/>'
+          + '<feFlood flood-color="{glow_color}" flood-opacity="0.25" result="color"/>'
+          + '<feComposite in="color" in2="blur" operator="in" result="glow"/>'
+          + '<feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>';
+        defs.appendChild(glowFilter);""")
+
+    # Edge gradient
+    if edge_gradient:
+        js_parts.append(f"""
+        // ── Edge gradient ──
+        const edgeGrad = {eg_json};
+        const edgeGradient = document.createElementNS(NS, 'linearGradient');
+        edgeGradient.setAttribute('id', 'fc-edge-grad');
+        edgeGradient.setAttribute('x1', '0'); edgeGradient.setAttribute('y1', '0');
+        edgeGradient.setAttribute('x2', '1'); edgeGradient.setAttribute('y2', '0');
+        edgeGradient.innerHTML = '<stop offset="0%" stop-color="' + edgeGrad.from + '"/><stop offset="100%" stop-color="' + edgeGrad.to + '"/>';
+        defs.appendChild(edgeGradient);""")
+
+    # ForeignObject overflow fix (always needed)
+    js_parts.append("""
+        // ── Fix foreignObject overflow ──
+        svg.querySelectorAll('foreignObject').forEach(fo => {
+            const div = fo.querySelector('div');
+            if (!div) return;
+            const scrollW = div.scrollWidth;
+            const attrW = parseFloat(fo.getAttribute('width')) || 0;
+            const extra = scrollW - attrW;
+            if (extra > 2) {
+                fo.setAttribute('width', String(scrollW));
+                const labelG = fo.closest('g.label');
+                if (labelG) {
+                    const t = labelG.getAttribute('transform') || '';
+                    const m = t.match(/translate\\(([^,]+),\\s*([^)]+)\\)/);
+                    if (m) {
+                        labelG.setAttribute('transform',
+                            'translate(' + (parseFloat(m[1]) - extra/2) + ', ' + m[2] + ')');
+                    }
+                }
+            }
+        });""")
+
+    # Node gradient fills + filters
+    js_parts.append(f"""
+        // ── Apply node effects ──
+        const nodeRects = svg.querySelectorAll('.node:not(.cluster) rect.basic');
+        const nodeGradients = {ng_json};
+        const catKeys = Object.keys(nodeGradients);""")
+
+    if node_gradient or node_shadow or node_glow:
+        js_parts.append("""
+        nodeRects.forEach((rect, i) => {
+            const catKey = catKeys[i % catKeys.length] || 'step';
+            const gc = nodeGradients[catKey];""")
+
+        if node_gradient and node_gradients:
+            js_parts.append("""
+            if (gc) {
+                const gradId = 'fc-node-grad-' + i;
+                const grad = document.createElementNS(NS, 'linearGradient');
+                grad.setAttribute('id', gradId);
+                grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
+                grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
+                grad.innerHTML = '<stop offset="0%" stop-color="' + gc.top + '"/><stop offset="100%" stop-color="' + gc.bottom + '"/>';
+                defs.appendChild(grad);
+                rect.setAttribute('fill', 'url(#' + gradId + ')');
+            }""")
+
+        if node_shadow or node_glow:
+            filter_parts = []
+            if node_shadow:
+                filter_parts.append("url(#fc-shadow)")
+            if node_glow:
+                filter_parts.append("url(#fc-glow)")
+            filter_str = " ".join(filter_parts)
+            js_parts.append(f"""
+            rect.setAttribute('filter', '{filter_str}');""")
+
+        js_parts.append("""
+        });""")
+
+    # Edge effects
+    js_parts.append("""
+        // ── Apply edge effects ──
+        const edgePaths = svg.querySelectorAll('.flowchart-link');""")
+
+    if edge_gradient:
+        js_parts.append("""
+        edgePaths.forEach(path => {
+            path.setAttribute('stroke', 'url(#fc-edge-grad)');
+        });
+
+        // Color the arrowhead markers to match edge gradient end
+        const arrowPaths = svg.querySelectorAll('marker[id*="pointEnd"] .arrowMarkerPath, marker[id*="pointEnd"] path');
+        arrowPaths.forEach(p => {
+            p.setAttribute('stroke', edgeGrad.to);
+            p.setAttribute('fill', edgeGrad.to);
+        });""")
+
+    js_parts.append("\n    }")
+    return "\n".join(js_parts)
 
 
 def _hex_to_rgb(hex_color: str) -> tuple:
@@ -674,21 +1366,23 @@ def _lighten_hex(hex_color: str, amount: float) -> str:
 
 def render_mermaid_to_png(mermaid_markup: str, output_path: str,
                           palette_name: str = "tech-dark",
+                          card_style: str = "glass",
                           width: int = 720, device_scale: float = 2.0,
-                          padding: int = 32, card_padding: int = 48,
+                          padding: int = 32, card_padding: int = None,
                           watermark: str = "",
                           chart_title: str = "",
                           chart_subtitle: str = ""):
-    """Render Mermaid markup → glass-card PNG via Playwright.
+    """Render Mermaid markup → styled card PNG via Playwright.
 
     Args:
         mermaid_markup:  Complete Mermaid.js markup
         output_path:     Output PNG path
-        palette_name:    Design palette key
+        palette_name:    Design palette key (13 palettes available)
+        card_style:      Visual card style: glass|solid|neon|minimal
         width:           Viewport width (canvas)
         device_scale:    Retina multiplier (2.0 = crisp on HiDPI)
         padding:         Outer page padding
-        card_padding:    Inner card padding around the chart
+        card_padding:    Inner card padding (None = use style default)
         watermark:       Optional footer text
         chart_title:     Title displayed in the card header
         chart_subtitle:  Subtitle displayed below the title
@@ -698,76 +1392,42 @@ def render_mermaid_to_png(mermaid_markup: str, output_path: str,
         sys.exit(1)
 
     p = PALETTES.get(palette_name, PALETTES["tech-dark"])
+    cs = CARD_STYLES.get(card_style, CARD_STYLES["glass"])
     fx = p.get("effects", PALETTES["tech-dark"]["effects"])
 
-    # Dark/Light shadow synthesis
-    is_light = palette_name == "paper"
-    if is_light:
-        shadow_heavy = "rgba(0,0,0,0.05)"
-        shadow_light = "rgba(0,0,0,0.04)"
-        dot_color = "rgba(0,0,0,0.06)"
-    else:
-        shadow_heavy = "rgba(0,0,0,0.40)"
-        shadow_light = "rgba(0,0,0,0.20)"
-        dot_color = "rgba(255,255,255,0.08)"
+    # ── Build HTML using the card-style-aware builder ──
+    html = _build_html(
+        palette=p, card_style=card_style,
+        mermaid=mermaid_markup, cdn=MERMAID_CDN,
+        chart_title=chart_title, chart_subtitle=chart_subtitle,
+        width=width, padding=padding,
+        card_padding=card_padding, watermark=watermark)
 
-    text_dim = p["text_dim"]
-    title_text = "#f1f5f9" if not is_light else "#1a1a2e"
-
-    if not watermark:
-        pmeta = p["meta"]
-        watermark = f"{pmeta['name']} · {pmeta['mood']}"
-
-    # Build conditional title block
-    if chart_title:
-        title_block = f"""<div class="chart-title-block">
-    <h1 class="chart-title">{chart_title}</h1>
-    <p class="chart-subtitle">{chart_subtitle}</p>
-    <span class="accent-line"></span>
-  </div>"""
-    else:
-        title_block = ""
-
-    html = _HTML_TEMPLATE.format(
-        bg=p["canvas"],
-        canvas_glow_top=fx["canvas_glow_top"],
-        canvas_glow_bottom=fx["canvas_glow_bottom"],
-        card_bg_start=fx["card_bg_start"],
-        card_bg_end=fx["card_bg_end"],
-        card_border=fx["card_border"],
-        card_highlight=fx["card_highlight"],
-        dot_color=dot_color,
-        title_text=title_text,
-        text_dim=text_dim,
-        accent_from=fx["accent_from"],
-        accent_to=fx["accent_to"],
-        shadow_heavy=shadow_heavy,
-        shadow_light=shadow_light,
-        padding=padding,
-        card_pad=card_padding,
-        max_width=width - padding * 2,
-        title_block=title_block,
-        mermaid=mermaid_markup,
-        cdn=MERMAID_CDN,
-        watermark=watermark,
-    )
-
-    # Pre-compute node gradient colors for SVG post-processing
-    boost = fx.get("gradient_boost", 0.15)
+    # ── Pre-compute SVG post-processing parameters ──
+    boost = cs["node_gradient_boost"]
     node_gradients = {}
-    for cat_key, cat in p["categories"].items():
-        node_gradients[cat_key] = {
-            "top": _lighten_hex(cat["fill"], boost),
-            "bottom": cat["fill"],
-            "border": cat["border"],
-        }
+    if cs["node_gradient"] and boost != 0:
+        for cat_key, cat in p["categories"].items():
+            node_gradients[cat_key] = {
+                "top": _lighten_hex(cat["fill"], boost),
+                "bottom": cat["fill"],
+                "border": cat["border"],
+            }
     edge_grad = {
         "from": fx["edge_gradient_from"],
         "to": fx["edge_gradient_to"],
     }
-    import json as _json
-    node_gradients_json = _json.dumps(node_gradients)
-    edge_grad_json = _json.dumps(edge_grad)
+
+    # ── Build style-aware SVG post-processing JS ──
+    svg_js = _build_svg_postprocess_js(
+        node_gradients=node_gradients,
+        edge_grad=edge_grad,
+        node_gradient=cs["node_gradient"],
+        node_shadow=cs["node_shadow"],
+        node_shadow_extra=cs["node_shadow_extra"],
+        node_glow=cs["node_glow"],
+        edge_gradient=cs["edge_gradient"],
+        node_border_color=fx.get("accent_from", p["categories"]["step"]["border"]))
 
     with tempfile.NamedTemporaryFile(suffix=".html", mode="w", encoding="utf-8", delete=False) as f:
         f.write(html)
@@ -787,95 +1447,8 @@ def render_mermaid_to_png(mermaid_markup: str, output_path: str,
             page.wait_for_selector(".mermaid svg", timeout=15000)
             page.wait_for_timeout(800)  # extra render settling
 
-            # ── Post-processing: foreignObject overflow + SVG gradient/shadow injection ──
-            page.evaluate(f"""() => {{
-                const svg = document.querySelector('.mermaid svg');
-                if (!svg) return;
-                const NS = 'http://www.w3.org/2000/svg';
-                const nodeGradients = {node_gradients_json};
-                const edgeGrad = {edge_grad_json};
-
-                // Get or create <defs>
-                let defs = svg.querySelector('defs');
-                if (!defs) {{
-                    defs = document.createElementNS(NS, 'defs');
-                    svg.insertBefore(defs, svg.firstChild);
-                }}
-
-                // ── Create SVG shadow filter ──
-                const shadowFilter = document.createElementNS(NS, 'filter');
-                shadowFilter.setAttribute('id', 'fc-shadow');
-                shadowFilter.setAttribute('x', '-20%');
-                shadowFilter.setAttribute('y', '-20%');
-                shadowFilter.setAttribute('width', '140%');
-                shadowFilter.setAttribute('height', '140%');
-                shadowFilter.innerHTML = '<feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.35"/><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000" flood-opacity="0.18"/>';
-                defs.appendChild(shadowFilter);
-
-                // ── Create edge gradient ──
-                const edgeGradient = document.createElementNS(NS, 'linearGradient');
-                edgeGradient.setAttribute('id', 'fc-edge-grad');
-                edgeGradient.setAttribute('x1', '0'); edgeGradient.setAttribute('y1', '0');
-                edgeGradient.setAttribute('x2', '1'); edgeGradient.setAttribute('y2', '0');
-                edgeGradient.innerHTML = '<stop offset="0%" stop-color="' + edgeGrad.from + '"/><stop offset="100%" stop-color="' + edgeGrad.to + '"/>';
-                defs.appendChild(edgeGradient);
-
-                // ── Fix foreignObject overflow ──
-                svg.querySelectorAll('foreignObject').forEach(fo => {{
-                    const div = fo.querySelector('div');
-                    if (!div) return;
-                    const scrollW = div.scrollWidth;
-                    const attrW = parseFloat(fo.getAttribute('width')) || 0;
-                    const extra = scrollW - attrW;
-                    if (extra > 2) {{
-                        fo.setAttribute('width', String(scrollW));
-                        const labelG = fo.closest('g.label');
-                        if (labelG) {{
-                            const t = labelG.getAttribute('transform') || '';
-                            const m = t.match(/translate\\(([^,]+),\\s*([^)]+)\\)/);
-                            if (m) {{
-                                labelG.setAttribute('transform',
-                                    'translate(' + (parseFloat(m[1]) - extra/2) + ', ' + m[2] + ')');
-                            }}
-                        }}
-                    }}
-                }});
-
-                // ── Apply node gradient fills + shadows ──
-                const nodeRects = svg.querySelectorAll('.node:not(.cluster) rect.basic');
-                const catKeys = Object.keys(nodeGradients);
-                nodeRects.forEach((rect, i) => {{
-                    const catKey = catKeys[i % catKeys.length] || 'step';
-                    const gc = nodeGradients[catKey];
-                    if (!gc) return;
-
-                    const gradId = 'fc-node-grad-' + i;
-                    const grad = document.createElementNS(NS, 'linearGradient');
-                    grad.setAttribute('id', gradId);
-                    grad.setAttribute('x1', '0'); grad.setAttribute('y1', '0');
-                    grad.setAttribute('x2', '0'); grad.setAttribute('y2', '1');
-                    grad.innerHTML = '<stop offset="0%" stop-color="' + gc.top + '"/><stop offset="100%" stop-color="' + gc.bottom + '"/>';
-                    defs.appendChild(grad);
-
-                    rect.setAttribute('fill', 'url(#' + gradId + ')');
-                    // Keep the inline stroke from Mermaid (per-node style directive),
-                    // just add shadow filter
-                    rect.setAttribute('filter', 'url(#fc-shadow)');
-                }});
-
-                // ── Apply edge gradient + arrow colors ──
-                const edgePaths = svg.querySelectorAll('.flowchart-link');
-                edgePaths.forEach(path => {{
-                    path.setAttribute('stroke', 'url(#fc-edge-grad)');
-                }});
-
-                // Color the arrowhead markers to match edge gradient end
-                const arrowPaths = svg.querySelectorAll('marker[id*="pointEnd"] .arrowMarkerPath, marker[id*="pointEnd"] path');
-                arrowPaths.forEach(p => {{
-                    p.setAttribute('stroke', edgeGrad.to);
-                    p.setAttribute('fill', edgeGrad.to);
-                }});
-            }}""")
+            # ── Post-processing: foreignObject overflow + SVG effects ──
+            page.evaluate(svg_js)
 
             # Screenshot the card, not the full page (focus on content)
             card = page.locator(".chart-card")
@@ -894,41 +1467,54 @@ def render_mermaid_to_png(mermaid_markup: str, output_path: str,
 # ═══════════════════════════════════════════════════════════════
 
 def generate_flowchart(flow: str | dict, output_path: str,
-                       palette: str = "tech-dark", width: int = 720):
+                       palette: str = "tech-dark", style: str = "glass",
+                       width: int = 720):
     """End-to-end: flow dict/JSON → design-grade PNG.
 
     Args:
         flow:        Flow dict or JSON string
         output_path: Output PNG path
-        palette:     Design palette key (tech-dark|ocean|forest|sunset|midnight|paper)
+        palette:     Design palette key (13 palettes available)
+        style:       Visual card style: glass|solid|neon|minimal
         width:       Canvas width in pixels
     """
     if isinstance(flow, str):
         flow = json.loads(flow)
 
-    # Use flow-level palette override if specified
+    # Use flow-level palette/style overrides if specified
     flow_palette = flow.get("palette", palette)
+    flow_style = flow.get("style", style)
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     markup = generate_mermaid(flow, flow_palette)
     render_mermaid_to_png(
         markup, output_path,
-        palette_name=flow_palette, width=width,
+        palette_name=flow_palette, card_style=flow_style, width=width,
         chart_title=flow.get("title", ""),
         chart_subtitle=flow.get("desc", ""),
     )
 
     size_kb = os.path.getsize(output_path) / 1024
     pmeta = PALETTES.get(flow_palette, PALETTES["tech-dark"])["meta"]
-    print(f"OK: {output_path} ({size_kb:.1f} KB) palette:{flow_palette} ({pmeta['name']})")
+    smeta = CARD_STYLES.get(flow_style, CARD_STYLES["glass"])
+    print(f"OK: {output_path} ({size_kb:.1f} KB) "
+          f"palette:{flow_palette} ({pmeta['name']}) "
+          f"style:{flow_style} ({smeta['name']})")
 
 
 def list_palettes():
-    """Print available palettes."""
+    """Print available palettes and card styles."""
     print("Available design palettes:\n")
+    palette_count = len(PALETTES)
     for key, p in PALETTES.items():
         meta = p["meta"]
         print(f"  {key:14s}  {meta['name']:6s}  {meta['mood']}")
+    print(f"\n  ── {palette_count} palettes total")
+
+    print("\nAvailable card styles:\n")
+    for key, cs in CARD_STYLES.items():
+        print(f"  {key:10s}  {cs['name']:6s}  {cs['desc']}")
+    print(f"\n  ── {palette_count} palettes × {len(CARD_STYLES)} styles = {palette_count * len(CARD_STYLES)} unique looks")
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -947,13 +1533,15 @@ def main():
     p.add_argument("--inline", help="Inline JSON flow definition")
     p.add_argument("--output", "-o", help="Output PNG path")
     p.add_argument("--palette", choices=list(PALETTES.keys()), default="tech-dark",
-                   help="Design palette: tech-dark|ocean|forest|sunset|midnight|paper")
+                   help="Design palette (13 options, see --list-palettes)")
+    p.add_argument("--style", "-s", choices=list(CARD_STYLES.keys()), default="glass",
+                   help="Card visual style: glass|solid|neon|minimal")
     p.add_argument("--width", type=int, default=720,
                    help="Canvas width in px (default: 720)")
     p.add_argument("--markup-only", action="store_true",
                    help="Print Mermaid markup only (debug, no output required)")
     p.add_argument("--list-palettes", action="store_true",
-                   help="Show available palettes and exit")
+                   help="Show available palettes & card styles and exit")
 
     args = p.parse_args()
 
@@ -983,7 +1571,7 @@ def main():
     else:
         p.error("Either --file or --inline is required")
 
-    generate_flowchart(flow, args.output, palette=args.palette, width=args.width)
+    generate_flowchart(flow, args.output, palette=args.palette, style=args.style, width=args.width)
 
 
 if __name__ == "__main__":
