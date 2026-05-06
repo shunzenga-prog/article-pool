@@ -214,6 +214,66 @@ S 情境 → C 冲突 → Q 疑问 → A 答案
 
 ---
 
+## 📸 教程类文章截图规范（必读）
+
+**教程文章的核心竞争力是"实操感"——读者要看到真实的执行过程和结果，不是文字模拟。**
+
+### ⭐ 核心原则：分步截图，同步嵌入
+
+**写一步 → 截图一步 → 嵌入一步 → 再写下一步。** 这是教程流水线与通用流程最本质的区别。
+
+教程不是写完所有文字再回头补图。原因：
+1. 代码执行结果可能变化（API 数据、时间戳），回头补图会和文字对不上
+2. 写完再截图容易漏掉关键步骤
+3. 同步截图能第一时间发现"代码跑不通""输出不一致"等问题
+
+### 截图类型（按优先级）
+
+| 优先级 | 类型 | 说明 | 生成工具 |
+|--------|------|------|---------|
+| 1 | 终端执行截图 | 命令运行的真实输出，彩色命令行风格 | PIL 渲染（暗色主题 + 彩色文字） |
+| 2 | 界面/浏览器截图 | 生成的页面、工具界面、最终效果 | Playwright 全页截图 |
+| 3 | 原文/源数据截图 | 点击链接后的实际内容页，证明数据真实 | Playwright viewport 截图 |
+| 4 | 效果对比截图 | Before/After，或不同方案的对比 | 组合以上工具 |
+
+### 数量要求
+
+- **每个教程步骤至少 1 张截图**，execute 和 output 类步骤必须有图
+- **每 1500 字至少 1 张截图**（最低标准）
+- 截图总数与步骤总数比例不低于 **0.8:1**
+- **用实际运行的真实输出，禁止用文字代码块模拟终端效果**
+
+### 截图生成命令
+
+```bash
+# 终端执行截图：运行脚本 + 捕获真实输出
+python scripts/code_image_generator.py exec script.py -o stepN_terminal.png
+
+# 浏览器截图：打开 URL
+python scripts/screenshot_util.py single https://example.com --width 800 --height 900 -o stepN_browser.png
+
+# 本地 HTML 文件截图
+python scripts/screenshot_util.py file output.html --width 800 --height 900 -o stepN_output.png
+
+# 代码截图：代码块渲染
+python scripts/code_image_generator.py code script.py -o stepN_code.png
+```
+
+### 图片嵌入规范
+
+- 使用 `<table><tr><td>` 包裹 `<img>`，确保发布后 style 不被剥离
+- `<img width="100%">` 用属性而非 CSS 控制尺寸
+- alt 文本写清楚截图内容（便于读者理解，也便于搜索）
+- 每张截图前有引导文字说明"这是什么"
+
+### 禁止事项
+
+- ❌ 用文字代码块模拟终端输出——读者一眼识破，丧失信任
+- ❌ 截图里出现本地绝对路径（如 `E:\WorkSpace\...`）——用示例路径
+- ❌ 文章里写"完整源码: 教程资源/xxx/xxx.py"这种本地路径——公众号读者看不到
+- ❌ 只在文末说"代码在xx"，正文没有任何截图做证据
+
+---
 ## 参考
 - `references/viral-guide.md` - 爆款指南
 - `references/anti-ai-patterns.md` - 反 AI 指南 ⭐
