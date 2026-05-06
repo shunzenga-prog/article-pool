@@ -272,8 +272,8 @@ def _node_style(nid: str, node: dict, palette: dict) -> str:
 def _node_def(node: dict, palette: dict | None = None) -> str:
     """Generate a Mermaid node definition with optional icon and description.
 
-    Uses explicit px font sizes (not em) to avoid Mermaid layout miscalculation.
-    Uses palette text_dim color instead of CSS opacity for description dimming.
+    Uses ONLY Mermaid-native HTML (no <span> with custom styles) to ensure
+    Mermaid's layout engine correctly measures text and sizes nodes.
     """
     nid = node["id"]
     label = node.get("label", nid)
@@ -281,24 +281,19 @@ def _node_def(node: dict, palette: dict | None = None) -> str:
     icon = node.get("icon", "")
     shape = node.get("shape", "rounded")
 
-    # Escape single quotes in text values using HTML entity
-    # Also convert literal \n to <br/> for proper multi-line in HTML context
+    # Escape single quotes; convert \n → <br/> for proper multi-line
     label_safe = label.replace("'", "&#39;")
     desc_safe = desc.replace("'", "&#39;").replace("\n", "<br/>") if desc else ""
 
-    # Get dim text color for descriptions (avoids CSS opacity which Mermaid may not support)
-    dim_color = "#888"
-    if palette:
-        dim_color = palette.get("text_dim", "#888")
-
-    # Build rich label: icon (18px) + bold title + optional dim description (12px)
+    # Build rich label using only Mermaid-native formatting (no custom font sizes)
+    # This ensures Mermaid's layout engine accurately measures text dimensions
     parts = []
     if icon:
-        parts.append(f"<span style='font-size:18px'>{icon}</span>")
+        parts.append(f"<b>{icon}</b>")
     parts.append(f"<b>{label_safe}</b>")
     text = " ".join(parts)
     if desc_safe:
-        text += f"<br/><span style='font-size:12px;color:{dim_color}'>{desc_safe}</span>"
+        text += f"<br/>{desc_safe}"
 
     template = _SHAPE_MAP.get(shape, _SHAPE_MAP["rounded"])
     return f"""{nid}{template.format(t=text)}"""
@@ -319,7 +314,7 @@ def _edge_def(edge: dict) -> str:
     }.get(category, "-->")
 
     if label:
-        line = f"  {frm} {edge_spec} |\"<span style='font-size:11px'>{label}</span>\"| {to}"
+        line = f"  {frm} {edge_spec} |\"{label}\"| {to}"
     else:
         line = f"  {frm} {edge_spec} {to}"
 
@@ -393,7 +388,7 @@ def generate_mermaid(flow: dict, palette_name: str = "tech-dark") -> str:
         title_id = "TITLE"
         lines.append("  %% ── Title ──")
         if "desc" in flow:
-            title_text = f"<b>{title}</b><br/><span style='font-size:11px;color:{p['text_dim']}'>{flow['desc']}</span>"
+            title_text = f"<b>{title}</b><br/>{flow['desc']}"
         else:
             title_text = f"<b>{title}</b>"
         lines.append(f'  {title_id}["{title_text}"]')
@@ -614,6 +609,35 @@ def render_mermaid_to_png(mermaid_markup: str, output_path: str,
             # Wait for Mermaid SVG
             page.wait_for_selector(".mermaid svg", timeout=15000)
             page.wait_for_timeout(800)  # extra render settling
+
+            # ── Post-processing: fix foreignObject overflow ──
+            # Mermaid's canvas-based text measurement underestimates CJK + emoji
+            # widths by ~10-15px, causing content to be clipped inside foreignObject.
+            # This expands narrow foreignObjects and re-centers their label groups.
+            page.evaluate("""() => {
+                const svg = document.querySelector('.mermaid svg');
+                if (!svg) return;
+                svg.querySelectorAll('foreignObject').forEach(fo => {
+                    const div = fo.querySelector('div');
+                    if (!div) return;
+                    const scrollW = div.scrollWidth;
+                    const attrW = parseFloat(fo.getAttribute('width')) || 0;
+                    const extra = scrollW - attrW;
+                    if (extra > 2) {
+                        fo.setAttribute('width', String(scrollW));
+                        // Re-center the parent label group
+                        const labelG = fo.closest('g.label');
+                        if (labelG) {
+                            const t = labelG.getAttribute('transform') || '';
+                            const m = t.match(/translate\\(([^,]+),\\s*([^)]+)\\)/);
+                            if (m) {
+                                labelG.setAttribute('transform',
+                                    'translate(' + (parseFloat(m[1]) - extra/2) + ', ' + m[2] + ')');
+                            }
+                        }
+                    }
+                });
+            }""")
 
             # Screenshot the card, not the full page (focus on content)
             card = page.locator(".chart-card")
