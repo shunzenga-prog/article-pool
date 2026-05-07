@@ -161,7 +161,7 @@ for step in steps:
     ② 生成截图（立即！）
       - 执行代码 → 捕获真实输出
       - 或打开界面 → Playwright 截图
-      - 或渲染终端 → PIL 终端截图
+      - 或渲染终端 → terminal_screenshot.py（xterm.js + OS 自适应标题栏）
     
     ③ 嵌入文章
       - 截图插入到该步骤文字之后
@@ -182,8 +182,8 @@ for step in steps:
 # 流程图 / 架构全景图 → Mermaid 流程图
 python scripts/flowchart_gen.py --file flow.json -o step0_flowchart.png
 
-# 终端命令输出 → 终端风格截图
-python scripts/code_image_generator.py exec script.py -o stepN_terminal.png
+# 终端命令输出 → 终端风格截图（xterm.js + OS 自适应标题栏）
+python scripts/terminal_screenshot.py output.txt --os windows --title "PowerShell" -o stepN_terminal.png
 
 # 浏览器页面/工具界面 → Playwright 截图
 python scripts/screenshot_util.py single https://example.com --width 800 --height 900 -o stepN_browser.png

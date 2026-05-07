@@ -133,6 +133,25 @@ python scripts/illustration_gen.py article.html --type 技术教程 --max-images
 
 详情见 `skills/illustration-gen/SKILL.md`。
 
+## 终端截图生成
+
+使用 xterm.js + Playwright 生成带操作系统原生标题栏的逼真终端截图：
+
+```bash
+# 从文本文件生成终端截图（自动检测 OS）
+python scripts/terminal_screenshot.py textfile.txt -o terminal.png
+
+# 指定 OS 样式：windows / macos / linux
+python scripts/terminal_screenshot.py textfile.txt --os windows --title "PowerShell" -o terminal.png
+
+# 从管道输入
+echo "Hello World" | python scripts/terminal_screenshot.py -o terminal.png
+```
+
+**OS 自适应标题栏**：Windows → Windows Terminal 标签页（`>_` 图标 + 深色标签栏）、macOS → 原生 Terminal（红黄绿交通灯）、Linux → GNOME Terminal（扁平标题栏）。
+
+**依赖**：playwright（`pip install playwright && playwright install chromium`），xterm.js 通过 CDN 加载无需本地安装。
+
 ## 代码图片生成
 
 从 Markdown 文章中的代码块自动生成配图（代码截图、终端输出、图表、动画）：

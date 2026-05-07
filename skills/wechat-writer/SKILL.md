@@ -243,7 +243,7 @@ S 情境 → C 冲突 → Q 疑问 → A 答案
 | 优先级 | 类型 | 说明 | 生成工具 |
 |--------|------|------|---------|
 | 0 | 流程图/架构图 | 流水线全景、系统架构、数据流 | Mermaid + Playwright 渲染 |
-| 1 | 终端执行截图 | 命令运行的真实输出，彩色命令行风格 | PIL 渲染（暗色主题 + 彩色文字） |
+| 1 | 终端执行截图 | 命令运行的真实输出，逼真终端窗口 | terminal_screenshot.py（xterm.js + Playwright） |
 | 2 | 界面/浏览器截图 | 生成的页面、工具界面、最终效果 | Playwright 全页截图 |
 | 3 | 原文/源数据截图 | 点击链接后的实际内容页，证明数据真实 | Playwright viewport 截图 |
 | 4 | 效果对比截图 | Before/After，或不同方案的对比 | 组合以上工具 |
@@ -262,11 +262,11 @@ S 情境 → C 冲突 → Q 疑问 → A 答案
 
 | 截图 | 实际类型 | 应该用的工具 | 错误做法 |
 |------|---------|-------------|---------|
-| 终端运行输出 | 终端截图(类型1) | PIL 终端渲染 | ✅ |
+| 终端运行输出 | 终端截图(类型1) | terminal_screenshot.py | ✅ |
 | HTML 报告 | 界面截图(类型2) | Playwright | ❌ 用终端渲染画 ASCII 框 |
 | 图表 | matplotlib 输出 | 直接保存 chart | ✅ |
 
-**原则：** 终端输出 → PIL 终端渲染。网页/报告 → Playwright 浏览器截图。各用各的工具，不要混用。
+**原则：** 终端输出 → `terminal_screenshot.py`（xterm.js 渲染，自动匹配操作系统标题栏）。网页/报告 → Playwright 浏览器截图。各用各的工具，不要混用。
 
 ### 数量要求
 
@@ -281,8 +281,12 @@ S 情境 → C 冲突 → Q 疑问 → A 答案
 # 流程图/架构图：从 JSON 生成 Mermaid 流程图
 python scripts/flowchart_gen.py --file flow.json -o flowchart.png
 
-# 终端执行截图：运行脚本 + 捕获真实输出
-python scripts/code_image_generator.py exec script.py -o stepN_terminal.png
+# 终端执行截图：将文本内容渲染为逼真终端窗口
+# --os 可选 windows/macos/linux，默认自动检测当前系统
+python scripts/terminal_screenshot.py output.txt --os windows --title "PowerShell" -o stepN_terminal.png
+
+# 终端截图也可以直接从管道读取
+command > output.txt && python scripts/terminal_screenshot.py output.txt -o stepN_terminal.png
 
 # 浏览器截图：打开 URL
 python scripts/screenshot_util.py single https://example.com --width 800 --height 900 -o stepN_browser.png
