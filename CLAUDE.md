@@ -12,7 +12,7 @@ article-pool/
 │   ├── hotspot-tracker/     # 热点追踪与早报制作
 │   ├── article-pipeline/    # 多 Agent 协作创作链
 │   └── ...
-├── templates/               # HTML 模板（全部适配微信公众号 CSS）
+├── templates/               # HTML 模板（兜底用，首选根据风格卡即时生成）
 ├── scripts/                 # 工具脚本
 │   ├── gen_cover.py         # 封面图生成
 │   └── publish_html.py      # HTML 直传公众号草稿箱
@@ -73,6 +73,8 @@ article-pool/
 发布前必须对照 `wechat-css-guide.md` 的检查清单逐条过。
 
 ### 模板编写规范
+
+> **模板现在是兜底方案。** 创作时应先根据选题定「风格卡」（见 `skills/wechat-writer/SKILL.md` 风格规划章节），然后即时生成 HTML。只有当风格卡与某个模板高度匹配、或需要快速产出时，才使用模板。
 
 **文件头部**：注释块后必须紧跟 `<meta charset="UTF-8">`，否则 Windows 浏览器默认用 GBK 解码导致乱码。
 
