@@ -124,9 +124,10 @@ python scripts/topic_tracker.py list --days 14  # 自定义天数
 7. **结尾** → 行动号召 + 金句
 8. **去 AI 味** → ⭐ `references/anti-ai-patterns.md`
 9. **自检** → 真人感 8 项≥6 项
-10. **排版** → 根据文章类型选择模板：通用文章用 `templates/article-template.html`，教程用 `templates/tech-tutorial.html`，深度分享用 `templates/daily-report.html`
+10. **排版** → 根据文章类型选择模板。**注意：** 所有 HTML 必须遵循微信 CSS 规范（见 `references/wechat-css-guide.md`），从创作起就用 `<table>` + `<span>` 布局，避免返工
 11. **终审** → ⭐ `references/final-review-checklist.md`
-12. **发布** → 发布后执行 `python scripts/topic_tracker.py add` 入库选题
+12. **微信兼容检查** → 对照 `references/wechat-css-guide.md` 的检查清单逐条验证（虽已按规范创作，仍需二次确认）
+13. **发布** → 1) 上传图片到微信 CDN 生成 `_publish.html`; 2) `publish_html.py` 推送到草稿箱; 3) `topic_tracker.py add` 入库选题
 
 ---
 
@@ -201,6 +202,16 @@ S 情境 → C 冲突 → Q 疑问 → A 答案
 
 ---
 
+## ⚠️ 微信公众号 CSS 兼容性
+
+公众号发布时会对 HTML 做 DOM 改写（`<div>`→`<p>`、剥离 `<p>` 上 style 等），导致预览正常的样式发布后崩坏。
+
+**完整规范 + 检查清单：** `references/wechat-css-guide.md`
+
+**发布前必须对照检查清单逐条过。**
+
+---
+
 ## 自检
 ### 内容
 - [ ] 标题 20-30 字？ [ ] 开头 3 秒留人？ [ ] 表格≤2 个？
@@ -237,6 +248,26 @@ S 情境 → C 冲突 → Q 疑问 → A 答案
 | 3 | 原文/源数据截图 | 点击链接后的实际内容页，证明数据真实 | Playwright viewport 截图 |
 | 4 | 效果对比截图 | Before/After，或不同方案的对比 | 组合以上工具 |
 
+### ⚠️ 截图规划（写生成脚本前必做）
+
+**最容易犯的错误：用终端渲染工具生成所有截图。** 必须提前规划每张截图用什么工具。
+
+**操作步骤：**
+1. 列出文章中需要的所有截图
+2. 对照上面的类型表，给每张图打上类型标签
+3. 根据类型选择对应的生成工具
+4. 再写生成脚本
+
+**示例（本期就是反面教材）：**
+
+| 截图 | 实际类型 | 应该用的工具 | 错误做法 |
+|------|---------|-------------|---------|
+| 终端运行输出 | 终端截图(类型1) | PIL 终端渲染 | ✅ |
+| HTML 报告 | 界面截图(类型2) | Playwright | ❌ 用终端渲染画 ASCII 框 |
+| 图表 | matplotlib 输出 | 直接保存 chart | ✅ |
+
+**原则：** 终端输出 → PIL 终端渲染。网页/报告 → Playwright 浏览器截图。各用各的工具，不要混用。
+
 ### 数量要求
 
 - **每个教程步骤至少 1 张截图**，execute 和 output 类步骤必须有图
@@ -269,6 +300,39 @@ python scripts/code_image_generator.py code script.py -o stepN_code.png
 - `<img width="100%">` 用属性而非 CSS 控制尺寸
 - alt 文本写清楚截图内容（便于读者理解，也便于搜索）
 - 每张截图前有引导文字说明"这是什么"
+
+### ⚠️ 工具依赖与字体配置（防止乱码）
+
+**Python 数据类教程（matplotlib/pandas）必须注意：**
+
+matplotlib 的字体回退链（font fallback chain）在某些环境中不可靠，**¥、CJK 等字形可能显示为方块（tofu）**。
+
+**根因：** matplotlib 的 `font.sans-serif` 回退链在不同的 glyph 上可能选择不同字体，**而且 SimHei（黑体）根本不含 ¥（U+00A5）字形**，即使回退链生效也会显示 tofu。
+
+**解决方案：**
+
+```python
+# ✅ 正确：使用 Microsoft YaHei（含 ¥）+ 显式 FontProperties
+from matplotlib.font_manager import FontProperties
+FONT_PATH = "C:/Windows/Fonts/msyh.ttc"  # Microsoft YaHei — 含 CJK + ¥
+FONT_PROP = FontProperties(fname=FONT_PATH)
+plt.rcParams["font.family"] = "sans-serif"
+plt.rcParams["font.sans-serif"] = ["Microsoft YaHei"]
+
+# 在关键文本上显式指定 fontproperties
+ax.set_title("标题", fontproperties=FONT_PROP, fontsize=14)
+ax.set_xticklabels(labels, fontproperties=FONT_PROP)
+
+# ❌ 错误1：仅靠 font.sans-serif 回退链——某些字形可能漏掉
+plt.rcParams["font.sans-serif"] = ["SimHei"]
+# ❌ 错误2：SimHei 本身缺少 ¥ 符号（U+00A5），即使回退链生效也没用
+```
+
+**跨平台注意事项：**
+- **Windows**：优先 `C:/Windows/Fonts/msyh.ttc`（Microsoft YaHei，含 ¥），备选 `simhei.ttf`
+- **macOS**：`/System/Library/Fonts/PingFang.ttc`（苹方，含 ¥）
+- **Linux**：需安装 `fonts-wqy-microhei` 或 `fonts-noto-cjk`（均含 ¥）
+- 脚本启动时检测系统，自动对应字体路径，**备选链必须测试所有用到的 glyph**
 
 ### 禁止事项
 

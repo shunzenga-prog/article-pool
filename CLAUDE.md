@@ -63,36 +63,14 @@ article-pool/
 
 ## ⚠️ 微信公众号 CSS 兼容性
 
-### 最严重的坑：发布时 DOM 改写（预览看不出来！）
+完整规范见 `skills/wechat-writer/references/wechat-css-guide.md`。核心原则：
 
-公众号**预览时样式正常**，但**点击发布后**会做以下改写：
-1. **所有 `<div>` → `<p>`**（包括 `<section>` 等块级元素）
-2. **所有 `<p>` 上的 `style` 属性被全部剥离**
-3. `<table>`、`<td>`、`<span>`、`<h1>`-`<h6>`、`<b>`、`<strong>`、`<pre>`、`<code>` 上的 style **保留**
+- ❌ 禁止 `<div>` / `<section>` → 会被转为 `<p>` 并剥离样式
+- ❌ 禁止在 `<p>` 上放文字样式 → 只能放 `text-align`
+- ✅ 容器用 `<table><tr><td>`
+- ✅ 文字样式用 `<span style="...">`
 
-**铁律：**
-- ❌ 禁止用 `<div>` / `<section>` 做任何带样式的容器
-- ❌ 禁止在 `<p>` 上放文字样式（颜色、字号等），只能放 `text-align`
-- ✅ 所有容器用 `<table width="100%"><tr><td style="...">`
-- ✅ 所有文字样式用 `<span style="...">`
-
-### CSS 属性黑名单
-
-| ❌ 会失效 | ✅ 替代方案 |
-|-----------|-----------|
-| `<div>` `<section>` 标签 | `<table><tr><td>` 表格布局 |
-| `display:flex` / `grid` | `<table><tr><td>` 表格布局 |
-| `display:inline-block` | 省略（span 内联即可） |
-| `gap` / `align-items` | `<td>` + `padding` / `vertical-align` |
-| `linear-gradient(...)` | 实色 `background:#色值` |
-| `border-radius` | 移除（微信不支持） |
-| `letter-spacing` | 移除 |
-| `font-style:italic` | 移除 |
-| `text-transform:uppercase` | 直接大写 |
-| `opacity` | 直接色值 |
-| `font-family` 自定义字体 | 移除 |
-
-所有 `templates/` 下的 HTML 模板已完成转换。新建模板时必须遵守以上规则。
+发布前必须对照 `wechat-css-guide.md` 的检查清单逐条过。
 
 ### 模板编写规范
 
