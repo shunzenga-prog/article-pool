@@ -1,0 +1,49 @@
+{
+  "article_type": "早报_晚报",
+  "description": "早报/晚报流程：素材抓取 → foreach(条目写作) → 聚合 → 审阅 → 发布。",
+  "stages": [
+    {
+      "id": "S1",
+      "name": "素材采集",
+      "parallel": false,
+      "tasks": [
+        {"id": "S1T1", "capability": "hotspot_tracker", "description": "追踪 AI 热点"},
+        {"id": "S1T2", "capability": "news_aggregator", "description": "多源新闻聚合", "depends_on": ["S1T1"]}
+      ]
+    },
+    {
+      "id": "S2",
+      "name": "逐条目写作",
+      "type": "foreach",
+      "foreach": "$S1.tasks[1].output.items",
+      "depends_on": ["S1"],
+      "stages": [
+        { "id": "S2_write", "name": "写条目", "parallel": false, "tasks": [
+          {"id": "W1", "capability": "wechat_writer", "description": "写单个新闻条目"}
+        ]}
+      ]
+    },
+    {
+      "id": "S3",
+      "name": "聚合排版",
+      "depends_on": ["S2"],
+      "parallel": false,
+      "tasks": [
+        {"id": "S3T1", "capability": "wechat_writer", "description": "聚合条目并排版为 HTML"}
+      ]
+    },
+    {
+      "id": "S4",
+      "name": "审阅 + 发布",
+      "depends_on": ["S3"],
+      "parallel": false,
+      "tasks": [
+        {"id": "S4T1", "capability": "review_agent", "description": "HTML 结构检查",
+         "hooks": {"on_failure": {"retry": 0, "fallback": "back_to_writer"}}},
+        {"id": "S4T2", "capability": "cover_agent", "description": "封面生成", "depends_on": ["S4T1"]},
+        {"id": "S4T3", "capability": "publish_agent", "description": "发布草稿箱", "depends_on": ["S4T2"],
+         "hooks": {"on_failure": {"retry": 2, "fallback": "escalate"}}}
+      ]
+    }
+  ]
+}

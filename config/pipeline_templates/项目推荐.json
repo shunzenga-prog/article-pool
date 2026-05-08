@@ -1,0 +1,52 @@
+{
+  "article_type": "项目推荐",
+  "description": "GitHub 项目推荐流程：素材抓取 → 写审循环 → 插图(GitHub截图优先) → 封面 → 发布。",
+  "stages": [
+    {
+      "id": "S1",
+      "name": "素材采集",
+      "parallel": false,
+      "tasks": [
+        {"id": "S1T1", "capability": "research_lobster", "description": "搜索并验证开源项目信息"}
+      ]
+    },
+    {
+      "id": "S2",
+      "name": "写审循环",
+      "type": "loop",
+      "depends_on": ["S1"],
+      "repeat": { "until": "$S2_review.tasks[0].output.passed == true", "max": 3, "on_max": "escalate" },
+      "stages": [
+        { "id": "S2_write", "name": "写作", "parallel": false, "tasks": [
+          {"id": "W1", "capability": "wechat_writer", "description": "创作项目推荐文章"}
+        ]},
+        { "id": "S2_review", "name": "审阅", "parallel": false, "tasks": [
+          {"id": "R1", "capability": "review_agent", "description": "HTML 结构扫描",
+           "hooks": {"on_failure": {"retry": 0, "fallback": "back_to_writer"}}}
+        ]}
+      ]
+    },
+    {
+      "id": "S3",
+      "name": "资产生成",
+      "depends_on": ["S2"],
+      "parallel": true,
+      "tasks": [
+        {"id": "S3T1", "capability": "illustration_agent", "description": "GitHub 截图优先配图",
+         "hooks": {"on_failure": {"retry": 1, "fallback": "skip_and_continue"}}},
+        {"id": "S3T2", "capability": "cover_agent", "description": "封面图生成",
+         "hooks": {"on_failure": {"retry": 2, "fallback": "escalate"}}}
+      ]
+    },
+    {
+      "id": "S4",
+      "name": "发布",
+      "depends_on": ["S3"],
+      "parallel": false,
+      "tasks": [
+        {"id": "S4T1", "capability": "publish_agent", "description": "推送草稿箱 + 选题入库",
+         "hooks": {"on_failure": {"retry": 2, "fallback": "escalate"}}}
+      ]
+    }
+  ]
+}

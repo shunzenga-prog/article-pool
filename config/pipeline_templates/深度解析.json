@@ -1,0 +1,44 @@
+{
+  "article_type": "深度解析",
+  "description": "深度分析类文章默认流程：写审循环 → 插图 → 封面 → 发布。Planner 可加减 stage。",
+  "stages": [
+    {
+      "id": "S1",
+      "name": "内容创作",
+      "type": "loop",
+      "repeat": { "until": "$S1_review.tasks[0].output.passed == true", "max": 3, "on_max": "escalate" },
+      "stages": [
+        { "id": "S1_write", "name": "写作", "parallel": false, "tasks": [
+          {"id": "W1", "capability": "wechat_writer", "description": "公众号文章创作", "input": {}},
+          {"id": "W2", "capability": "wechat_writer", "description": "自检去AI味", "depends_on": ["W1"], "input": {}}
+        ]},
+        { "id": "S1_review", "name": "审阅", "parallel": false, "tasks": [
+          {"id": "R1", "capability": "review_agent", "description": "HTML 结构扫描", "input": {},
+           "hooks": {"on_failure": {"retry": 0, "fallback": "back_to_writer"}}}
+        ]}
+      ]
+    },
+    {
+      "id": "S2",
+      "name": "资产生成",
+      "parallel": true,
+      "depends_on": ["S1"],
+      "tasks": [
+        {"id": "S2T1", "capability": "illustration_agent", "description": "插图自动配图",
+         "hooks": {"on_failure": {"retry": 1, "fallback": "skip_and_continue"}}},
+        {"id": "S2T2", "capability": "cover_agent", "description": "封面图生成",
+         "hooks": {"on_failure": {"retry": 2, "fallback": "escalate"}}}
+      ]
+    },
+    {
+      "id": "S3",
+      "name": "发布",
+      "depends_on": ["S2"],
+      "parallel": false,
+      "tasks": [
+        {"id": "S3T1", "capability": "publish_agent", "description": "推送草稿箱 + 选题入库",
+         "hooks": {"on_failure": {"retry": 2, "fallback": "escalate"}}}
+      ]
+    }
+  ]
+}

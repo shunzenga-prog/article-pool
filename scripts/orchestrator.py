@@ -70,8 +70,8 @@ def validate_plan(plan: dict, registry: dict) -> list[str]:
         stage_id = stage.get("id", "")
         if not stage_id:
             errors.append(f"{path}: Stage missing 'id'")
-        if not stage.get("tasks"):
-            errors.append(f"{stage_id}: Stage has no tasks")
+        if not stage.get("tasks") and not stage.get("stages"):
+            errors.append(f"{stage_id}: Stage has no tasks or sub-stages")
 
         for task in stage.get("tasks", []):
             tid = task.get("id", "")
@@ -420,10 +420,206 @@ def execute_hooks(hooks: dict, hook_type: str, context: dict) -> dict | None:
 #  Main Orchestrator
 # ═══════════════════════════════════════════════════════════
 
+def _run_stage(stage: dict, registry: dict, context: dict, log: list,
+               dry_run: bool, resume_handoffs: dict, stage_results: dict) -> str:
+    """Execute a single linear stage. Returns status: ok/failed/blocked/skipped."""
+    stage_id = stage["id"]
+
+    # Check stage-level depends_on
+    should_skip = False
+    for dep_id in stage.get("depends_on", []):
+        if dep_id in stage_results and stage_results[dep_id] != "ok":
+            print(f"  [SKIP] Stage depends on {dep_id} (status: {stage_results[dep_id]})")
+            log.append({"stage": stage_id, "status": "skipped", "reason": f"depends_on {dep_id} not ok"})
+            stage_results[stage_id] = "skipped"
+            return "skipped"
+
+    # Hook: on_stage_entry
+    entry_result = execute_hooks(stage.get("hooks", {}), "on_stage_entry", context)
+    if entry_result and entry_result.get("action") == "block":
+        print(f"  [HOOK] Stage blocked: {entry_result['reason']}")
+        log.append({"stage": stage_id, "status": "blocked", "reason": entry_result["reason"]})
+        stage_results[stage_id] = "blocked"
+        return "blocked"
+
+    tasks = stage.get("tasks", [])
+    executable_tasks = [t for t in tasks if "sub_pipeline" not in t]
+    if not executable_tasks:
+        stage_results[stage_id] = "ok"
+        return "ok"
+
+    rounds = build_execution_order(executable_tasks)
+    for round_idx, round_tasks in enumerate(rounds):
+        print(f"\n  Round {round_idx + 1}: {len(round_tasks)} task(s)")
+        use_parallel = stage.get("parallel", False) and len(round_tasks) > 1 and not dry_run
+        if use_parallel:
+            _execute_parallel(round_tasks, stage, registry, context, log, dry_run, resume_handoffs)
+        else:
+            _execute_sequential(round_tasks, stage, registry, context, log, dry_run, resume_handoffs)
+
+    execute_hooks(stage.get("hooks", {}), "on_stage_complete", context)
+    stage_has_failures = any(
+        e.get("status") in ("failed", "error", "timeout")
+        for e in log if e.get("_stage_id") == stage_id
+    )
+    status = "failed" if stage_has_failures else "ok"
+    stage_results[stage_id] = status
+    return status
+
+
+def _run_loop(stage: dict, registry: dict, context: dict, log: list,
+              dry_run: bool, resume_handoffs: dict, stage_results: dict) -> str:
+    """Execute a loop stage: repeat inner stages until condition met or max reached."""
+    stage_id = stage["id"]
+    repeat_cfg = stage.get("repeat", {})
+    condition = repeat_cfg.get("until", "true")
+    max_iter = repeat_cfg.get("max", 3)
+    on_max = repeat_cfg.get("on_max", "escalate")
+    inner_stages = stage.get("stages", [])
+
+    print(f"\n  [LOOP] {stage_id}: max={max_iter}, until='{condition}'")
+
+    for iteration in range(1, max_iter + 1):
+        print(f"\n  --- Iteration {iteration}/{max_iter} ---")
+        iter_results = {}
+        for inner_stage in inner_stages:
+            status = _dispatch_stage(inner_stage, registry, context, log,
+                                     dry_run, resume_handoffs, iter_results)
+            if status == "blocked":
+                break
+
+        # Check loop condition against accumulated context
+        try:
+            # Simple condition: "$S2_review.tasks[0].output.passed == true"
+            # We check if 'passed' is True in any task output within this loop
+            passed = any(
+                e.get("status") == "ok" and "passed" in str(e.get("stdout", "")).lower()
+                for e in log if e.get("_stage_id", "").startswith(stage_id)
+            ) or all(
+                v == "ok" for v in iter_results.values()
+            )
+            if passed:
+                print(f"  [LOOP] Condition met after {iteration} iteration(s)")
+                break
+        except Exception:
+            pass
+    else:
+        print(f"  [LOOP] Max iterations ({max_iter}) reached. Action: {on_max}")
+        if on_max == "escalate":
+            stage_results[stage_id] = "failed"
+            return "failed"
+
+    stage_results[stage_id] = "ok"
+    return "ok"
+
+
+def _run_foreach(stage: dict, registry: dict, context: dict, log: list,
+                  dry_run: bool, resume_handoffs: dict, stage_results: dict) -> str:
+    """Execute a foreach stage: repeat inner stages for each item in array."""
+    stage_id = stage["id"]
+    foreach_ref = stage.get("foreach", "")
+    inner_stages = stage.get("stages", [])
+
+    # Resolve the array reference from context
+    items = resolve_references(foreach_ref, context)
+    if not isinstance(items, list):
+        print(f"  [FOREACH] Warning: '{foreach_ref}' resolved to non-list: {type(items).__name__}")
+        items = [items] if items else []
+
+    print(f"\n  [FOREACH] {stage_id}: {len(items)} item(s)")
+
+    for idx, item in enumerate(items):
+        print(f"\n  --- Item {idx + 1}/{len(items)} ---")
+        # Inject item into context for inner stages
+        item_context = dict(context)
+        item_context["_foreach_item"] = item
+        item_context["_foreach_index"] = idx
+
+        item_results = {}
+        for inner_stage in inner_stages:
+            status = _dispatch_stage(inner_stage, registry, item_context, log,
+                                     dry_run, resume_handoffs, item_results)
+            if status == "blocked":
+                break
+
+    stage_results[stage_id] = "ok"
+    return "ok"
+
+
+def _dispatch_stage(stage: dict, registry: dict, context: dict, log: list,
+                    dry_run: bool, resume_handoffs: dict, stage_results: dict) -> str:
+    """Route a stage to the correct handler based on its type."""
+    stage_type = stage.get("type", "stage")
+    if stage_type == "loop":
+        return _run_loop(stage, registry, context, log, dry_run, resume_handoffs, stage_results)
+    elif stage_type == "foreach":
+        return _run_foreach(stage, registry, context, log, dry_run, resume_handoffs, stage_results)
+    else:
+        return _run_stage(stage, registry, context, log, dry_run, resume_handoffs, stage_results)
+
+
+def _execute_parallel(round_tasks, stage, registry, context, log, dry_run, resume_handoffs):
+    """Execute tasks in parallel via ThreadPool."""
+    stage_id = stage["id"]
+    def _run_parallel(task):
+        if task.get("input"):
+            task["input"] = resolve_references(task["input"], context)
+        result = execute_task(task, registry, dry_run, context, resume_handoffs)
+        result["_stage_id"] = stage_id
+        register_output(task["id"], result, context)
+        return result
+    with ThreadPoolExecutor(max_workers=min(len(round_tasks), 4)) as executor:
+        futures = {executor.submit(_run_parallel, t): t for t in round_tasks}
+        for future in as_completed(futures):
+            task = futures[future]
+            result = future.result()
+            log.append(result)
+            print(f"    [{task['id']}] {task.get('capability','?')} -> {result.get('status','?')}")
+
+
+def _execute_sequential(round_tasks, stage, registry, context, log, dry_run, resume_handoffs):
+    """Execute tasks sequentially."""
+    stage_id = stage["id"]
+    for task in round_tasks:
+        cap_name = task.get("capability", "?")
+        print(f"    [{task['id']}] {cap_name} ", end="", flush=True)
+        if task.get("input"):
+            task["input"] = resolve_references(task["input"], context)
+        result = execute_task(task, registry, dry_run, context, resume_handoffs)
+        result["_stage_id"] = stage_id
+        register_output(task["id"], result, context)
+        log.append(result)
+        status = result.get("status", "?")
+        if dry_run:
+            print(f"-> {status}")
+        elif status in ("ok", "pending_ai"):
+            print("OK" if status == "ok" else "-> handoff")
+        elif status == "failed":
+            print(f"FAIL (exit {result.get('exit_code','?')})")
+            hook_result = execute_hooks(task.get("hooks", {}) or
+                                        stage.get("hooks", {}),
+                                        "on_failure", {**context, "task": task})
+            if hook_result:
+                action = hook_result.get("action", "")
+                retries = hook_result.get("retries_left", 0)
+                if action == "retry" and retries > 0:
+                    print(f"      [HOOK] Retrying ({retries} left)...")
+                    task["hooks"] = task.get("hooks", {})
+                    task["hooks"]["on_failure"] = {"retry": retries - 1, "fallback": "skip"}
+                    result = execute_task(task, registry, dry_run, context, resume_handoffs)
+                    log.append(result)
+                elif action == "skip":
+                    print(f"      [HOOK] Skipping (fallback)")
+                else:
+                    print(f"      [HOOK] Escalating: {action}")
+        else:
+            print(f"-> {status}")
+
+
 def run_pipeline(plan: dict, registry: dict, dry_run: bool = False,
                  target_stage: str = None, from_task: str = None,
                  resume_handoffs: dict = None) -> list[dict]:
-    """Execute pipeline plan stage by stage.
+    """Execute pipeline plan stage by stage. Supports stage types: stage, loop, foreach.
 
     resume_handoffs: dict mapping task_id -> pre-completed result (from --resume)
     """
@@ -455,127 +651,13 @@ def run_pipeline(plan: dict, registry: dict, dry_run: bool = False,
 
     for stage in stages:
         stage_id = stage["id"]
+        stage_type = stage.get("type", "stage")
         print(f"\n{'='*50}")
-        print(f"Stage {stage_id}: {stage.get('name','')}")
+        print(f"Stage {stage_id} [{stage_type}]: {stage.get('name','')}")
         print(f"{'='*50}")
 
-        # Check stage-level depends_on
-        should_skip = False
-        stage_deps = stage.get("depends_on", [])
-        for dep_id in stage_deps:
-            if dep_id in stage_results and stage_results[dep_id] != "ok":
-                print(f"  [SKIP] Stage depends on {dep_id} (status: {stage_results[dep_id]})")
-                log.append({"stage": stage_id, "status": "skipped", "reason": f"depends_on {dep_id} not ok"})
-                stage_results[stage_id] = "skipped"
-                should_skip = True
-        if should_skip:
-            continue
-
-        # Hook: on_stage_entry
-        entry_result = execute_hooks(stage.get("hooks", {}), "on_stage_entry", context)
-        if entry_result and entry_result.get("action") == "block":
-            print(f"  [HOOK] Stage blocked: {entry_result['reason']}")
-            log.append({"stage": stage_id, "status": "blocked", "reason": entry_result["reason"]})
-            stage_results[stage_id] = "blocked"
-            continue
-
-        tasks = stage.get("tasks", [])
-
-        # Handle sub_pipelines recursively
-        for task in tasks:
-            if "sub_pipeline" in task:
-                print(f"  [{task['id']}] Sub-pipeline: {task['sub_pipeline'].get('description','')}")
-                sub_log = run_pipeline(task["sub_pipeline"], registry, dry_run)
-                log.append({
-                    "task_id": task["id"],
-                    "type": "sub_pipeline",
-                    "sub_log": sub_log,
-                    "status": "ok" if all(s.get("status") == "ok" for s in sub_log) else "partial",
-                })
-
-        # Filter out sub_pipeline tasks (already handled)
-        executable_tasks = [t for t in tasks if "sub_pipeline" not in t]
-
-        if not executable_tasks:
-            continue
-
-        rounds = build_execution_order(executable_tasks)
-
-        for round_idx, round_tasks in enumerate(rounds):
-            print(f"\n  Round {round_idx + 1}: {len(round_tasks)} task(s)")
-
-            use_parallel = stage.get("parallel", False) and len(round_tasks) > 1 and not dry_run
-
-            if use_parallel:
-                def _run_parallel(task):
-                    if task.get("input"):
-                        task["input"] = resolve_references(task["input"], context)
-                    result = execute_task(task, registry, dry_run, context, resume_handoffs)
-                    result["_stage_id"] = stage_id
-                    register_output(task["id"], result, context)
-                    return result
-
-                with ThreadPoolExecutor(max_workers=min(len(round_tasks), 4)) as executor:
-                    futures = {executor.submit(_run_parallel, t): t for t in round_tasks}
-                    for future in as_completed(futures):
-                        task = futures[future]
-                        result = future.result()
-                        log.append(result)
-                        cap_name = task.get("capability", "?")
-                        status = result.get("status", "?")
-                        status_str = "OK" if status in ("ok", "pending_ai") else status
-                        print(f"    [{task['id']}] {cap_name} -> {status_str}")
-                continue  # skip sequential loop below
-
-            for task in round_tasks:
-                cap_name = task.get("capability", "?")
-                print(f"    [{task['id']}] {cap_name} ", end="", flush=True)
-
-                if task.get("input"):
-                    task["input"] = resolve_references(task["input"], context)
-
-                result = execute_task(task, registry, dry_run, context, resume_handoffs)
-                result["_stage_id"] = stage_id
-                register_output(task["id"], result, context)
-                log.append(result)
-
-                status = result.get("status", "?")
-                if dry_run:
-                    print(f"-> {status}")
-                elif status in ("ok", "pending_ai"):
-                    print("OK" if status == "ok" else "-> handoff")
-                elif status == "failed":
-                    print(f"FAIL (exit {result.get('exit_code','?')})")
-                    # Hook: on_failure
-                    hook_result = execute_hooks(task.get("hooks", {}) or
-                                                stage.get("hooks", {}),
-                                                "on_failure", {**context, "task": task})
-                    if hook_result:
-                        action = hook_result.get("action", "")
-                        retries = hook_result.get("retries_left", 0)
-                        if action == "retry" and retries > 0:
-                            print(f"      [HOOK] Retrying ({retries} left)...")
-                            task["hooks"] = task.get("hooks", {})
-                            task["hooks"]["on_failure"] = {"retry": retries - 1, "fallback": "skip"}
-                            retry_result = execute_task(task, registry, dry_run, context)
-                            log.append(retry_result)
-                        elif action == "skip":
-                            print(f"      [HOOK] Skipping (fallback)")
-                        else:
-                            print(f"      [HOOK] Escalating: {action}")
-                else:
-                    print(f"→ {status}")
-
-        # Hook: on_stage_complete
-        execute_hooks(stage.get("hooks", {}), "on_stage_complete", context)
-
-        # Track stage result for downstream depends_on
-        stage_has_failures = any(
-            e.get("status") in ("failed", "error", "timeout")
-            for e in log if e.get("_stage_id") == stage_id
-        )
-        stage_results[stage_id] = "failed" if stage_has_failures else "ok"
-
+        _dispatch_stage(stage, registry, context, log, dry_run, resume_handoffs, stage_results)
+    return log
     return log
 
 

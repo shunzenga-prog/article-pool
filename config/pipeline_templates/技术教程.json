@@ -1,0 +1,59 @@
+{
+  "article_type": "技术教程",
+  "description": "教程类文章流程：步骤拆解 → foreach(写作→截图→验证) → 审阅 → 发布。每个步骤独立写审。",
+  "stages": [
+    {
+      "id": "S1",
+      "name": "步骤拆解",
+      "parallel": false,
+      "tasks": [
+        {"id": "S1T1", "capability": "tutorial_pipeline", "description": "教程步骤规划和拆分"}
+      ]
+    },
+    {
+      "id": "S2",
+      "name": "逐步骤写作",
+      "type": "foreach",
+      "foreach": "$S1.tasks[0].output.steps",
+      "depends_on": ["S1"],
+      "stages": [
+        { "id": "S2_write", "name": "写步骤", "parallel": false, "tasks": [
+          {"id": "W1", "capability": "wechat_writer", "description": "写单个教程步骤"},
+          {"id": "W2", "capability": "capture", "description": "截图并嵌入", "depends_on": ["W1"]},
+          {"id": "W3", "capability": "review_agent", "description": "验证步骤正确性", "depends_on": ["W2"],
+           "hooks": {"on_failure": {"retry": 1, "fallback": "back_to_writer"}}}
+        ]}
+      ]
+    },
+    {
+      "id": "S3",
+      "name": "整体审阅",
+      "depends_on": ["S2"],
+      "parallel": false,
+      "tasks": [
+        {"id": "S3T1", "capability": "review_agent", "description": "全文 HTML 结构检查",
+         "hooks": {"on_failure": {"retry": 0, "fallback": "back_to_writer"}}}
+      ]
+    },
+    {
+      "id": "S4",
+      "name": "资产生成",
+      "depends_on": ["S3"],
+      "parallel": true,
+      "tasks": [
+        {"id": "S4T1", "capability": "cover_agent", "description": "封面图生成",
+         "hooks": {"on_failure": {"retry": 2, "fallback": "escalate"}}}
+      ]
+    },
+    {
+      "id": "S5",
+      "name": "发布",
+      "depends_on": ["S4"],
+      "parallel": false,
+      "tasks": [
+        {"id": "S5T1", "capability": "publish_agent", "description": "推送草稿箱",
+         "hooks": {"on_failure": {"retry": 2, "fallback": "escalate"}}}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "article_type": "小红书",
+  "description": "小红书笔记流程：选题 → 写审循环 → 封面 → 发布。小篇幅，无需插图 Agent。",
+  "stages": [
+    {
+      "id": "S1",
+      "name": "选题 + 创作",
+      "type": "loop",
+      "repeat": { "until": "$S1_review.tasks[0].output.passed == true", "max": 2, "on_max": "escalate" },
+      "stages": [
+        { "id": "S1_write", "name": "写作", "parallel": false, "tasks": [
+          {"id": "W1", "capability": "xiaohongshu_writer", "description": "小红书笔记创作"}
+        ]},
+        { "id": "S1_review", "name": "审阅", "parallel": false, "tasks": [
+          {"id": "R1", "capability": "review_agent", "description": "内容质量检查",
+           "hooks": {"on_failure": {"retry": 0, "fallback": "back_to_writer"}}}
+        ]}
+      ]
+    },
+    {
+      "id": "S2",
+      "name": "发布",
+      "depends_on": ["S1"],
+      "parallel": false,
+      "tasks": [
+        {"id": "S2T1", "capability": "cover_agent", "description": "3:4 竖版封面生成"},
+        {"id": "S2T2", "capability": "publish_agent", "description": "发布笔记", "depends_on": ["S2T1"],
+         "hooks": {"on_failure": {"retry": 2, "fallback": "escalate"}}}
+      ]
+    }
+  ]
+}
