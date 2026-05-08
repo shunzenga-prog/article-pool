@@ -1,0 +1,542 @@
+<!--
+========================================
+  技术教程组件参考 V4
+  展示所有标准化组件 + 设计系统
+========================================
+-->
+<meta charset="UTF-8">
+
+<!-- ============================================================
+TITLE
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td style="padding:8px 16px 0;">
+  <h1 style="font-size:24px; font-weight:800; color:#1A1A2E; margin:20px 0 0; line-height:1.45; text-align:center;">组件系统 · V4</h1>
+  <p style="text-align:center; margin:12px 0 0;">
+    <span style="display:inline-block; width:48px; height:0; border-top:3px solid #1E88E5;"></span>
+  </p>
+  <p style="text-align:center; margin:12px 0 0;">
+    <span style="font-size:12px; color:#AAAAAA;">全宽色块分割 · 嵌套层次 · 冷暖节奏 · 超大锚点</span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:40px;"></p>
+
+<!-- ============================================================
+1. 设计系统速览
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#1E88E5; line-height:1;">1</span>
+    </p>
+  </td>
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 2px;">
+      <span style="font-size:11px; color:#1E88E5; font-weight:600;">OVERVIEW</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;">设计系统速览</span>
+    </p>
+  </td>
+</tr>
+</table>
+
+<p style="height:20px;"></p>
+
+<!-- 配色 -->
+<table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #DDDDDD;">
+<tr style="background:#1E88E5;">
+  <td style="padding:8px 12px;"><span style="font-size:12px; font-weight:700; color:#FFFFFF;">语义</span></td>
+  <td style="padding:8px 12px;"><span style="font-size:12px; font-weight:700; color:#FFFFFF;">色值</span></td>
+  <td style="padding:8px 12px;"><span style="font-size:12px; font-weight:700; color:#FFFFFF;">用途</span></td>
+</tr>
+<tr>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;">
+    <span style="font-size:13px; font-weight:700; color:#C0392B; line-height:1.6;">HOOK</span>
+  </td>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;">
+    <span style="font-size:13px; background:#C0392B; color:#fff; padding:1px 6px;">#C0392B</span>
+  </td>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;"><span style="font-size:13px; color:#444;">开篇钩子 · 痛点场景</span></td>
+</tr>
+<tr>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;">
+    <span style="font-size:13px; font-weight:700; color:#1E88E5; line-height:1.6;">INFO</span>
+  </td>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;">
+    <span style="font-size:13px; background:#1E88E5; color:#fff; padding:1px 6px;">#1E88E5</span>
+  </td>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;"><span style="font-size:13px; color:#444;">导航 · 准备 · 行动</span></td>
+</tr>
+<tr>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;">
+    <span style="font-size:13px; font-weight:700; color:#27AE60; line-height:1.6;">OUTPUT</span>
+  </td>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;">
+    <span style="font-size:13px; background:#27AE60; color:#fff; padding:1px 6px;">#27AE60</span>
+  </td>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;"><span style="font-size:13px; color:#444;">结果验证 · 正确做法</span></td>
+</tr>
+<tr>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;">
+    <span style="font-size:13px; font-weight:700; color:#E67E22; line-height:1.6;">PITFALL</span>
+  </td>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;">
+    <span style="font-size:13px; background:#E67E22; color:#fff; padding:1px 6px;">#E67E22</span>
+  </td>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;"><span style="font-size:13px; color:#444;">踩坑 · 警告</span></td>
+</tr>
+<tr>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;">
+    <span style="font-size:13px; font-weight:700; color:#9B59B6; line-height:1.6;">DEEP DIVE</span>
+  </td>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;">
+    <span style="font-size:13px; background:#9B59B6; color:#fff; padding:1px 6px;">#9B59B6</span>
+  </td>
+  <td style="padding:8px 12px; border-bottom:1px solid #EEEEEE;"><span style="font-size:13px; color:#444;">深度分析 · 原理</span></td>
+</tr>
+<tr>
+  <td style="padding:8px 12px;">
+    <span style="font-size:13px; font-weight:700; color:#1A1B2E; line-height:1.6;">CODE</span>
+  </td>
+  <td style="padding:8px 12px;">
+    <span style="font-size:13px; background:#1A1B2E; color:#C8D0E8; padding:1px 6px;">#1A1B2E</span>
+  </td>
+  <td style="padding:8px 12px;"><span style="font-size:13px; color:#444;">代码块底色</span></td>
+</tr>
+</table>
+
+<p style="height:40px;"></p>
+
+<!-- ============================================================
+2. HERO 标题区
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#1E88E5; line-height:1;">2</span>
+    </p>
+  </td>
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 2px;">
+      <span style="font-size:11px; color:#1E88E5; font-weight:600;">COMPONENT</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;">HERO 标题区</span>
+    </p>
+  </td>
+</tr>
+</table>
+
+<p style="height:16px;"></p>
+
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td style="padding:8px 16px 0;">
+  <p style="text-align:center; margin:0;">
+    <span style="font-size:12px; color:#1E88E5; font-weight:600; background:#EEF5FF; padding:4px 14px;">AI · 实战教程</span>
+  </p>
+  <p style="text-align:center; margin:6px 0 0;">
+    <span style="font-size:11px; color:#AAAAAA;">第 3 期 · 共 6 期</span>
+  </p>
+  <h1 style="font-size:24px; font-weight:800; color:#1A1A2E; margin:20px 0 0; line-height:1.45; text-align:center;">AI 写代码全过程实录</h1>
+  <p style="text-align:center; margin:16px 0 0;">
+    <span style="display:inline-block; width:48px; height:0; border-top:3px solid #1E88E5;"></span>
+  </p>
+  <p style="text-align:center; margin:12px 0 0;">
+    <span style="font-size:12px; color:#AAAAAA;">2026.05.07 · 预计阅读 25 分钟</span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:40px;"></p>
+
+<!-- ============================================================
+3. 引子框
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#C0392B; line-height:1;">3</span>
+    </p>
+  </td>
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 2px;">
+      <span style="font-size:11px; color:#C0392B; font-weight:600;">COMPONENT</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;">引子框 · HOOK</span>
+    </p>
+  </td>
+</tr>
+</table>
+
+<p style="height:16px;"></p>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF5F5; border-left:6px solid #C0392B;">
+<tr><td style="padding:24px 22px;">
+  <p style="margin:0 0 8px;">
+    <span style="font-size:11px; color:#FFFFFF; font-weight:700; background:#C0392B; padding:3px 10px;">HOOK</span>
+  </p>
+  <p style="margin:0 0 6px;">
+    <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.5;">"帮我写一个 Python 脚本，把文件夹里的文件按类型分类。"</span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:15px; color:#2C2C2C; line-height:1.85;">我打下这行字，按下回车。3 轮对话、14 个步骤之后——一个带进度条、去重、日志、dry-run、自动化测试的完整工具跑起来了。这篇文章带你潜入 AI 编程的真实现场。</span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:40px;"></p>
+
+<!-- ============================================================
+4. 色条分割器
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#1E88E5; line-height:1;">4</span>
+    </p>
+  </td>
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 2px;">
+      <span style="font-size:11px; color:#1E88E5; font-weight:600;">COMPONENT</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;">色条分割器</span>
+    </p>
+  </td>
+</tr>
+</table>
+
+<p style="height:16px;"></p>
+
+<p style="margin:0 0 8px;"><span style="font-size:13px; color:#888888;">蓝色（步骤间）：</span></p>
+<table width="100%" cellpadding="0" cellspacing="0"><tr>
+  <td width="40" style="background:#1E88E5; padding:0; height:4px;"></td>
+  <td style="background:#EEEEEE; padding:0; height:4px;"></td>
+</tr></table>
+
+<p style="height:12px;"></p>
+
+<p style="margin:0 0 8px;"><span style="font-size:13px; color:#888888;">紫色（深度概念前）：</span></p>
+<table width="100%" cellpadding="0" cellspacing="0"><tr>
+  <td width="48" style="background:#9B59B6; padding:0; height:4px;"></td>
+  <td style="background:#EEEEEE; padding:0; height:4px;"></td>
+</tr></table>
+
+<p style="height:12px;"></p>
+
+<p style="margin:0 0 8px;"><span style="font-size:13px; color:#888888;">深色（总结前）：</span></p>
+<table width="100%" cellpadding="0" cellspacing="0"><tr>
+  <td width="56" style="background:#1A1A2E; padding:0; height:4px;"></td>
+  <td style="background:#EEEEEE; padding:0; height:4px;"></td>
+</tr></table>
+
+<p style="height:40px;"></p>
+
+<!-- ============================================================
+5. 步骤标题（超大序号）
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#1E88E5; line-height:1;">5</span>
+    </p>
+  </td>
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 2px;">
+      <span style="font-size:11px; color:#1E88E5; font-weight:600;">COMPONENT</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;">步骤标题 · 超大序号锚点</span>
+    </p>
+  </td>
+</tr>
+</table>
+
+<p style="height:16px;"></p>
+
+<table width="100%" cellpadding="0" cellspacing="0"><tr>
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#1E88E5; line-height:1;">1</span>
+    </p>
+  </td>
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 4px;">
+      <span style="font-size:11px; color:#1E88E5; font-weight:600;">STEP 1</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;">需求分析：在开口之前先想清楚</span>
+    </p>
+  </td>
+</tr></table>
+
+<p style="height:16px;"></p>
+
+<p style="margin:0;">
+  <span style="font-size:15px; color:#444444; line-height:1.85;">和 AI 对话的第一步不是打字，而是想清楚你到底要什么。先把需求拆解成 4 个功能点——具体、可衡量、范围可控。这 4 个点足够让 AI 给出一个可用的原型。</span>
+</p>
+
+<p style="height:40px;"></p>
+
+<!-- ============================================================
+6. 深色代码块
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#1A1B2E; line-height:1;">6</span>
+    </p>
+  </td>
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 2px;">
+      <span style="font-size:11px; color:#888888; font-weight:600;">COMPONENT</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;">深色代码块</span>
+    </p>
+  </td>
+</tr>
+</table>
+
+<p style="height:16px;"></p>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#1A1B2E;">
+<tr><td style="padding:10px 20px 0;">
+  <p style="margin:0;">
+    <span style="font-size:11px; color:#7B83A8; font-weight:600;">● 终端</span>
+  </p>
+</td></tr>
+<tr><td style="padding:8px 20px 16px;">
+  <pre style="color:#C8D0E8; font-size:13px; line-height:1.65; margin:0; overflow-x:auto; white-space:pre-wrap;"><code>$ python file_organizer_v1.py test_files/
+扫描: 18 个文件
+分类: 图片 7 | 文档 4 | 压缩包 3 | 代码 2 | 视频 1 | 其他 1
+整理完成！</code></pre>
+</td></tr>
+</table>
+
+<p style="height:40px;"></p>
+
+<!-- ============================================================
+7. 调用框全家福
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#27AE60; line-height:1;">7</span>
+    </p>
+  </td>
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 2px;">
+      <span style="font-size:11px; color:#888888; font-weight:600;">COMPONENT</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;">调用框系统</span>
+    </p>
+  </td>
+</tr>
+</table>
+
+<p style="height:16px;"></p>
+
+<!-- OUTPUT 框 -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#EEF8F0; border-left:4px solid #27AE60;">
+<tr><td style="padding:14px 18px;">
+  <p style="margin:0 0 4px;">
+    <span style="font-size:11px; color:#27AE60; font-weight:700;">OUTPUT</span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:13px; color:#2C3A2E; line-height:1.8;">18 个文件正确归入 5 个分类，每个类别自动创建了对应文件夹。脚本运行时间 < 0.5 秒。</span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:12px;"></p>
+
+<!-- PITFALL 框 -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF9EE; border-left:4px solid #E67E22;">
+<tr><td style="padding:14px 18px;">
+  <p style="margin:0 0 4px;">
+    <span style="font-size:11px; color:#E67E22; font-weight:700;">PITFALL</span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:13px; color:#4A3520; line-height:1.8;">如果文件名含大写后缀（如 .PNG），Windows 下可能正常但在 Mac/Linux 上匹配失败。统一转 .lower() 即可解决。</span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:12px;"></p>
+
+<!-- DEEP DIVE 框 -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F9F5FD; border-left:6px solid #9B59B6;">
+<tr><td style="padding:20px 22px;">
+  <p style="margin:0 0 8px;">
+    <span style="font-size:11px; color:#FFFFFF; font-weight:700; background:#9B59B6; padding:3px 10px;">DEEP DIVE</span>
+  </p>
+  <p style="margin:0 0 8px;">
+    <span style="font-size:17px; font-weight:700; color:#1A1A2E; line-height:1.5;">核心概念：SHA256 哈希去重</span>
+  </p>
+  <p style="margin:0 0 6px;">
+    <span style="font-size:14px; color:#444444; line-height:1.85;">SHA256 是一种密码学哈希函数，任意长度的输入产生 256 位固定长度输出。相同内容总是产生相同哈希值，不同内容的哈希值碰撞概率极低（≈1/2²⁵⁶）。</span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:13px; color:#777777; line-height:1.7;">通俗理解：就像给每个文件拍一张"数字指纹照"——内容相同的文件指纹一定相同，内容不同的文件指纹几乎不可能相同。</span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:12px;"></p>
+
+<!-- TRY IT 框 -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#EEF4FF; border-left:6px solid #1E88E5;">
+<tr><td style="padding:20px 22px;">
+  <p style="margin:0 0 8px;">
+    <span style="font-size:11px; color:#FFFFFF; font-weight:700; background:#1E88E5; padding:3px 10px;">TRY IT</span>
+  </p>
+  <p style="margin:0 0 8px;">
+    <span style="font-size:17px; font-weight:700; color:#1A1A2E; line-height:1.5;">动手试试</span>
+  </p>
+  <p style="margin:0 0 8px;">
+    <span style="font-size:14px; color:#444444; line-height:1.85;">修改脚本，让它支持按修改时间分类——比如"最近 7 天"、"最近 30 天"、"更早"。需要用到 os.path.getmtime() 获取文件修改时间戳。</span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:12px; color:#888888; line-height:1.7;"><b>提示：</b>用 datetime.fromtimestamp() 把时间戳转成日期，然后计算和今天的差值。</span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:40px;"></p>
+
+<!-- ============================================================
+8. 经验卡片（嵌套层次）
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#1E88E5; line-height:1;">8</span>
+    </p>
+  </td>
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 2px;">
+      <span style="font-size:11px; color:#888888; font-weight:600;">COMPONENT</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;">经验卡片 · 嵌套层次</span>
+    </p>
+  </td>
+</tr>
+</table>
+
+<p style="height:16px;"></p>
+
+<!-- 卡片：外层灰底 + 内层白卡 -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F6F7FA;">
+<tr><td style="padding:4px;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF; border-left:4px solid #1E88E5;">
+  <tr><td style="padding:16px 18px;">
+    <p style="margin:0 0 6px;">
+      <span style="font-size:15px; font-weight:700; color:#1A1A2E; line-height:1.5;">1. 第一轮需求要「具体但留缺口」</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:14px; color:#444444; line-height:1.85;">好的初始需求 = 明确的目标 + 合理的范围。不必把细节列全——AI 会根据上下文自动补充。我只说了 4 件事，AI 自动加上了 .lower()、exist_ok、倒序排列。</span>
+    </p>
+  </td></tr>
+  </table>
+</td></tr>
+</table>
+
+<p style="height:8px;"></p>
+
+<!-- 警示卡片 -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF5F5;">
+<tr><td style="padding:4px;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF; border-left:4px solid #C0392B;">
+  <tr><td style="padding:16px 18px;">
+    <p style="margin:0 0 6px;">
+      <span style="font-size:15px; font-weight:700; color:#1A1A2E; line-height:1.5;">2. 「实际跑一遍」能发现 AI 不知道的问题</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:14px; color:#444444; line-height:1.85;">AI 不会知道你的文件系统里有空格文件名、GBK 终端编码、同名空文件。这些只有实际运行才能发现。教程必须配实操截图——跑了才真实。</span>
+    </p>
+  </td></tr>
+  </table>
+</td></tr>
+</table>
+
+<p style="height:8px;"></p>
+
+<!-- 行动卡片 -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#EEF8F0;">
+<tr><td style="padding:4px;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF; border-left:4px solid #27AE60;">
+  <tr><td style="padding:16px 18px;">
+    <p style="margin:0 0 6px;">
+      <span style="font-size:15px; font-weight:700; color:#1A1A2E; line-height:1.5;">3. 3 轮对话是性价比最高的迭代次数</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:14px; color:#444444; line-height:1.85;">第 1 轮功能原型，第 2 轮边界修复，第 3 轮加固测试。三轮之后输出进入平台期，应切到人工 review + 实际部署。</span>
+    </p>
+  </td></tr>
+  </table>
+</td></tr>
+</table>
+
+<p style="height:40px;"></p>
+
+<!-- ============================================================
+9. 下期预告 · 深色反转卡片
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#1A1B2E; line-height:1;">9</span>
+    </p>
+  </td>
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 2px;">
+      <span style="font-size:11px; color:#888888; font-weight:600;">COMPONENT</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;">下期预告 · 深色反转</span>
+    </p>
+  </td>
+</tr>
+</table>
+
+<p style="height:16px;"></p>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#1A1B2E;">
+<tr><td style="padding:24px 22px;">
+  <p style="margin:0 0 8px;">
+    <span style="font-size:11px; color:#7B83A8; font-weight:600;">NEXT EPISODE</span>
+  </p>
+  <p style="margin:0 0 8px;">
+    <span style="font-size:17px; font-weight:700; color:#FFFFFF; line-height:1.5;">第 4 期：AI 帮你做数据分析——从 CSV 到智能报告</span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:13px; color:#A0A6C0; line-height:1.8;">老板扔给你一份 CSV："分析一下"。你是用 Excel 慢慢拉透视表，还是让 AI 帮你 5 分钟搞定？下期用真实数据实操。</span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:48px;"></p>
+
+<!-- ===== 尾部 ===== -->
+<p style="text-align:center; margin:0;">
+  <span style="color:#D0D0D0; font-size:24px; line-height:1;">— ◆ —</span>
+</p>
+<p style="text-align:center; margin:16px 0 0;">
+  <span style="font-size:13px; color:#BBBBBB;">组件参考 · V4 · 2026.05</span>
+</p>

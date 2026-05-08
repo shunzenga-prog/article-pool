@@ -1,216 +1,415 @@
 <!--
 ========================================
-  微信公众号 · 技术教程模板 V2（WeChat安全版）
-  适用场景：编程教学、工具使用教程、技术实践
-  设计风格：清爽、代码友好、步骤清晰
-  结构：钩子 → 学习目标 → 准备 → 分步实战 → 核心概念 → 动手 → FAQ → 回顾 → 讨论
-
-  ⚠️ 微信发布时会 div→p 并剥离 p 的 style，
-  所以所有容器用 table/td，所有文字样式用 span。
+  微信公众号 · 技术教程模板 V4
+  设计理念：色块分割 + 嵌套层次 + 冷暖节奏 + 超大锚点
+  结构：HERO → 引子 → 导航 → 准备 → 色条分割 → 步骤循环 → 色条分割 → 概念 → 挑战 → FAQ → 色条分割 → 经验 → 资源 → 下期 → CTA
 ========================================
 -->
 <meta charset="UTF-8">
-<table width="100%">
-<tr><td style="color:#1A1A1A; line-height:1.9; font-size:15px; padding:0 16px;">
 
-  <!-- ===== 分类标签 ===== -->
-  <p style="text-align:center;"><span style="font-size:12px; color:#667eea; background:#eef0ff; padding:3px 12px;"><!-- REPLACE:分类 -->Python · 实战教程<!-- /REPLACE --></span></p>
+<!-- ============================================================
+HERO 区：标题 + 装饰线 + 元信息
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td style="padding:8px 16px 0;">
 
-  <!-- ===== 标题 ===== -->
-  <h1 style="font-size:23px; font-weight:700; color:#1a1a2e; margin:0 0 12px; line-height:1.5; text-align:center;"><!-- REPLACE:标题 -->用 FastAPI 搭建你的第一个 AI API 服务<!-- /REPLACE --></h1>
-  <p style="text-align:center;"><span style="font-size:13px; color:#aaa;"><!-- REPLACE:元信息 -->2026.05.02 · 预计阅读 8 分钟<!-- /REPLACE --></span></p>
+  <p style="text-align:center; margin:0;">
+    <span style="font-size:12px; color:#1E88E5; font-weight:600; background:#EEF5FF; padding:4px 14px;"><!-- REPLACE:分类 -->AI · 实战教程<!-- /REPLACE --></span>
+  </p>
+  <p style="text-align:center; margin:6px 0 0;">
+    <span style="font-size:11px; color:#AAAAAA; line-height:1.5;">第 <!-- REPLACE:系列编号 -->N<!-- /REPLACE --> 期 · 共 <!-- REPLACE:系列总数 -->6<!-- /REPLACE --> 期</span>
+  </p>
 
-  <p style="height:6px;"></p>
+  <!-- H1 标题 -->
+  <h1 style="font-size:24px; font-weight:800; color:#1A1A2E; margin:20px 0 0; line-height:1.45; text-align:center;"><!-- REPLACE:标题 -->教程标题在这里<!-- /REPLACE --></h1>
 
-  <!-- ============================================================
-  1. 钩子开头 —— 3 秒留人
-  ============================================================ -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafbfe; border-left:3px solid #667eea;">
-  <tr><td style="padding:18px 20px;">
-    <p style="margin:0 0 8px;"><span style="font-size:16px; font-weight:600; color:#1a1a2e;"><!-- REPLACE:钩子标题 -->你有没有遇到过这种情况：<!-- /REPLACE --></span></p>
-    <p style="margin:0;"><span style="font-size:14px; color:#555; line-height:1.8;"><!-- REPLACE:钩子描述 -->写了一个很棒的 AI 功能，想把它变成 API 给前端调用，结果被 Flask 的异步配置、CORS 跨域、并发瓶颈折腾了一整个下午。其实，用 FastAPI 只需要 15 分钟。<!-- /REPLACE --></span></p>
-  </td></tr>
-  </table>
-
-  <p style="height:8px;"></p>
-
-  <!-- ============================================================
-  2. 学完你将能 —— 价值预览
-  ============================================================ -->
-  <p style="margin:0 0 10px;"><span style="font-size:17px; font-weight:600; color:#1a1a2e;">读完这篇文章，你将能：</span></p>
+  <!-- 装饰短线（WeChat-safe table 实现） -->
   <table width="100%" cellpadding="0" cellspacing="0">
-  <tr><td style="padding:5px 0;">
-  <!-- REPEAT:能力列表 -->
-    <p style="margin:0;"><span style="font-size:14px; color:#444; line-height:2.0;">✦ <!-- REPLACE:能力 -->用 30 行代码搭建一个带自动文档的 AI API<!-- /REPLACE --></span></p>
-  <!-- /REPEAT -->
+  <tr><td style="text-align:center; padding:16px 0 0;">
+    <table width="48" cellpadding="0" cellspacing="0" style="border-top:3px solid #1E88E5;">
+    <tr><td></td></tr>
+    </table>
   </td></tr>
   </table>
 
-  <p style="margin:10px 0 0;"><span style="font-size:14px; color:#888;"><!-- REPLACE:成果预览 -->最终效果：一个能接收自然语言、返回 AI 回复的 HTTP API，自带 Swagger 文档界面。<!-- /REPLACE --></span></p>
-
-  <p style="height:12px;"></p>
-
-  <!-- ============================================================
-  3. 准备工作 —— checklist 风格
-  ============================================================ -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8faff; border:1px solid #e3e8ff;">
-  <tr><td style="padding:18px 20px;">
-    <p style="margin:0 0 10px;"><span style="font-size:15px; font-weight:600; color:#1a1a2e;">开始前的准备</span></p>
-    <!-- REPLACE:前提条件 -->
-    <p style="margin:0;"><span style="font-size:13px; color:#666; line-height:1.8;">☐ <!-- REPLACE:前提条件1 -->Python 3.10+ 已安装<!-- /REPLACE --></span></p>
-    <p style="margin:0;"><span style="font-size:13px; color:#666; line-height:1.8;">☐ <!-- REPLACE:前提条件2 -->基本的 Python 语法知识<!-- /REPLACE --></span></p>
-    <p style="margin:0;"><span style="font-size:13px; color:#666; line-height:1.8;">☐ <!-- REPLACE:前提条件3 -->一个 LLM API Key（OpenAI / DeepSeek 均可）<!-- /REPLACE --></span></p>
-    <p style="margin:0;"><span style="font-size:13px; color:#666; line-height:1.8;">☐ <!-- REPLACE:前提条件4 -->终端基础操作<!-- /REPLACE --></span></p>
-    <!-- /REPLACE -->
-  </td></tr>
-  </table>
-
-  <p style="height:14px;"></p>
-
-  <!-- ============================================================
-  4. 分步实战 —— 每步 = 目标→代码→解释→踩坑
-  ============================================================ -->
-  <!-- REPEAT:步骤列表 -->
-
-  <!-- 步骤标题行 -->
-  <table width="100%" cellpadding="0" cellspacing="0"><tr>
-    <td width="30" style="vertical-align:middle;">
-      <span style="background:#667eea; color:#fff; font-size:14px; font-weight:700; padding:5px 8px;"><!-- REPLACE:步骤编号 -->1<!-- /REPLACE --></span>
-    </td>
-    <td style="vertical-align:middle; padding-left:10px;">
-      <p style="margin:0;"><span style="font-size:18px; font-weight:600; color:#1a1a2e;"><!-- REPLACE:步骤标题 -->安装依赖并初始化项目<!-- /REPLACE --></span></p>
-    </td>
-  </tr></table>
-
-  <!-- 为什么这一步重要 -->
-  <p style="margin:8px 0;"><span style="font-size:14px; color:#888;"><!-- REPLACE:步骤为什么重要 -->先把环境搭好，后面的代码才能跑起来。这一步虽然简单，但很多人栽在 Python 版本和虚拟环境上。<!-- /REPLACE --></span></p>
-
-  <!-- 代码块 -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e1e2e;">
-  <tr><td style="padding:6px 18px;">
-    <p style="margin:0;"><span style="font-size:11px; color:#999;"><!-- REPLACE:终端标签 -->终端<!-- /REPLACE --></span></p>
-  </td></tr>
-  <tr><td style="padding:0 18px 14px;">
-    <pre style="color:#cdd6f4; font-size:13px; line-height:1.8; margin:0; overflow-x:auto;"><code><!-- REPLACE:步骤代码 -->
-# 创建项目目录和虚拟环境
-mkdir fastapi-ai-api && cd fastapi-ai-api
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 安装依赖
-pip install fastapi uvicorn openai
-<!-- /REPLACE --></code></pre>
-  </td></tr>
-  </table>
-
-  <!-- 发生了什么 -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f7f0; border-left:3px solid #27AE60;">
-  <tr><td style="padding:12px 16px;">
-    <p style="margin:0;"><span style="font-size:13px; color:#555; line-height:1.7;"><!-- REPLACE:步骤解释 -->执行完后，项目目录下会多一个 venv 文件夹，里面是独立的 Python 环境。之后安装的任何包都不会污染系统 Python。<!-- /REPLACE --></span></p>
-  </td></tr>
-  </table>
-
-  <!-- 常见踩坑 -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff8e6; border-left:3px solid #f0a030;">
-  <tr><td style="padding:10px 16px;">
-    <p style="margin:0;"><span style="font-size:12px; color:#8a6d14;">⚠️ 常见踩坑：<!-- REPLACE:步骤踩坑 -->如果 pip install 报权限错误，检查是否激活了虚拟环境（终端前面应该有 (venv) 标识）<!-- /REPLACE --></span></p>
-  </td></tr>
-  </table>
-
-  <p style="height:14px;"></p>
-  <!-- /REPEAT -->
-
-  <!-- ============================================================
-  5. 核心概念 —— 通俗比喻
-  ============================================================ -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef9e7; border-left:3px solid #f1c40f;">
-  <tr><td style="padding:16px 18px;">
-    <p style="margin:0 0 8px;"><span style="font-size:15px; font-weight:600; color:#7d6608;">核心概念：<!-- REPLACE:概念名称 -->异步编程（Async）<!-- /REPLACE --></span></p>
-    <p style="margin:0 0 6px;"><span style="font-size:13px; color:#666; line-height:1.7;"><!-- REPLACE:概念解释 -->FastAPI 的异步特性（async/await）让它在调用外部 API 时不会阻塞其他请求，一个进程就能处理上千并发。<!-- /REPLACE --></span></p>
-    <p style="margin:0;"><span style="font-size:13px; color:#999; line-height:1.6;"><!-- REPLACE:概念比喻 -->可以理解为：同步是"点完一道菜、等上菜、吃完、再点下一道"；异步是"一次性点完所有菜，哪道先上就先吃哪道"。<!-- /REPLACE --></span></p>
-  </td></tr>
-  </table>
-
-  <p style="height:14px;"></p>
-
-  <!-- ============================================================
-  6. 动手试试 —— 学以致用
-  ============================================================ -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f5ff; border:1px solid #c8d6f0;">
-  <tr><td style="padding:18px 20px;">
-    <p style="margin:0 0 8px;"><span style="font-size:16px; font-weight:600; color:#1E88E5;">动手试试</span></p>
-    <p style="margin:0 0 10px;"><span style="font-size:14px; color:#444; line-height:1.8;"><!-- REPLACE:挑战描述 -->修改上面的代码，让 API 支持"系统提示词"参数——用户可以在请求中指定 AI 的角色（如"你是一个 Python 专家"）。<!-- /REPLACE --></span></p>
-    <p style="margin:0;"><span style="font-size:12px; color:#999;">提示：<!-- REPLACE:挑战提示 -->在 Prompt 模型中增加一个 system 字段，然后在 chat.completions.create 的 messages 列表最前面插入它。<!-- /REPLACE --></span></p>
-  </td></tr>
-  </table>
-
-  <p style="height:14px;"></p>
-
-  <!-- ============================================================
-  7. 你可能还会问
-  ============================================================ -->
-  <p style="margin:0 0 10px;"><span style="font-size:17px; font-weight:600; color:#1a1a2e;">你可能还会问</span></p>
-  <!-- REPEAT:常见问题 -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafa;">
-  <tr><td style="padding:14px 18px;">
-    <p style="margin:0 0 6px;"><span style="font-size:14px; font-weight:500; color:#333;">Q: <!-- REPLACE:问题 -->怎么部署到生产环境？<!-- /REPLACE --></span></p>
-    <p style="margin:0;"><span style="font-size:13px; color:#666; line-height:1.7;">A: <!-- REPLACE:回答 -->推荐 Railway 或 Fly.io，免费额度足够个人项目。FastAPI 官方文档有详细部署指南。<!-- /REPLACE --></span></p>
-  </td></tr>
-  </table>
-  <p style="height:6px;"></p>
-  <!-- /REPEAT -->
-
-  <p style="height:10px;"></p>
-
-  <!-- ============================================================
-  8. 要点回顾 —— 3 句话带走
-  ============================================================ -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#1a1a2e;">
-  <tr><td style="padding:18px 20px;">
-    <p style="margin:0 0 10px;"><span style="font-size:15px; font-weight:600; color:#fff;">要点回顾</span></p>
-    <p style="margin:0;"><span style="font-size:13px; color:#ccc; line-height:2.0;">❶ <!-- REPLACE:要点1 -->FastAPI 用 async/await 实现高并发，特别适合做 LLM API 网关<!-- /REPLACE --></span></p>
-    <p style="margin:0;"><span style="font-size:13px; color:#ccc; line-height:2.0;">❷ <!-- REPLACE:要点2 -->Pydantic 模型自动完成请求参数的校验和文档生成<!-- /REPLACE --></span></p>
-    <p style="margin:0;"><span style="font-size:13px; color:#ccc; line-height:2.0;">❸ <!-- REPLACE:要点3 -->访问 /docs 就能得到一个可交互的 API 测试页面<!-- /REPLACE --></span></p>
-  </td></tr>
-  </table>
-
-  <p style="height:12px;"></p>
-
-  <!-- ============================================================
-  9. 引导讨论 —— 替代无效 CTA
-  ============================================================ -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#fafafe; border:1px solid #e8e8f0;">
-  <tr><td style="padding:16px 18px;">
-    <p style="margin:0 0 6px;"><span style="font-size:14px; color:#555;"><!-- REPLACE:讨论引导 -->你用 FastAPI 接过哪些 LLM？遇到过什么坑？欢迎在评论区聊聊，我会逐一回复。<!-- /REPLACE --></span></p>
-  </td></tr>
-  </table>
-
-  <p style="height:8px;"></p>
-
-  <!-- ===== 完整源码获取 ===== -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e1e2e;">
-  <tr><td style="padding:20px; text-align:center;">
-    <p style="margin:0 0 6px;"><span style="font-size:15px; font-weight:600; color:#fff;">获取完整代码</span></p>
-    <p style="margin:0;"><span style="font-size:13px; color:#aaa;"><!-- REPLACE:源码链接说明 -->关注公众号，回复「fastapi」获取完整源码和配置文件<!-- /REPLACE --></span></p>
-  </td></tr>
-  </table>
-
-  <p style="height:8px;"></p>
-
-  <!-- ===== 系列文章导航 ===== -->
-  <p style="margin:0 0 2px;"><span style="font-size:15px; font-weight:600; color:#333;">本系列其他文章</span></p>
-  <!-- REPEAT:系列导航 -->
-  <p style="margin:0; border-bottom:1px solid #f5f5f5;"><span style="font-size:13px; color:#888; line-height:2.2;"><!-- REPLACE:系列文章名 -->第一篇：FastAPI 入门与环境搭建 ← 当前<!-- /REPLACE --></span></p>
-  <!-- /REPEAT -->
-
-  <p style="height:8px;"></p>
-
-  <!-- ===== 尾部 ===== -->
-  <p style="text-align:center;"><span style="color:#d4c5b9; font-size:20px;">···</span></p>
-  <p style="text-align:center;"><span style="font-size:14px; color:#555;"><!-- REPLACE:结尾语 -->如果这篇教程对你有帮助，别忘了 点赞 · 在看 · 分享<!-- /REPLACE --></span></p>
-  <!-- REPLACE:公众号信息 -->
-  <p style="text-align:center; border-top:1px solid #eee; padding:10px 0;"><span style="font-size:12px; color:#bbb;">每周更新实用编程教程，扫码关注不迷路</span></p>
-  <!-- /REPLACE -->
+  <!-- 元信息 -->
+  <p style="text-align:center; margin:12px 0 0;">
+    <span style="font-size:12px; color:#AAAAAA; line-height:1.5;"><!-- REPLACE:元信息 -->2026.05.07 · 预计阅读 N 分钟<!-- /REPLACE --></span>
+  </p>
 
 </td></tr>
 </table>
+
+<p style="height:32px;"></p>
+
+<!-- ============================================================
+§1. 引子 —— 红底大框
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF5F5; border-left:6px solid #C0392B;">
+<tr><td style="padding:24px 22px;">
+
+  <!-- 引子徽章行 -->
+  <p style="margin:0 0 8px;">
+    <span style="font-size:11px; color:#FFFFFF; font-weight:700; background:#C0392B; padding:3px 10px;">HOOK</span>
+  </p>
+
+  <!-- 引子标题 -->
+  <p style="margin:0 0 6px;">
+    <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.5;"><!-- REPLACE:引子标题 -->钩子标题在这里<!-- /REPLACE --></span>
+  </p>
+
+  <!-- 引子正文 -->
+  <p style="margin:0;">
+    <span style="font-size:15px; color:#2C2C2C; line-height:1.85;"><!-- REPLACE:引子描述 -->钩子描述文字。一个场景、一个痛点、一个反差——让读者觉得"这说的不就是我吗？"<!-- /REPLACE --></span>
+  </p>
+
+</td></tr>
+</table>
+
+<p style="height:28px;"></p>
+
+<!-- ============================================================
+§2. 本文导航 —— 内嵌卡片
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F2F4F8; border:1px solid #DDE1E8;">
+<tr><td style="padding:20px 20px;">
+  <p style="margin:0 0 12px;">
+    <span style="font-size:14px; font-weight:700; color:#1A1A2E; line-height:1.6;">▍本文导航</span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:13px; color:#444444; line-height:1.9;">
+    <!-- REPLACE:导航内容 -->
+    <b>Round 1 · 初始：</b>需求分析 → 第一次对话 → 代码解读 → 运行发现问题<br>
+    <b>Round 2 · 修复：</b>反馈清单 → Dry-run → 去重 → 其他修复 → 运行验证<br>
+    <b>Round 3 · 打磨：</b>进度条 → 日志 → 异常处理 → 测试 → 最终运行<br>
+    <b>总结：</b>核心经验 → 配套资源 → 下期预告
+    <!-- /REPLACE -->
+    </span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:24px;"></p>
+
+<!-- ============================================================
+§3. 准备工作 —— 蓝色信息卡
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#EEF4FF; border-left:6px solid #1E88E5;">
+<tr><td style="padding:18px 20px;">
+  <p style="margin:0 0 10px;">
+    <span style="font-size:15px; font-weight:700; color:#1A1A2E; line-height:1.6;">开始前的准备</span>
+  </p>
+  <!-- REPLACE:前提条件 -->
+  <p style="margin:0;"><span style="font-size:13px; color:#444444; line-height:2.0;">☐ <!-- REPLACE:前提条件1 -->条件 1<!-- /REPLACE --></span></p>
+  <p style="margin:0;"><span style="font-size:13px; color:#444444; line-height:2.0;">☐ <!-- REPLACE:前提条件2 -->条件 2<!-- /REPLACE --></span></p>
+  <p style="margin:0;"><span style="font-size:13px; color:#444444; line-height:2.0;">☐ <!-- REPLACE:前提条件3 -->条件 3<!-- /REPLACE --></span></p>
+  <p style="margin:0;"><span style="font-size:13px; color:#444444; line-height:2.0;">☐ <!-- REPLACE:前提条件4 -->条件 4<!-- /REPLACE --></span></p>
+  <!-- /REPLACE -->
+</td></tr>
+</table>
+
+<!-- ============================================================
+色条分割器 —— 视觉节奏锚点
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="40" style="background:#1E88E5; padding:0; height:4px;"></td>
+  <td style="background:#EEEEEE; padding:0; height:4px;"></td>
+</tr>
+</table>
+
+<p style="height:28px;"></p>
+
+<!-- ============================================================
+§4. 分步实战 REPEAT 区块
+每步 = 大号序号锚点 + 标题行 + 正文 + 深色代码块 + 成功验证 + 踩坑警告
+============================================================ -->
+<!-- REPEAT:步骤列表 -->
+
+<!-- == 步骤标题行（超大序号 + 标题） == -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <!-- 超大序号 -->
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#1E88E5; line-height:1;"><!-- REPLACE:步骤编号 -->1<!-- /REPLACE --></span>
+    </p>
+  </td>
+  <!-- 标题区 -->
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 4px;">
+      <span style="font-size:11px; color:#1E88E5; font-weight:600; line-height:1.5;">STEP <!-- REPLACE:步骤编号2 -->1<!-- /REPLACE --></span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;"><!-- REPLACE:步骤标题 -->步骤标题在这里<!-- /REPLACE --></span>
+    </p>
+  </td>
+</tr>
+</table>
+
+<p style="height:16px;"></p>
+
+<!-- 步骤说明 -->
+<p style="margin:0;">
+  <span style="font-size:15px; color:#444444; line-height:1.85;"><!-- REPLACE:步骤说明 -->这一步的背景和动机：为什么需要这一步、它解决什么问题。<!-- /REPLACE --></span>
+</p>
+
+<p style="height:16px;"></p>
+
+<!-- == 深色代码块 == -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#1A1B2E;">
+<!-- 标签栏 -->
+<tr>
+  <td style="padding:10px 20px 0;">
+    <p style="margin:0;">
+      <span style="font-size:11px; color:#7B83A8; font-weight:600;">● <!-- REPLACE:代码标签 -->终端<!-- /REPLACE --></span>
+    </p>
+  </td>
+</tr>
+<!-- 代码内容 -->
+<tr>
+  <td style="padding:8px 20px 16px;">
+    <pre style="color:#C8D0E8; font-size:13px; line-height:1.65; margin:0; overflow-x:auto; white-space:pre-wrap;"><code><!-- REPLACE:步骤代码 --># 代码在这里
+$ python script.py
+<!-- /REPLACE --></code></pre>
+  </td>
+</tr>
+</table>
+
+<p style="height:16px;"></p>
+
+<!-- == 结果验证（绿色成功框） == -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#EEF8F0; border-left:4px solid #27AE60;">
+<tr><td style="padding:14px 18px;">
+  <p style="margin:0 0 4px;">
+    <span style="font-size:11px; color:#27AE60; font-weight:700; line-height:1.5;">OUTPUT</span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:13px; color:#2C3A2E; line-height:1.8;"><!-- REPLACE:步骤结果 -->执行结果：脚本跑了什么、输出了什么、验证了什么。<!-- /REPLACE --></span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:12px;"></p>
+
+<!-- == 常见踩坑（橙色警告框） == -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF9EE; border-left:4px solid #E67E22;">
+<tr><td style="padding:14px 18px;">
+  <p style="margin:0 0 4px;">
+    <span style="font-size:11px; color:#E67E22; font-weight:700; line-height:1.5;">PITFALL</span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:13px; color:#4A3520; line-height:1.8;"><!-- REPLACE:步骤踩坑 -->常见问题 + 解决方法：这里读者最容易踩的坑。<!-- /REPLACE --></span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:32px;"></p>
+<!-- /REPEAT -->
+
+<!-- ============================================================
+色条分割器
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="48" style="background:#9B59B6; padding:0; height:4px;"></td>
+  <td style="background:#EEEEEE; padding:0; height:4px;"></td>
+</tr>
+</table>
+
+<p style="height:28px;"></p>
+
+<!-- ============================================================
+§5. 核心概念 —— 紫色深度分析框
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F9F5FD; border-left:6px solid #9B59B6;">
+<tr><td style="padding:20px 22px;">
+  <!-- 标签 -->
+  <p style="margin:0 0 8px;">
+    <span style="font-size:11px; color:#FFFFFF; font-weight:700; background:#9B59B6; padding:3px 10px;">DEEP DIVE</span>
+  </p>
+  <!-- 概念名 -->
+  <p style="margin:0 0 8px;">
+    <span style="font-size:17px; font-weight:700; color:#1A1A2E; line-height:1.5;">核心概念：<!-- REPLACE:概念名称 -->概念名称<!-- /REPLACE --></span>
+  </p>
+  <!-- 技术解释 -->
+  <p style="margin:0 0 6px;">
+    <span style="font-size:14px; color:#444444; line-height:1.85;"><!-- REPLACE:概念解释 -->技术解释：它是做什么的、为什么重要、在什么场景下发挥作用。<!-- /REPLACE --></span>
+  </p>
+  <!-- 通俗比喻 -->
+  <p style="margin:0;">
+    <span style="font-size:13px; color:#777777; line-height:1.7;"><!-- REPLACE:概念比喻 -->通俗比喻：把技术概念类比成日常事物，帮助理解。<!-- /REPLACE --></span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:28px;"></p>
+
+<!-- ============================================================
+§6. 动手挑战 —— 蓝色行动框
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#EEF4FF; border-left:6px solid #1E88E5;">
+<tr><td style="padding:20px 22px;">
+  <p style="margin:0 0 8px;">
+    <span style="font-size:11px; color:#FFFFFF; font-weight:700; background:#1E88E5; padding:3px 10px;">TRY IT</span>
+  </p>
+  <p style="margin:0 0 8px;">
+    <span style="font-size:17px; font-weight:700; color:#1A1A2E; line-height:1.5;">动手试试</span>
+  </p>
+  <p style="margin:0 0 8px;">
+    <span style="font-size:14px; color:#444444; line-height:1.85;"><!-- REPLACE:挑战描述 -->一个让读者自己动手的小任务，难度适中、结果可验证。<!-- /REPLACE --></span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:12px; color:#888888; line-height:1.7;"><b>提示：</b><!-- REPLACE:挑战提示 -->提示内容，给一点方向但不剧透。<!-- /REPLACE --></span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:28px;"></p>
+
+<!-- ============================================================
+§7. FAQ
+============================================================ -->
+<p style="margin:0 0 16px;">
+  <span style="font-size:17px; font-weight:700; color:#1A1A2E; line-height:1.5;">你可能还会问</span>
+</p>
+
+<!-- REPEAT:常见问题 -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFB; border:1px solid #E8E8EC;">
+<tr><td style="padding:16px 20px;">
+  <p style="margin:0 0 8px;">
+    <span style="font-size:14px; font-weight:700; color:#1A1A2E; line-height:1.6;">Q：<!-- REPLACE:问题 -->问题<!-- /REPLACE --></span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:13px; color:#555555; line-height:1.8;">A：<!-- REPLACE:回答 -->回答<!-- /REPLACE --></span>
+  </p>
+</td></tr>
+</table>
+<p style="height:10px;"></p>
+<!-- /REPEAT -->
+
+<!-- ============================================================
+色条分割器
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="56" style="background:#1A1A2E; padding:0; height:4px;"></td>
+  <td style="background:#EEEEEE; padding:0; height:4px;"></td>
+</tr>
+</table>
+
+<p style="height:32px;"></p>
+
+<!-- ============================================================
+§8. 核心经验 —— 总徽章 + 差异化卡片
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+  <td width="48" style="vertical-align:top;">
+    <p style="margin:0; line-height:1;">
+      <span style="font-size:48px; font-weight:800; color:#1A1A2E; line-height:1;">总</span>
+    </p>
+  </td>
+  <td style="vertical-align:middle; padding-left:4px;">
+    <p style="margin:0 0 2px;">
+      <span style="font-size:11px; color:#888888; font-weight:600; line-height:1.5;">KEY TAKEAWAYS</span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:18px; font-weight:700; color:#1A1A2E; line-height:1.45;">核心经验</span>
+    </p>
+  </td>
+</tr>
+</table>
+
+<p style="height:20px;"></p>
+
+<!-- REPEAT:经验卡片 -->
+<!-- 经验卡片（嵌套双层 table 制造层次） -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F6F7FA;">
+<tr><td style="padding:4px;">
+  <!-- 内层白卡 -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF; border-left:4px solid #1E88E5;">
+  <tr><td style="padding:16px 18px;">
+    <p style="margin:0 0 6px;">
+      <span style="font-size:15px; font-weight:700; color:#1A1A2E; line-height:1.5;"><!-- REPLACE:经验编号 -->1<!-- /REPLACE -->. <!-- REPLACE:经验标题 -->经验标题<!-- /REPLACE --></span>
+    </p>
+    <p style="margin:0;">
+      <span style="font-size:14px; color:#444444; line-height:1.85;"><!-- REPLACE:经验描述 -->经验描述文字：具体可操作的建议，不是空泛的道理。<!-- /REPLACE --></span>
+    </p>
+  </td></tr>
+  </table>
+</td></tr>
+</table>
+<p style="height:8px;"></p>
+<!-- /REPEAT -->
+
+<p style="height:24px;"></p>
+
+<!-- ============================================================
+§9. 配套资源
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F2F4F8; border:1px solid #DDE1E8;">
+<tr><td style="padding:20px 22px;">
+  <p style="margin:0 0 10px;">
+    <span style="font-size:15px; font-weight:700; color:#1A1A2E; line-height:1.5;">配套资源</span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:13px; color:#444444; line-height:1.9;">
+    <b>后台回复「<!-- REPLACE:资源关键词 -->KEYWORD<!-- /REPLACE -->」获取完整资源包</b>，包含：<br><br>
+    <!-- REPLACE:资源列表 -->
+    资源 1<br>
+    资源 2<br>
+    资源 3
+    <!-- /REPLACE -->
+    </span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:24px;"></p>
+
+<!-- ============================================================
+§10. 下期预告 —— 深色底反转卡片
+============================================================ -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#1A1B2E;">
+<tr><td style="padding:24px 22px;">
+  <p style="margin:0 0 8px;">
+    <span style="font-size:11px; color:#7B83A8; font-weight:600; line-height:1.5;">NEXT EPISODE</span>
+  </p>
+  <p style="margin:0 0 8px;">
+    <span style="font-size:17px; font-weight:700; color:#FFFFFF; line-height:1.5;">
+      第 <!-- REPLACE:下期期数 -->N+1<!-- /REPLACE --> 期：<!-- REPLACE:下期标题 -->下期标题<!-- /REPLACE -->
+    </span>
+  </p>
+  <p style="margin:0;">
+    <span style="font-size:13px; color:#A0A6C0; line-height:1.8;"><!-- REPLACE:下期描述 -->下期内容简介。<!-- /REPLACE --></span>
+  </p>
+</td></tr>
+</table>
+
+<p style="height:32px;"></p>
+
+<!-- ============================================================
+§11. 尾部 CTA
+============================================================ -->
+<p style="text-align:center; margin:0;">
+  <span style="color:#D0D0D0; font-size:24px; line-height:1;">— ◆ —</span>
+</p>
+
+<p style="text-align:center; margin:16px 0 0;">
+  <span style="font-size:14px; color:#888888; line-height:1.8;">
+    如果这篇教程对你有帮助，欢迎 <b style="color:#1E88E5;">点赞</b> · <b style="color:#1E88E5;">在看</b> · <b style="color:#1E88E5;">分享</b>
+  </span>
+</p>
+
+<p style="text-align:center; margin:12px 0 0;">
+  <span style="font-size:12px; color:#BBBBBB; line-height:1.5;">
+    AI 实战教程 · 第 <!-- REPLACE:系列编号2 -->N<!-- /REPLACE --> 期 · 全文完
+  </span>
+</p>
+
+<p style="text-align:center; margin:16px 0 0; border-top:1px solid #EEEEEE; padding:14px 0 0;">
+  <span style="font-size:11px; color:#BBBBBB; line-height:1.5;">
+    <!-- REPLACE:公众号信息 -->每周更新实用编程教程，扫码关注不迷路 🐱<!-- /REPLACE -->
+  </span>
+</p>

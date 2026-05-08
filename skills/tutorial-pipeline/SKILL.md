@@ -95,26 +95,39 @@ context = {
 step = {
     "id": 1,
     "title": "环境准备：安装 Python 和依赖",
-    "type": "overview|setup|code|execute|output|config|summary",
+    "type": "overview|setup|code|execute|output|config|chart|summary",
     "screenshots_needed": [
         {"type": "terminal", "desc": "python --version 命令输出"},
     ],
     "code_file": None,  # 如果有对应代码文件
-    "must_execute": True,  # 是否必须实际运行（大多数教程步骤为 True）
+    "must_execute": True,  # code/execute/chart/setup 默认 True，其余 False
+    "screenshot_mode": "immediate",  # immediate（默认）| batch-per-round
 }
 ```
 
+**screenshot_mode 说明：**
+
+| 模式 | 行为 | 适用步骤类型 |
+|------|------|------------|
+| `immediate` | 写一步 → 截图 → 嵌入 → 下一步 | execute, output, code, chart（必须实时验证） |
+| `batch-per-round` | 同 round 步骤写完 → 批量截图 → 回填 | setup, config, overview, summary（不依赖实时输出） |
+
+**must_execute 默认值：**
+- `code / execute / chart / setup` → **True**（需要真实运行验证）
+- `overview / summary / output / config` → **False**（描述性内容，不涉及执行）
+
 **步骤类型与截图要求映射：**
 
-| 步骤类型 | 必须截图 | 截图类型 | 示例 |
-|---------|---------|---------|------|
-| overview | 1 张 | 流程图 | 流水线架构全景图 |
-| setup | 1 张 | 终端安装输出 | pip install 的输出 |
-| code | 1-2 张 | 代码编辑器 + 终端运行 | 完整代码块 + 运行结果 |
-| execute | 1 张 | 终端彩色输出 | python script.py 的真实输出 |
-| output | 1 张 | 浏览器/界面截图 | 生成的 HTML、图表、页面 |
-| config | 1 张 | 配置界面截图 | 环境变量设置、定时任务界面 |
-| summary | 0-1 张 | 可选，汇总对比 | 整体效果 |
+| 步骤类型 | 必须截图 | 截图类型 | 截图模式 | 示例 |
+|---------|---------|---------|---------|------|
+| overview | 1 张 | 流程图 | batch-per-round | 流水线架构全景图 |
+| setup | 1 张 | 终端安装输出 | batch-per-round | pip install 的输出 |
+| code | 1-2 张 | 代码编辑器 + 终端运行 | immediate | 完整代码块 + 运行结果 |
+| execute | 1 张 | 终端彩色输出 | immediate | python script.py 的真实输出 |
+| output | 1 张 | 浏览器/界面截图 | immediate | 生成的 HTML、图表、页面 |
+| chart | 1 张 | matplotlib 图表 | immediate | 数据可视化图表输出 |
+| config | 1 张 | 配置界面截图 | batch-per-round | 环境变量设置、定时任务界面 |
+| summary | 0-1 张 | 可选，汇总对比 | batch-per-round | 整体效果 |
 
 **规划原则：**
 - 每一类步骤至少 1 张截图
@@ -152,6 +165,8 @@ step = {
 
 ### 单步执行流程
 
+**模式 A: immediate（默认 — execute/output/code/chart 类步骤）**
+
 ```
 for step in steps:
     ① 写文字
@@ -164,6 +179,7 @@ for step in steps:
       - 执行代码 → 捕获真实输出
       - 或打开界面 → Playwright 截图
       - 或渲染终端 → terminal_screenshot.py（xterm.js + OS 自适应标题栏）
+      - 或图表 → chart_screenshot()（capture.chart）
     
     ③ 嵌入文章
       - 截图插入到该步骤文字之后
@@ -179,25 +195,22 @@ for step in steps:
     ⑤ 进入下一步
 ```
 
-### ⭐ 代码讲解铁律（按步骤类型适用）
+**模式 B: batch-per-round（setup/config/overview/summary 类步骤）**
 
-**教程文章的核心不是展示"AI 做到了什么"，而是解释"AI 怎么做到的"和"为什么这样做"。**
+```
+同轮 immediate 步骤完成 → 收集本 round 所有 batch 步骤 → 批量截图 → 回填嵌入
 
-但并非所有步骤都需要代码讲解——按步骤类型区分：
+例如：
+  Round 1: step1(overview) + step2(setup)  → 都标 batch-per-round
+    先写 step1 文字、step2 文字 → 批量生成 overview 流程图 + setup 终端截图 → 分别嵌入
+  Round 2: step3(code) + step4(execute) + step5(output) → 标 immediate
+    逐个写 → 截图 → 嵌入（正常 immediate 流程）
+```
 
-| 步骤类型 | 代码讲解要求 | 原因 |
-|---------|------------|------|
-| code / execute | **必须**展示核心代码 + 逐行解释 + 设计思路 | 读者要理解代码逻辑才能举一反三 |
-| setup / config | **酌情**——如果只是 `pip install` 则不需要；如果涉及配置文件的坑可以提 | 这类步骤的核心是操作，不是代码 |
-| overview / summary | **不需要**代码展示——用流程图/对比图替代 | 定位是全局视角，不是细节 |
-| output | **不需要**代码——展示最终效果截图即可 | 读者关心的是产出，不是产出代码 |
+### ⭐ 代码讲解规范
 
-**code/execute 类步骤的三要素：**
-1. **代码片段** - 实际的关键代码（3-20行，不是伪代码）
-2. **逻辑解释** - 逐行/逐段说明代码在做什么
-3. **设计思路** - 为什么这样写？有没有其他选择？
-
-**数量参考（不是硬指标）：** 一篇文章有 2-3 个步骤到达"设计思路"层就足够好——全篇都深层解读反而让读者疲劳。
+> **详细规范见** `skills/wechat-writer/SKILL.md` 「教程类文章代码讲解规范」章节。
+> 核心：code/execute 类步骤必须展示关键代码 + 逐行解释 + 设计思路；overview/output/summary 类不需要代码展示。一篇文章 2-3 处"深层"足够。
 
 ### 截图生成工具速查
 
@@ -214,8 +227,19 @@ python scripts/screenshot_util.py single https://example.com --width 800 --heigh
 # HTML 文件效果 → 本地文件截图
 python scripts/screenshot_util.py file output.html --width 800 --height 900 -o stepN_output.png
 
+# 代码截图：代码块语法高亮
+python scripts/code_image_generator.py code script.py -o stepN_code.png
+
+# Matplotlib 图表 → 子进程执行 + 自动 CJK 字体注入
+python scripts/code_image_generator.py chart chart_code.py -o stepN_chart.png
+
 # 配置界面 → 手动截图后放入 screenshots 目录
 ```
+
+> **编程调用：** 所有截图工具已统一为 `scripts/capture/` 模块。
+> ```python
+> from capture import terminal_screenshot, browser_screenshot, code_to_image, flowchart_to_image, chart_screenshot
+> ```
 
 ### 禁止事项
 
@@ -269,6 +293,29 @@ python scripts/screenshot_util.py file output.html --width 800 --height 900 -o s
 - **评估时加入教程评分维度**：可复现性、截图质量、步骤清晰度
 - **发布时确认封面图为教程风格**（tag 用 "AI 实战教程"）
 - **选题入库时类型标记为 "教程"**
+
+### Stage 8: 封面生成（教程专用）
+
+```bash
+# 教程封面：使用 gen_cover.py
+python scripts/gen_cover.py \
+    --title "保姆级教程：5 分钟上手 XX" \
+    --subtitle "零基础也能学会" \
+    --mode auto \
+    --output cover.png
+
+# 几何风格兜底（如果没配 Pexels API Key）
+python scripts/gen_cover.py \
+    --title "保姆级教程：5 分钟上手 XX" \
+    --mode geometric \
+    --output cover.png
+```
+
+**教程封面参数建议：**
+- `--mode auto`：自动搜索背景图（需 Pexels/Unsplash API Key）
+- `--mode geometric`：纯几何抽象（无需 API，始终可用）
+- 标题格式偏好：「保姆级教程：xxx」或「手把手教你 xxx」
+- tag 用 `AI 实战教程` / `技术教程`
 
 ---
 

@@ -332,14 +332,18 @@ python scripts/topic_tracker.py clean
 
 ## Skills 技能系统
 
-7 个 AI 创作技能，每个技能目录包含 `SKILL.md` 规范文件：
+11 个 AI 创作技能，每个技能目录包含 `SKILL.md` 规范文件：
 
 | 技能 | 功能 | 触发方式 |
 |------|------|----------|
 | `article-pipeline` | 6 Agent 协作完整创作链路 | `/article-pipeline` |
+| `tutorial-pipeline` | 教程类文章分步创作（写一步→截图→嵌入→下一步） | `/tutorial-pipeline` |
 | `wechat-writer` | 公众号爆款写作（SCQA 框架、反 AI 模式） | `/wechat-writer` |
 | `cover-gen` | 封面图生成（auto + geometric 双模式） | `/cover-gen` |
 | `hotspot-tracker` | 热点追踪 + 每日早报制作 | `/hotspot-tracker` |
+| `illustration-gen` | 文章自动配图（5 级图片源级联） | `/illustration-gen` |
+| `flowchart-gen` | 设计级流程图（13 色板 × 4 卡片风格） | `/flowchart-gen` |
+| `capture` | 统一截图工具包（终端/浏览器/代码/流程图/图表） | `/capture` |
 | `ai-daily-news-get` | AI 领域早报自动生成 | `/ai-daily-news-get` |
 | `xiaohongshu-writer` | 小红书笔记写作 | `/xiaohongshu-writer` |
 | `news-aggregator` | 多源新闻聚合 | `/news-aggregator` |

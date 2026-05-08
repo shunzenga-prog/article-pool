@@ -20,12 +20,61 @@ from datetime import datetime, timedelta
 
 from paths import USED_TOPICS_FILE as DATA_FILE
 
+# ═══════════════════════════════════════════════
+#  文章类型标准化
+# ═══════════════════════════════════════════════
+
+_STANDARD_TYPES = ["教程", "深度解析", "项目推荐", "早报", "晚报", "热点快评", "通用"]
+
+_TYPE_NORMALIZE = {
+    # 教程类
+    "tutorial": "教程", "AI实战教程": "教程", "技术教程": "教程",
+    "实战教程": "教程", "操作指南": "教程", "手把手": "教程",
+    # 深度解析类
+    "深度": "深度解析", "分析": "深度解析", "观点": "深度解析",
+    "观点评论": "深度解析", "深度分析": "深度解析", "opinion": "深度解析",
+    # 项目推荐类
+    "项目": "项目推荐", "推荐": "项目推荐", "工具推荐": "项目推荐",
+    "recommendation": "项目推荐",
+    # 早报类
+    "morning": "早报", "morning_news": "早报", "日报": "早报",
+    "新闻简报": "早报", "资讯": "早报",
+    # 晚报类
+    "evening": "晚报", "evening_news": "晚报",
+    # 热点快评类
+    "hotspot": "热点快评", "热点": "热点快评",
+    # 通用类
+    "general": "通用", "news": "通用", "其他": "通用",
+}
+
+
+def _normalize_type(raw_type: str) -> str:
+    """将任意类型字符串标准化为 7 种标准类型之一"""
+    t = raw_type.strip()
+    if t in _STANDARD_TYPES:
+        return t
+    return _TYPE_NORMALIZE.get(t, "通用")
+
+
+def _normalize_entries(data: dict) -> int:
+    """原地标准化所有条目的类型字段，返回被修正的条目数"""
+    changed = 0
+    for e in data.get("entries", []):
+        old = e.get("type", "通用")
+        new = _normalize_type(old)
+        if old != new:
+            e["type"] = new
+            changed += 1
+    return changed
+
 
 def load() -> dict:
-    """加载 used_topics.json"""
+    """加载 used_topics.json，不存在时自动创建"""
     if not DATA_FILE.exists():
-        print(f"❌ {DATA_FILE} 不存在，请先创建。", file=sys.stderr)
-        sys.exit(1)
+        DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+        default_data = {"protection_days": 7, "entries": []}
+        save(default_data)
+        return default_data
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -49,37 +98,69 @@ def clean_expired(data: dict) -> dict:
     return data
 
 
+def _dedup_entries(data: dict) -> int:
+    """清除完全重复的条目（同 date + 同 title），返回移除数"""
+    seen = set()
+    unique = []
+    removed = 0
+    for e in data.get("entries", []):
+        key = (e.get("date", ""), e.get("title", ""))
+        if key in seen:
+            removed += 1
+        else:
+            seen.add(key)
+            unique.append(e)
+    data["entries"] = unique
+    return removed
+
+
 def cmd_add(title: str, keywords_str: str, entry_type: str):
-    """添加一条新选题记录，写入前自动清理过期条目"""
+    """添加一条新选题记录，写入前自动清理过期条目 + 去重 + 类型标准化"""
+    normalized_type = _normalize_type(entry_type)
+
     data = load()
     data = clean_expired(data)
+    _normalize_entries(data)  # 标准化已有条目
+    removed = _dedup_entries(data)
+    if removed:
+        print(f"🧹 自动清除 {removed} 条重复记录")
 
     keywords = [k.strip() for k in keywords_str.split(",") if k.strip()]
     if not keywords:
         print("❌ 关键词不能为空", file=sys.stderr)
         sys.exit(1)
 
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    # 检查同天同标题是否已存在
+    for e in data.get("entries", []):
+        if e.get("date") == today and e.get("title") == title:
+            print(f"⚠️  今天已存在同名选题，跳过重复添加: {title}")
+            return
+
     entry = {
-        "date": datetime.now().strftime("%Y-%m-%d"),
+        "date": today,
         "keywords": keywords,
         "title": title,
-        "type": entry_type,
+        "type": normalized_type,
     }
     data["entries"].append(entry)
     save(data)
 
     days = data.get("protection_days", 7)
     print(f"✅ 已添加: {title}")
-    print(f"   日期: {entry['date']}  类型: {entry_type}")
+    print(f"   日期: {entry['date']}  类型: {normalized_type}")
     print(f"   关键词: {', '.join(keywords)}")
     print(f"   保护期内共 {len(data['entries'])} 条记录 ({days}天)")
 
 
 def cmd_list(as_json: bool = False, override_days: int = None):
-    """列出保护期内的所有选题记录"""
+    """列出保护期内的所有选题记录（只读，不修改文件）"""
     data = load()
     data = clean_expired(data)
-    save(data)  # 顺便清理过期数据
+    _normalize_entries(data)  # 标准化类型（仅内存）
+    _dedup_entries(data)  # 清理重复记录（仅内存）
+    # 注意：list 是只读操作，不 save()。实际清理在 cmd_add/cmd_clean 时写入。
 
     days = override_days if override_days else data.get("protection_days", 7)
     cutoff = get_cutoff(days)
@@ -104,13 +185,15 @@ def cmd_list(as_json: bool = False, override_days: int = None):
 
 
 def cmd_clean():
-    """手动清理过期记录"""
+    """手动清理过期记录 + 去重 + 类型标准化"""
     data = load()
     before = len(data["entries"])
     data = clean_expired(data)
+    _normalize_entries(data)
+    _dedup_entries(data)
     after = len(data["entries"])
     save(data)
-    print(f"🧹 清理: 移除 {before - after} 条过期，剩 {after} 条")
+    print(f"🧹 清理: 移除 {before - after} 条过期/重复，剩 {after} 条（含类型标准化）")
 
 
 def main():

@@ -27,32 +27,25 @@ except ImportError:
 W, H = 1200, 675
 LEFT = 80
 
-# Font auto-detection with fallback paths (Linux + Windows)
-_CJK_CANDIDATES = [
-    '/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf',
-    '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc',
-    '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',
-    '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc',
-    '/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc',
-    'C:/Windows/Fonts/msyh.ttc',
-    'C:/Windows/Fonts/simhei.ttf',
-]
-_LAT_CANDIDATES = [
-    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-    '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
-    'C:/Windows/Fonts/segoeui.ttf',
-    'C:/Windows/Fonts/arial.ttf',
-]
-_LATB_CANDIDATES = [
-    '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
-    '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
-    'C:/Windows/Fonts/segoeuib.ttf',
-    'C:/Windows/Fonts/arialbd.ttf',
-]
+# Font detection via unified capture.fonts module (single source of truth)
+from capture.fonts import get_font_manager as _get_font_manager
+_fm = _get_font_manager()
+FCJK = _fm.cjk_path
+FLAT = _fm.latin_path
+FLATB = _fm.latinb_path
 
-FCJK = next((p for p in _CJK_CANDIDATES if os.path.exists(p)), _CJK_CANDIDATES[0])
-FLAT = next((p for p in _LAT_CANDIDATES if os.path.exists(p)), _LAT_CANDIDATES[0])
-FLATB = next((p for p in _LATB_CANDIDATES if os.path.exists(p)), _LATB_CANDIDATES[0])
+# Validate CJK font availability — geometric mode works without it, but
+# auto mode (photo background) needs CJK for title/subtitle rendering.
+if not FCJK:
+    print("⚠️  未检测到 CJK 字体（中文渲染将不可用）", file=sys.stderr)
+    print("   Windows: 确保 C:\\Windows\\Fonts\\msyh.ttc 存在", file=sys.stderr)
+    print("   macOS:   确保系统自带苹方字体", file=sys.stderr)
+    print("   Linux:   sudo apt install fonts-noto-cjk", file=sys.stderr)
+    print("   封面生成将以 geometric 模式继续（不依赖 CJK 文本渲染）", file=sys.stderr)
+    # Use PIL default as last resort — will produce mojibake for CJK but won't crash
+    FCJK = FLAT or ""
+FLAT = FLAT or FCJK
+FLATB = FLATB or FLAT or FCJK
 
 from paths import SCRIPTS_DIR as _SCRIPTS_DIR, PROJECT_ROOT as _PROJECT_ROOT, USED_IMAGES_FILE, get_env
 
