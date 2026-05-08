@@ -11,7 +11,8 @@ Usage:
   python scripts/orchestrator.py plan.json --from S2T3       # resume from task
 """
 
-import json, os, sys, subprocess, time, traceback
+import json, os, re, sys, subprocess, time, traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from datetime import datetime
 from typing import Any
@@ -50,29 +51,91 @@ def load_plan(plan_path: str) -> dict:
 
 
 def validate_plan(plan: dict, registry: dict) -> list[str]:
-    """Check every task capability exists in registry. Returns errors."""
+    """Validate PipelinePlan: schema, uniqueness, circular deps, capabilities."""
     errors = []
     caps = registry.get("capabilities", {})
 
-    def _check_stage(stage, path=""):
-        for task in stage.get("tasks", []):
-            cap = task.get("capability", "")
-            p = f"{path}/{task['id']}"
-            if cap and cap not in caps:
-                errors.append(f"{p}: capability '{cap}' not found in registry")
-            if "sub_pipeline" in task:
-                for sub_stage in task["sub_pipeline"].get("stages", []):
-                    _check_stage(sub_stage, p)
+    # Schema
+    if not plan.get("pipeline"):
+        errors.append("Missing required field: pipeline")
+    if not plan.get("stages"):
+        errors.append("Missing required field: stages")
+        return errors
 
-    for stage in plan.get("stages", []):
+    # Collect all task ids for uniqueness + dependency graph
+    task_ids = set()
+    dep_graph: dict[str, set[str]] = {}
+
+    def _collect(stage, path=""):
+        stage_id = stage.get("id", "")
+        if not stage_id:
+            errors.append(f"{path}: Stage missing 'id'")
+        if not stage.get("tasks"):
+            errors.append(f"{stage_id}: Stage has no tasks")
+
         for task in stage.get("tasks", []):
+            tid = task.get("id", "")
             cap = task.get("capability", "")
-            p = f"{stage['id']}/{task['id']}"
-            if cap and cap not in caps:
-                errors.append(f"{p}: capability '{cap}' not found in registry")
+            p = f"{stage_id}/{tid}"
+
+            if not tid:
+                errors.append(f"{stage_id}: Task missing 'id'")
+                continue
+            if not cap:
+                errors.append(f"{p}: Task missing 'capability'")
+                continue
+
+            # Uniqueness
+            if tid in task_ids:
+                errors.append(f"{p}: Duplicate task id '{tid}'")
+            task_ids.add(tid)
+
+            # Capability
+            if cap not in caps:
+                errors.append(f"{p}: Capability '{cap}' not in registry")
+
+            # Register dependencies (resolved after full collection)
+            deps = set(task.get("depends_on", []))
+            dep_graph[tid] = deps
+
+            # Sub-pipeline
             if "sub_pipeline" in task:
                 for sub_stage in task["sub_pipeline"].get("stages", []):
-                    _check_stage(sub_stage, p)
+                    _collect(sub_stage, p)
+
+        # Stage dependencies
+        for sdep in stage.get("depends_on", []):
+            pass  # validated separately
+
+    for stage in plan["stages"]:
+        _collect(stage)
+
+    # Check all dependency references
+    for tid, deps in dep_graph.items():
+        for dep in deps:
+            if dep not in task_ids:
+                errors.append(f"Task '{tid}' depends on unknown task '{dep}'")
+
+    # Circular dependency check via DFS
+    UNVISITED, VISITING, VISITED = 0, 1, 2
+    state = {tid: UNVISITED for tid in task_ids}
+
+    def _has_cycle(tid: str) -> bool:
+        state[tid] = VISITING
+        for dep in dep_graph.get(tid, set()):
+            if state.get(dep) == VISITING:
+                errors.append(f"Circular dependency: {tid} -> {dep}")
+                return True
+            if state.get(dep) == UNVISITED:
+                if _has_cycle(dep):
+                    return True
+        state[tid] = VISITED
+        return False
+
+    for tid in list(task_ids):
+        if state.get(tid) == UNVISITED:
+            _has_cycle(tid)
+
     return errors
 
 
@@ -129,6 +192,80 @@ def build_execution_order(tasks: list[dict]) -> list[list[dict]]:
 
 
 # ═══════════════════════════════════════════════════════════
+#  Context Pipe — task-to-task data flow
+# ═══════════════════════════════════════════════════════════
+
+def resolve_references(value: Any, context: dict) -> Any:
+    """Recursively resolve $TASK_ID.output.field references in any value.
+
+    Example: "$S1T1.output.html_path" → context["S1T1"]["output"]["html_path"]
+    """
+    if isinstance(value, str):
+        return _resolve_str(value, context)
+    elif isinstance(value, dict):
+        return {k: resolve_references(v, context) for k, v in value.items()}
+    elif isinstance(value, list):
+        return [resolve_references(v, context) for v in value]
+    return value
+
+
+def _resolve_str(text: str, context: dict) -> Any:
+    """Resolve $refs in a string. If the entire string is a single ref, return
+    the actual value (preserving type). Otherwise do string interpolation."""
+    pattern = re.compile(r'\$(\w+)\.(\w+)(?:\.(\w+))?')
+
+    # Single ref covering the whole string
+    m = pattern.fullmatch(text.strip())
+    if m:
+        task_id = m.group(1)
+        namespace = m.group(2)  # "output" or "input"
+        field = m.group(3)
+        if task_id in context and namespace in context[task_id]:
+            data = context[task_id][namespace]
+            if field and isinstance(data, dict):
+                return data.get(field, text)
+            return data
+        return text  # unresolved — keep as-is
+
+    # Multiple refs — string interpolation
+    def replacer(m):
+        task_id = m.group(1)
+        namespace = m.group(2)
+        field = m.group(3)
+        if task_id in context and namespace in context[task_id]:
+            data = context[task_id][namespace]
+            if field and isinstance(data, dict):
+                return str(data.get(field, m.group(0)))
+            return str(data)
+        return m.group(0)
+
+    return pattern.sub(replacer, text)
+
+
+def register_output(task_id: str, result: dict, context: dict):
+    """Register a task's output in the shared context for downstream references."""
+    output = {
+        "status": result.get("status"),
+        "exit_code": result.get("exit_code"),
+        "stdout": result.get("stdout", "")[-500:] if result.get("stdout") else "",
+    }
+    # For review agent: extract passed/failures from structured output
+    stdout = result.get("stdout", "")
+    if "passed: true" in stdout.lower() or "passed:false" in stdout.lower():
+        passed_match = re.search(r'passed:\s*(true|false)', stdout)
+        if passed_match:
+            output["passed"] = passed_match.group(1) == "true"
+        failures = re.findall(r'H\d\s+(FAIL|PASS)', stdout)
+        output["hard_checks"] = failures
+    # For cover agent: extract cover_path
+    cover_match = re.search(r'cover_path:\s*(\S+)', stdout)
+    if cover_match:
+        output["cover_path"] = cover_match.group(1)
+    context.setdefault(task_id, {})
+    context[task_id]["output"] = output
+
+
+# ═══════════════════════════════════════════════════════════
 #  Task Executor
 # ═══════════════════════════════════════════════════════════
 
@@ -145,10 +282,13 @@ def resolve_command(capability: str, registry: dict, task_input: dict) -> str | 
     if cap["type"] == "script":
         script_path = PROJECT_ROOT / cap["file"]
         parts = [sys.executable, str(script_path)]
-        # Build CLI args from task input dict
+        # Build CLI args from task input — only pass keys that exist in capability params
+        known_params = cap.get("params", {})
         for key, val in (task_input or {}).items():
             if key.startswith("_"):
                 continue
+            if key not in known_params and known_params:
+                continue  # skip unknown params to avoid CLI errors
             arg_key = f"--{key.replace('_', '-')}"
             if isinstance(val, bool):
                 if val:
@@ -156,7 +296,7 @@ def resolve_command(capability: str, registry: dict, task_input: dict) -> str | 
             elif isinstance(val, list):
                 parts.append(arg_key)
                 parts.append(",".join(str(v) for v in val))
-            elif val is not None:
+            elif val is not None and not isinstance(val, dict):
                 parts.append(arg_key)
                 parts.append(str(val))
         return " ".join(parts)
@@ -165,11 +305,23 @@ def resolve_command(capability: str, registry: dict, task_input: dict) -> str | 
 
 
 def execute_task(task: dict, registry: dict, dry_run: bool = False,
-                 context: dict = None) -> dict:
-    """Execute a single task. Returns result dict."""
+                 context: dict = None, resume_handoffs: dict = None) -> dict:
+    """Execute a single task. Returns result dict.
+
+    resume_handoffs: dict of task_id -> pre-completed result (for --resume mode)
+    """
     cap_name = task.get("capability", "")
     cap = registry["capabilities"].get(cap_name, {})
     cap_type = cap.get("type", "unknown")
+
+    # Check if this task was already completed via handoff
+    if resume_handoffs and task["id"] in resume_handoffs:
+        ho = resume_handoffs[task["id"]]
+        ho["task_id"] = task["id"]
+        ho["capability"] = cap_name
+        ho["type"] = cap_type
+        ho["status"] = ho.get("status", "ok")
+        return ho
 
     result = {
         "task_id": task["id"],
@@ -204,8 +356,27 @@ def execute_task(task: dict, registry: dict, dry_run: bool = False,
                 result["status"] = "error"
                 result["error"] = str(e)
     elif cap_type in ("agent", "skill"):
-        result["status"] = "requires_ai" if not dry_run else "dry_run"
-        result["note"] = f"AI handoff needed for {cap_type}: {cap.get('file','')}"
+        if dry_run:
+            result["status"] = "dry_run"
+        else:
+            # Write handoff file for AI to pick up
+            handoff = {
+                "task_id": task["id"],
+                "capability": cap_name,
+                "type": cap_type,
+                "file": cap.get("file", ""),
+                "description": cap.get("description", ""),
+                "input": task.get("input", {}),
+                "context": context,
+                "status": "pending"
+            }
+            handoff_dir = LOG_DIR / "handoffs"
+            handoff_dir.mkdir(parents=True, exist_ok=True)
+            handoff_path = handoff_dir / f"{task['id']}_{cap_name}.json"
+            handoff_path.write_text(json.dumps(handoff, ensure_ascii=False, indent=2), encoding="utf-8")
+            result["status"] = "pending_ai"
+            result["handoff_file"] = str(handoff_path)
+            result["note"] = f"Handoff written: {handoff_path}"
     else:
         result["status"] = "skipped" if dry_run else "unsupported"
         result["error"] = f"Unsupported capability type: {cap_type}"
@@ -250,8 +421,14 @@ def execute_hooks(hooks: dict, hook_type: str, context: dict) -> dict | None:
 # ═══════════════════════════════════════════════════════════
 
 def run_pipeline(plan: dict, registry: dict, dry_run: bool = False,
-                 target_stage: str = None, from_task: str = None) -> list[dict]:
-    """Execute pipeline plan stage by stage."""
+                 target_stage: str = None, from_task: str = None,
+                 resume_handoffs: dict = None) -> list[dict]:
+    """Execute pipeline plan stage by stage.
+
+    resume_handoffs: dict mapping task_id -> pre-completed result (from --resume)
+    """
+    if resume_handoffs is None:
+        resume_handoffs = {}
     stages = plan.get("stages", [])
     log = []
     context = plan.get("context", {})
@@ -327,19 +504,46 @@ def run_pipeline(plan: dict, registry: dict, dry_run: bool = False,
         for round_idx, round_tasks in enumerate(rounds):
             print(f"\n  Round {round_idx + 1}: {len(round_tasks)} task(s)")
 
+            use_parallel = stage.get("parallel", False) and len(round_tasks) > 1 and not dry_run
+
+            if use_parallel:
+                def _run_parallel(task):
+                    if task.get("input"):
+                        task["input"] = resolve_references(task["input"], context)
+                    result = execute_task(task, registry, dry_run, context, resume_handoffs)
+                    result["_stage_id"] = stage_id
+                    register_output(task["id"], result, context)
+                    return result
+
+                with ThreadPoolExecutor(max_workers=min(len(round_tasks), 4)) as executor:
+                    futures = {executor.submit(_run_parallel, t): t for t in round_tasks}
+                    for future in as_completed(futures):
+                        task = futures[future]
+                        result = future.result()
+                        log.append(result)
+                        cap_name = task.get("capability", "?")
+                        status = result.get("status", "?")
+                        status_str = "OK" if status in ("ok", "pending_ai") else status
+                        print(f"    [{task['id']}] {cap_name} -> {status_str}")
+                continue  # skip sequential loop below
+
             for task in round_tasks:
                 cap_name = task.get("capability", "?")
                 print(f"    [{task['id']}] {cap_name} ", end="", flush=True)
 
-                result = execute_task(task, registry, dry_run, context)
+                if task.get("input"):
+                    task["input"] = resolve_references(task["input"], context)
+
+                result = execute_task(task, registry, dry_run, context, resume_handoffs)
                 result["_stage_id"] = stage_id
+                register_output(task["id"], result, context)
                 log.append(result)
 
                 status = result.get("status", "?")
                 if dry_run:
                     print(f"-> {status}")
-                elif status == "ok":
-                    print("OK")
+                elif status in ("ok", "pending_ai"):
+                    print("OK" if status == "ok" else "-> handoff")
                 elif status == "failed":
                     print(f"FAIL (exit {result.get('exit_code','?')})")
                     # Hook: on_failure
@@ -386,7 +590,23 @@ def main():
     p.add_argument("--dry-run", action="store_true", help="Preview only, no execution")
     p.add_argument("--stage", help="Execute only this stage")
     p.add_argument("--from", dest="from_task", help="Resume from this task")
+    p.add_argument("--resume", help="Load completed handoffs from directory")
     args = p.parse_args()
+
+    # Load resume handoffs if provided
+    resume_handoffs = {}
+    if args.resume:
+        handoff_dir = Path(args.resume)
+        if handoff_dir.exists():
+            for hf in handoff_dir.glob("*.json"):
+                try:
+                    ho = json.loads(hf.read_text(encoding="utf-8"))
+                    if ho.get("status") == "completed":
+                        resume_handoffs[ho["task_id"]] = ho.get("result", {})
+                        ho["_resume_source"] = str(hf)
+                except Exception:
+                    pass
+            print(f"Resume: loaded {len(resume_handoffs)} completed handoff(s)")
 
     registry = load_registry()
     plan = load_plan(args.plan)
@@ -410,6 +630,7 @@ def main():
         dry_run=args.dry_run,
         target_stage=args.stage,
         from_task=args.from_task,
+        resume_handoffs=resume_handoffs,
     )
 
     # Write execution log
