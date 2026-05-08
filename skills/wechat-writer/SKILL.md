@@ -159,7 +159,7 @@ python scripts/topic_tracker.py list --days 14  # 自定义天数
 |---|--------|----------|
 | 1 | HTML 已生成 | 文件在 `文章/{年份}年{月份}月/` 目录 |
 | 2 | 封面图已生成 | 同名 `.png` 与 HTML 同目录 |
-| 3 | 选题已入库 | `reports/used_tokens.json` 有新条目 |
+| 3 | 选题已入库 | `reports/used_topics.json` 有新条目 |
 | 4 | **已推送草稿箱** | 终端输出 `✅ 草稿创建成功！` + 草稿 ID |
 | 5 | 已告知用户 | 输出草稿位置 + "登录后台 → 草稿箱" |
 

@@ -1,6 +1,6 @@
 # Agents 配置说明
 
-Article Pool 包含 3 个独立 Agent，由 `skills/article-pipeline/SKILL.md` 编排调用。
+Article Pool 包含 4 个独立 Agent，由 `skills/article-pipeline/SKILL.md` 编排调用。
 
 ## 已实施的 Agent（硬约束）
 

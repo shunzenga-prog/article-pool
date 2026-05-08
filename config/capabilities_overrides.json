@@ -33,9 +33,21 @@
     "article_pipeline": {
       "description": "多 Agent 协作创作链 — 分流→创作→审阅→插图→封面→发布"
     },
+    "cover_gen": {
+      "deprecated": true, "replaced_by": "cover_agent",
+      "description": "[已废弃] 封面生成 Skill 版，请使用 cover_agent"
+    },
+    "illustration_gen": {
+      "deprecated": true, "replaced_by": "illustration_agent",
+      "description": "[已废弃] 插图生成 Skill 版，请使用 illustration_agent"
+    },
     "script.gen_cover": {
-      "constraints": ["prefer_auto_mode", "reject_geometric_for_production"],
-      "description": "生成 1200×675 封面图，auto 模式走真实背景图级联"
+      "deprecated": true, "replaced_by": "cover_agent",
+      "description": "[已废弃] 封面 CLI 直接调用，请使用 cover_agent"
+    },
+    "script.illustration_gen": {
+      "deprecated": true, "replaced_by": "illustration_agent",
+      "description": "[已废弃] 插图 CLI 直接调用，请使用 illustration_agent"
     },
     "script.publish_html": {
       "constraints": ["windows_require_pythonioencoding_utf8", "must_see_success_output"],

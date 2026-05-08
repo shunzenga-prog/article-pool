@@ -250,7 +250,7 @@ PYTHONIOENCODING=utf-8 python scripts/publish_html.py <文章.html> --cover <封
 |---|--------|----------|
 | 1 | HTML 文章已生成 | 文件存在于 `文章/{年份}年{月份}月/` |
 | 2 | 封面图已生成 | 同名 `.png` 与 HTML 同目录 |
-| 3 | 选题已入库 | `reports/used_tokens.json` 有新条目 |
+| 3 | 选题已入库 | `reports/used_topics.json` 有新条目 |
 | 4 | **已推送到草稿箱** | 看到 `✅ 草稿创建成功！` + 草稿 ID |
 | 5 | 已告知用户草稿位置 | 输出草稿 ID + "登录后台 → 草稿箱"指引 |
 

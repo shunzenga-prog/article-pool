@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-05-08T17:03:54.522976",
+  "generated_at": "2026-05-08T21:13:37.152636",
   "counts": {
     "agents": 4,
-    "skills": 12,
+    "skills": 13,
     "scripts": 7,
-    "total": 24
+    "total": 25
   },
   "capabilities": {
     "cover_agent": {
@@ -78,7 +78,9 @@
       "type": "skill",
       "file": "skills/cover-gen/SKILL.md",
       "name": "cover-gen",
-      "description": "公众号封面图生成。自动搜索网络图片作为背景（Pexels→AI→Unsplash→Brave→几何），生成 1200x675 专业封面。触发：生成封面、做封面图、封面图片。"
+      "description": "[已废弃] 封面生成 Skill 版，请使用 cover_agent",
+      "deprecated": true,
+      "replaced_by": "cover_agent"
     },
     "flowchart_gen": {
       "type": "skill",
@@ -96,7 +98,9 @@
       "type": "skill",
       "file": "skills/illustration-gen/SKILL.md",
       "name": "illustration-gen",
-      "description": "文章插图自动生成。分析文章内容，通过5级级联获取配图（GitHub截图→OG图片→Brave搜索→AI生成→几何兜底），上传微信CDN，嵌入HTML。触发：插图生成、配图、文章插图。"
+      "description": "[已废弃] 插图生成 Skill 版，请使用 illustration_agent",
+      "deprecated": true,
+      "replaced_by": "illustration_agent"
     },
     "news_aggregator": {
       "type": "skill",
@@ -109,6 +113,12 @@
       "file": "skills/pipeline-planner/SKILL.md",
       "name": "pipeline-planner",
       "description": "AI 任务规划器 — 读取能力清单，按用户需求生成 PipelinePlan JSON，由编排引擎执行"
+    },
+    "research_lobster": {
+      "type": "skill",
+      "file": "skills/research-lobster/SKILL.md",
+      "name": "research-lobster",
+      "description": "新闻素材搜索与研究。多源搜索验证，时效性检查，提供创作素材。触发：搜素材、查资料、验证信息。"
     },
     "tutorial_pipeline": {
       "type": "skill",
@@ -183,7 +193,7 @@
         "width": {
           "help": "Canvas width in px (default: 720)",
           "default": 720,
-          "type": "<ast.Name object at 0x0000024D2DB986D0>"
+          "type": "<ast.Name object at 0x00000211CF7E3090>"
         },
         "markup-only": {
           "help": "Print Mermaid markup only (debug)"
@@ -198,7 +208,7 @@
       "type": "script",
       "file": "scripts/gen_cover.py",
       "name": "gen_cover",
-      "description": "生成 1200×675 封面图，auto 模式走真实背景图级联",
+      "description": "[已废弃] 封面 CLI 直接调用，请使用 cover_agent",
       "params": {
         "title": {
           "help": "Main title."
@@ -210,20 +220,20 @@
           "default": "EVENING DIGEST"
         },
         "date": {
-          "default": "<ast.Name object at 0x0000024D2E21DAD0>"
+          "default": "<ast.Name object at 0x00000211CFE3D510>"
         },
         "reading-time": {
           "default": "深度解读"
         },
         "footer": {
-          "default": "<ast.Call object at 0x0000024D2E21E2D0>"
+          "default": "<ast.Call object at 0x00000211CFE3DD10>"
         },
         "output": {
           "help": "Output PNG file path."
         },
         "mode": {
           "help": "Background mode: auto (OG->Pexels->AI->Unsplash->Brave->geometric) or geometric (default: from prefs)",
-          "default": "<ast.Call object at 0x0000024D2E21F310>",
+          "default": "<ast.Call object at 0x00000211CFE3ED50>",
           "choices": [
             "<",
             "a",
@@ -253,15 +263,15 @@
             "0",
             "0",
             "2",
-            "4",
-            "D",
-            "2",
-            "E",
-            "2",
             "1",
+            "1",
+            "C",
             "F",
-            "0",
-            "D",
+            "E",
+            "3",
+            "E",
+            "B",
+            "1",
             "0",
             ">"
           ]
@@ -297,15 +307,15 @@
             "0",
             "0",
             "2",
-            "4",
-            "D",
-            "2",
-            "E",
-            "2",
             "1",
+            "1",
+            "C",
             "F",
+            "E",
+            "3",
+            "F",
+            "7",
             "D",
-            "9",
             "0",
             ">"
           ]
@@ -321,15 +331,16 @@
         }
       },
       "constraints": [
-        "prefer_auto_mode",
-        "reject_geometric_for_production"
-      ]
+        "has_mode_param"
+      ],
+      "deprecated": true,
+      "replaced_by": "cover_agent"
     },
     "script.illustration_gen": {
       "type": "script",
       "file": "scripts/illustration_gen.py",
       "name": "illustration_gen",
-      "description": "",
+      "description": "[已废弃] 插图 CLI 直接调用，请使用 illustration_agent",
       "params": {
         "type": {
           "help": "文章类型 (项目推荐, 技术教程, 深度解析, 早报_晚报)",
@@ -348,10 +359,12 @@
         "max-images": {
           "help": "Override max_images_total",
           "default": null,
-          "type": "<ast.Name object at 0x0000024D2E2B3BD0>"
+          "type": "<ast.Name object at 0x00000211CFED7110>"
         }
       },
-      "constraints": []
+      "constraints": [],
+      "deprecated": true,
+      "replaced_by": "illustration_agent"
     },
     "script.publish_html": {
       "type": "script",
@@ -364,8 +377,8 @@
           "default": null
         },
         "author": {
-          "help": "<ast.JoinedStr object at 0x0000024D2DBA5450>",
-          "default": "<ast.Name object at 0x0000024D2DBA55D0>"
+          "help": "<ast.JoinedStr object at 0x00000211CF7EFA50>",
+          "default": "<ast.Name object at 0x00000211CF7EFB10>"
         }
       },
       "constraints": [
@@ -385,11 +398,11 @@
         },
         "width": {
           "default": 1280,
-          "type": "<ast.Name object at 0x0000024D2DBA5E10>"
+          "type": "<ast.Name object at 0x00000211CF7EEC10>"
         },
         "height": {
           "default": 800,
-          "type": "<ast.Name object at 0x0000024D2DBA4210>"
+          "type": "<ast.Name object at 0x00000211CF7EF490>"
         },
         "selector": {
           "help": "CSS 选择器，只截取该元素"
@@ -451,15 +464,15 @@
             "0",
             "0",
             "2",
-            "4",
-            "D",
-            "2",
-            "D",
-            "B",
-            "9",
             "1",
-            "3",
+            "1",
+            "C",
+            "F",
+            "7",
+            "E",
+            "0",
             "9",
+            "D",
             "0",
             ">"
           ]
