@@ -53,6 +53,19 @@
       "constraints": ["windows_require_pythonioencoding_utf8", "must_see_success_output"],
       "is_terminal_stage": true
     },
+    "script.tutorial_screenshot": {
+      "type": "script",
+      "file": "scripts/tutorial_screenshot.py",
+      "params": {
+        "script": {"type": "str", "required": true},
+        "args": {"type": "str", "default": ""},
+        "output": {"type": "str", "required": true},
+        "verify": {"type": "str", "default": ""},
+        "title": {"type": "str", "default": "PowerShell"}
+      },
+      "constraints": ["tutorial_pipeline_only"],
+      "description": "教程截图自动化——跑Python代码→截终端输出→验证结果"
+    },
     "script.topic_tracker": {
       "type": "script",
       "file": "scripts/topic_tracker.py",
