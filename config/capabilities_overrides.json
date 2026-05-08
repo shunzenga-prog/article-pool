@@ -1,0 +1,52 @@
+{
+  "overrides": {
+    "review_agent": {
+      "is_quality_gate": true,
+      "blocking": true,
+      "retry_on_fail": 0,
+      "on_fail": "back_to_writer",
+      "description": "扫描 HTML 结构、微信 CSS 兼容性、视觉质量，硬检查失败 = 驳回"
+    },
+    "cover_agent": {
+      "is_quality_gate": false,
+      "blocking": false,
+      "on_fail": "retry",
+      "retry_on_fail": 2,
+      "constraints": ["force_auto_mode", "verify_size_gt_100kb"]
+    },
+    "publish_agent": {
+      "is_terminal_stage": true,
+      "cannot_skip": true,
+      "blocking": true,
+      "retry_on_fail": 2,
+      "on_fail": "retry_then_escalate"
+    },
+    "illustration_agent": {
+      "is_quality_gate": false,
+      "blocking": false,
+      "on_fail": "skip_and_continue",
+      "retry_on_fail": 1
+    },
+    "wechat_writer": {
+      "description": "公众号爆款文章创作 — 标题/开头/正文/结尾 + SCQA 框架 + 反 AI 模式"
+    },
+    "article_pipeline": {
+      "description": "多 Agent 协作创作链 — 分流→创作→审阅→插图→封面→发布"
+    },
+    "script.gen_cover": {
+      "constraints": ["prefer_auto_mode", "reject_geometric_for_production"],
+      "description": "生成 1200×675 封面图，auto 模式走真实背景图级联"
+    },
+    "script.publish_html": {
+      "constraints": ["windows_require_pythonioencoding_utf8", "must_see_success_output"],
+      "is_terminal_stage": true
+    },
+    "script.topic_tracker": {
+      "type": "script",
+      "file": "scripts/topic_tracker.py",
+      "params": {"list": {"type": "flag"}, "add": {"type": "positional"}},
+      "constraints": ["post_publish_action"],
+      "description": "选题入库，防止重复创作"
+    }
+  }
+}

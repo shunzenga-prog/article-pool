@@ -1,0 +1,491 @@
+{
+  "generated_at": "2026-05-08T17:03:54.522976",
+  "counts": {
+    "agents": 4,
+    "skills": 12,
+    "scripts": 7,
+    "total": 24
+  },
+  "capabilities": {
+    "cover_agent": {
+      "type": "agent",
+      "file": "agents/article-pool/cover-agent.md",
+      "name": "cover-agent",
+      "description": "封面图生成 Agent - 永远用 auto 模式生成真实背景图，校验输出质量",
+      "tools": "Bash, Read",
+      "is_quality_gate": false,
+      "blocking": false,
+      "on_fail": "retry",
+      "retry_on_fail": 2,
+      "constraints": [
+        "force_auto_mode",
+        "verify_size_gt_100kb"
+      ]
+    },
+    "illustration_agent": {
+      "type": "agent",
+      "file": "agents/article-pool/illustration-agent.md",
+      "name": "illustration-agent",
+      "description": "插图 Agent - 分析文章内容，通过5级级联获取配图并嵌入HTML，输出 _illustrated.html",
+      "tools": "Bash, Read",
+      "is_quality_gate": false,
+      "blocking": false,
+      "on_fail": "skip_and_continue",
+      "retry_on_fail": 1
+    },
+    "publish_agent": {
+      "type": "agent",
+      "file": "agents/article-pool/publish-agent.md",
+      "name": "publish-agent",
+      "description": "文章发布 Agent - 推送 HTML 和封面到公众号草稿箱并入库选题，不可跳过",
+      "tools": "Bash",
+      "is_terminal_stage": true,
+      "cannot_skip": true,
+      "blocking": true,
+      "retry_on_fail": 2,
+      "on_fail": "retry_then_escalate"
+    },
+    "review_agent": {
+      "type": "agent",
+      "file": "agents/article-pool/review-agent.md",
+      "name": "review-agent",
+      "description": "扫描 HTML 结构、微信 CSS 兼容性、视觉质量，硬检查失败 = 驳回",
+      "tools": "Bash, Read",
+      "is_quality_gate": true,
+      "blocking": true,
+      "retry_on_fail": 0,
+      "on_fail": "back_to_writer"
+    },
+    "AI_Daily_News": {
+      "type": "skill",
+      "file": "skills/ai-daily-news-get/SKILL.md",
+      "name": "AI Daily News",
+      "description": "每日AI早报 - 简洁风格，自动生成封面图并上传公众号。使用场景：(1) 生成AI早报 (2) 查看今日AI新闻 (3) 定时任务触发"
+    },
+    "article_pipeline": {
+      "type": "skill",
+      "file": "skills/article-pipeline/SKILL.md",
+      "name": "article-pipeline",
+      "description": "多 Agent 协作创作链 — 分流→创作→审阅→插图→封面→发布"
+    },
+    "capture": {
+      "type": "skill",
+      "file": "skills/capture/SKILL.md",
+      "name": "capture",
+      "description": "统一截图工具包。终端截图、浏览器截图、代码高亮截图、流程图渲染、Matplotlib 图表 — 五个截图能力一个包，可被任何工作流独立引用。"
+    },
+    "cover_gen": {
+      "type": "skill",
+      "file": "skills/cover-gen/SKILL.md",
+      "name": "cover-gen",
+      "description": "公众号封面图生成。自动搜索网络图片作为背景（Pexels→AI→Unsplash→Brave→几何），生成 1200x675 专业封面。触发：生成封面、做封面图、封面图片。"
+    },
+    "flowchart_gen": {
+      "type": "skill",
+      "file": "skills/flowchart-gen/SKILL.md",
+      "name": "flowchart-gen",
+      "description": "流程图生成技能。将流水线/架构/流程描述转换为设计级 Mermaid 流程图，通过 Playwright 渲染为暗色卡片 PNG。触发：画流程图、架构全景、流水线图、流程示意。"
+    },
+    "hotspot_tracker": {
+      "type": "skill",
+      "file": "skills/hotspot-tracker/SKILL.md",
+      "name": "hotspot-tracker",
+      "description": "自动追踪 AI 领域热点，生成选题建议。每日检查微博热搜、知乎热榜、AI 媒体动态、学术论文，输出选题清单。触发：追热点、找选题、有什么热点。"
+    },
+    "illustration_gen": {
+      "type": "skill",
+      "file": "skills/illustration-gen/SKILL.md",
+      "name": "illustration-gen",
+      "description": "文章插图自动生成。分析文章内容，通过5级级联获取配图（GitHub截图→OG图片→Brave搜索→AI生成→几何兜底），上传微信CDN，嵌入HTML。触发：插图生成、配图、文章插图。"
+    },
+    "news_aggregator": {
+      "type": "skill",
+      "file": "skills/news-aggregator/SKILL.md",
+      "name": "news-aggregator",
+      "description": "资讯整合Agent - 根据场景智能抓取、验证、整理新闻素材，供创作Agent使用。支持早报/晚报/周报/月报/指定主题/知识分享等多种场景。"
+    },
+    "pipeline_planner": {
+      "type": "skill",
+      "file": "skills/pipeline-planner/SKILL.md",
+      "name": "pipeline-planner",
+      "description": "AI 任务规划器 — 读取能力清单，按用户需求生成 PipelinePlan JSON，由编排引擎执行"
+    },
+    "tutorial_pipeline": {
+      "type": "skill",
+      "file": "skills/tutorial-pipeline/SKILL.md",
+      "name": "tutorial-pipeline",
+      "description": "教程类文章专属创作流水线。分步骤写作，每一步写完后立即生成配图，确保图文一一对应。触发：写教程、教程文章、AI实战教程。"
+    },
+    "wechat_writer": {
+      "type": "skill",
+      "file": "skills/wechat-writer/SKILL.md",
+      "name": "wechat-writer",
+      "description": "公众号爆款文章创作 — 标题/开头/正文/结尾 + SCQA 框架 + 反 AI 模式"
+    },
+    "xiaohongshu_writer": {
+      "type": "skill",
+      "file": "skills/xiaohongshu-writer/SKILL.md",
+      "name": "xiaohongshu-writer",
+      "description": "小红书爆款笔记创作。根据选题生成小红书风格笔记，包含标题、正文、封面建议、标签。触发：写小红书、发笔记、小红书创作。"
+    },
+    "script.code_image_generator": {
+      "type": "script",
+      "file": "scripts/code_image_generator.py",
+      "name": "code_image_generator",
+      "description": "",
+      "params": {
+        "output": {
+          "help": "输出 GIF 路径",
+          "required": true
+        },
+        "language": {
+          "default": "python"
+        },
+        "style": {
+          "default": "monokai"
+        },
+        "output-dir": {
+          "help": "图片输出目录",
+          "required": true
+        },
+        "execute": {
+          "help": "允许执行代码"
+        },
+        "animate": {
+          "help": "生成 GIF 动画"
+        }
+      },
+      "constraints": []
+    },
+    "script.flowchart_gen": {
+      "type": "script",
+      "file": "scripts/flowchart_gen.py",
+      "name": "flowchart_gen",
+      "description": "",
+      "params": {
+        "file": {
+          "help": "JSON file with flow definition"
+        },
+        "inline": {
+          "help": "Inline JSON flow definition"
+        },
+        "output": {
+          "help": "Output PNG path"
+        },
+        "palette": {
+          "help": "Design palette (tech-dark/ocean/forest/sunset/midnight/paper/cyberpunk/ember/aurora/navy/slate/rose)",
+          "default": "tech-dark"
+        },
+        "style": {
+          "help": "Card visual style: glass|solid|neon|minimal",
+          "default": "glass"
+        },
+        "width": {
+          "help": "Canvas width in px (default: 720)",
+          "default": 720,
+          "type": "<ast.Name object at 0x0000024D2DB986D0>"
+        },
+        "markup-only": {
+          "help": "Print Mermaid markup only (debug)"
+        },
+        "list-palettes": {
+          "help": "Show available palettes & card styles and exit"
+        }
+      },
+      "constraints": []
+    },
+    "script.gen_cover": {
+      "type": "script",
+      "file": "scripts/gen_cover.py",
+      "name": "gen_cover",
+      "description": "生成 1200×675 封面图，auto 模式走真实背景图级联",
+      "params": {
+        "title": {
+          "help": "Main title."
+        },
+        "subtitle": {
+          "default": ""
+        },
+        "tag": {
+          "default": "EVENING DIGEST"
+        },
+        "date": {
+          "default": "<ast.Name object at 0x0000024D2E21DAD0>"
+        },
+        "reading-time": {
+          "default": "深度解读"
+        },
+        "footer": {
+          "default": "<ast.Call object at 0x0000024D2E21E2D0>"
+        },
+        "output": {
+          "help": "Output PNG file path."
+        },
+        "mode": {
+          "help": "Background mode: auto (OG->Pexels->AI->Unsplash->Brave->geometric) or geometric (default: from prefs)",
+          "default": "<ast.Call object at 0x0000024D2E21F310>",
+          "choices": [
+            "<",
+            "a",
+            "s",
+            "t",
+            ".",
+            "L",
+            "i",
+            "s",
+            "t",
+            " ",
+            "o",
+            "b",
+            "j",
+            "e",
+            "c",
+            "t",
+            " ",
+            "a",
+            "t",
+            " ",
+            "0",
+            "x",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "2",
+            "4",
+            "D",
+            "2",
+            "E",
+            "2",
+            "1",
+            "F",
+            "0",
+            "D",
+            "0",
+            ">"
+          ]
+        },
+        "theme": {
+          "help": "Force geometric theme.",
+          "choices": [
+            "<",
+            "a",
+            "s",
+            "t",
+            ".",
+            "C",
+            "a",
+            "l",
+            "l",
+            " ",
+            "o",
+            "b",
+            "j",
+            "e",
+            "c",
+            "t",
+            " ",
+            "a",
+            "t",
+            " ",
+            "0",
+            "x",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "2",
+            "4",
+            "D",
+            "2",
+            "E",
+            "2",
+            "1",
+            "F",
+            "D",
+            "9",
+            "0",
+            ">"
+          ]
+        },
+        "article": {
+          "help": "Article HTML/text file for OG image extraction."
+        },
+        "keywords": {
+          "help": "Comma-separated keywords for image search."
+        },
+        "list-themes": {
+          "help": "List themes and exit."
+        }
+      },
+      "constraints": [
+        "prefer_auto_mode",
+        "reject_geometric_for_production"
+      ]
+    },
+    "script.illustration_gen": {
+      "type": "script",
+      "file": "scripts/illustration_gen.py",
+      "name": "illustration_gen",
+      "description": "",
+      "params": {
+        "type": {
+          "help": "文章类型 (项目推荐, 技术教程, 深度解析, 早报_晚报)",
+          "default": null
+        },
+        "output": {
+          "help": "Output HTML path (default: *_illustrated.html)",
+          "default": null
+        },
+        "dry-run": {
+          "help": "Analyze only, do not download/upload"
+        },
+        "no-upload": {
+          "help": "Skip WeChat CDN upload"
+        },
+        "max-images": {
+          "help": "Override max_images_total",
+          "default": null,
+          "type": "<ast.Name object at 0x0000024D2E2B3BD0>"
+        }
+      },
+      "constraints": []
+    },
+    "script.publish_html": {
+      "type": "script",
+      "file": "scripts/publish_html.py",
+      "name": "publish_html",
+      "description": "",
+      "params": {
+        "cover": {
+          "help": "封面图路径（可选）",
+          "default": null
+        },
+        "author": {
+          "help": "<ast.JoinedStr object at 0x0000024D2DBA5450>",
+          "default": "<ast.Name object at 0x0000024D2DBA55D0>"
+        }
+      },
+      "constraints": [
+        "windows_require_pythonioencoding_utf8",
+        "must_see_success_output"
+      ],
+      "is_terminal_stage": true
+    },
+    "script.screenshot_util": {
+      "type": "script",
+      "file": "scripts/screenshot_util.py",
+      "name": "screenshot_util",
+      "description": "",
+      "params": {
+        "output": {
+          "default": "annotated.png"
+        },
+        "width": {
+          "default": 1280,
+          "type": "<ast.Name object at 0x0000024D2DBA5E10>"
+        },
+        "height": {
+          "default": 800,
+          "type": "<ast.Name object at 0x0000024D2DBA4210>"
+        },
+        "selector": {
+          "help": "CSS 选择器，只截取该元素"
+        },
+        "output-dir": {
+          "default": "screenshots/"
+        },
+        "click": {
+          "help": "截取前先点击的元素选择器"
+        },
+        "text": {
+          "help": "底部标注文字"
+        }
+      },
+      "constraints": []
+    },
+    "script.terminal_screenshot": {
+      "type": "script",
+      "file": "scripts/terminal_screenshot.py",
+      "name": "terminal_screenshot",
+      "description": "",
+      "params": {
+        "output": {
+          "help": "输出 PNG 路径",
+          "default": "terminal.png"
+        },
+        "text": {
+          "help": "直接指定文本"
+        },
+        "os": {
+          "help": "终端样式: windows|macos|linux (默认: 自动检测)",
+          "default": null,
+          "choices": [
+            "<",
+            "a",
+            "s",
+            "t",
+            ".",
+            "L",
+            "i",
+            "s",
+            "t",
+            " ",
+            "o",
+            "b",
+            "j",
+            "e",
+            "c",
+            "t",
+            " ",
+            "a",
+            "t",
+            " ",
+            "0",
+            "x",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "2",
+            "4",
+            "D",
+            "2",
+            "D",
+            "B",
+            "9",
+            "1",
+            "3",
+            "9",
+            "0",
+            ">"
+          ]
+        },
+        "title": {
+          "help": "标题栏文本 (默认: 按 OS 自动)",
+          "default": null
+        }
+      },
+      "constraints": []
+    },
+    "script.topic_tracker": {
+      "type": "script",
+      "file": "scripts/topic_tracker.py",
+      "params": {
+        "list": {
+          "type": "flag"
+        },
+        "add": {
+          "type": "positional"
+        }
+      },
+      "constraints": [
+        "post_publish_action"
+      ],
+      "description": "选题入库，防止重复创作"
+    }
+  }
+}
