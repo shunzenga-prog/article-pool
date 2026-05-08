@@ -18,10 +18,23 @@ color: green
 
 ## 执行
 
+### Step 0: 优先使用插图版
+
+发布前检查是否存在 `_illustrated.html`（插图 Agent 的输出）。如果存在，用它替代原 HTML。
+
+```bash
+# 优先使用插图版
+if [ -f "<文章路径去掉.html>_illustrated.html" ]; then
+    ARTICLE="<文章路径去掉.html>_illustrated.html"
+else
+    ARTICLE="<文章HTML路径>"
+fi
+```
+
 ### Step 1: 发布到草稿箱
 
 ```bash
-cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && PYTHONIOENCODING=utf-8 python scripts/publish_html.py "<文章HTML路径>" --cover "<封面PNG路径>" --author "小咪"
+cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && PYTHONIOENCODING=utf-8 python scripts/publish_html.py "$ARTICLE" --cover "<封面PNG路径>" --author "小咪"
 ```
 
 ### Step 2: 选题入库
