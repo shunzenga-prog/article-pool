@@ -172,7 +172,7 @@ python scripts/scrape-36kr-fixed.py
 
 ```bash
 # 启用详细输出
-python scripts/wechat_publish.py article.md --verbose
+python scripts/publish_html.py article.html --verbose
 
 # 测试 API 连接
 python -c "

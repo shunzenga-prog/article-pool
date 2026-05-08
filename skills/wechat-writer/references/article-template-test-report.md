@@ -175,7 +175,7 @@ pandoc article.md -o article.html --template=templates/article-template.html
 
 ```bash
 # 使用公众号发布脚本
-python3 scripts/wechat_publish.py <文章路径> [标题]
+python3 scripts/publish_html.py <文章.html> --cover <封面图.png> --author "小咪"
 ```
 
 ---

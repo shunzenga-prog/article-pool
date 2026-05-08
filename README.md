@@ -85,7 +85,7 @@ Article Pool 是一套完整的 AI 辅助内容创作工具链，覆盖从选题
 │   │       ├── content_generator.py   # AI 内容生成（8 种模板的提示词）
 │   │       ├── template_filler.py     # 模板填充器（REPLACE 标记替换）
 │   │       ├── validator.py       #    验证层（HTML/字数/敏感词/重复检查）
-│   │       ├── wechat_publisher.py    # 浏览器自动化发布
+│   │       ├── publish_html.py        # HTML 直传公众号草稿箱
 │   │       ├── output/            #    生成的文章输出
 │   │       └── logs/              #    运行日志
 │   ├── *.html                     # 11 个 HTML 模板副本

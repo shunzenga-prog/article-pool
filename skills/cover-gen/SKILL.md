@@ -119,5 +119,5 @@ sudo apt-get install fonts-droid-fallback fonts-dejavu-core
 
 ```bash
 python3 scripts/gen_cover.py --title "标题" --output cover.png
-python3 scripts/wechat_publish.py article.html --cover cover.png
+python3 scripts/publish_html.py article.html --cover cover.png
 ```
