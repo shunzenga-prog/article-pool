@@ -166,7 +166,7 @@ class FlowchartCapture(BaseCapture):
 
         with self.browser_page(width=width, height=600) as page:
             self.navigate_and_wait(page, url)
-            page.wait_for_selector("svg", timeout=15000)
+            page.wait_for_selector("svg", timeout=30000)
             page.wait_for_timeout(1000)
 
             el = page.query_selector(".flowchart-card")
