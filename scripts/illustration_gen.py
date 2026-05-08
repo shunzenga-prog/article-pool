@@ -654,16 +654,35 @@ def insert_images_into_html(html: str, placements: list[dict], img_template: str
     return "\n".join(lines)
 
 
+def _is_section_header_line(line: str) -> bool:
+    """Detect whether a line contains a section header.
+    Matches: <h2>/<h3>, or <span>/<p> with large font (17-20px) + bold (600-700).
+    """
+    if re.search(r"<(?:h2|h3)[^>]*>", line):
+        return True
+    # Match span/p with font-size 17-20px AND font-weight 600-700 or 'bold'
+    if re.search(r'font-size\s*:\s*1[7-9]px[^>]*font-weight\s*:\s*(?:700|bold|600)', line):
+        return True
+    if re.search(r'font-size\s*:\s*20px[^>]*font-weight\s*:\s*(?:700|bold|600)', line):
+        return True
+    return False
+
+
 def _find_section_markers(lines: list[str]) -> list[int]:
-    """Find section boundary line numbers (h2/h3 or bold paragraph headers)."""
+    """Find section boundary line numbers."""
     markers = []
     for i, line in enumerate(lines):
-        if re.search(r"<(?:h2|h3)[^>]*>", line):
-            markers.append(i)
-        elif re.search(r'font-size\s*:\s*1[7-9]px[^>]*font-weight\s*:\s*bold', line):
-            # Only match bold text with larger font (section headers, not inline bold)
+        if _is_section_header_line(line):
             markers.append(i)
     return markers
+
+
+def _find_section_marker_after_line(lines: list[str], start_line: int) -> int | None:
+    """Find the next section header line after start_line (for placing image before next section)."""
+    for i in range(start_line + 1, len(lines)):
+        if _is_section_header_line(lines[i]):
+            return i
+    return None
 
 
 def find_placement_positions(html: str, placement_strategy: str,
@@ -721,9 +740,17 @@ def find_placement_positions(html: str, placement_strategy: str,
         for i, line in enumerate(lines):
             if img_idx >= len(image_urls):
                 break
-            if re.search(r"<(?:h2|h3)[^>]*>", line):
+            if _is_section_header_line(line):
+                # Place image after the section header (i+1 = next line)
+                # but before the next section header — find a good spot in between
+                next_header = _find_section_marker_after_line(lines, i)
+                if next_header:
+                    # Insert a few lines before next section header
+                    insert_line = max(i + 2, next_header - 2)
+                else:
+                    insert_line = i + 2
                 placements.append({
-                    "line": i + 2,
+                    "line": insert_line,
                     "url": image_urls[img_idx],
                     "alt": "section illustration",
                 })

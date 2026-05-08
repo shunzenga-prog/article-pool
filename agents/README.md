@@ -1,37 +1,33 @@
 # Agents 配置说明
 
-Article Pool 包含创作链路 Agent 系统：
+Article Pool 包含 3 个独立 Agent，由 `skills/article-pipeline/SKILL.md` 编排调用。
 
-## 创作链路
+## 已实施的 Agent（硬约束）
 
-**定位**：内容生产流水线
+| Agent | 文件 | 硬约束 |
+|-------|------|--------|
+| 🔍 审阅 Agent | `article-pool/review-agent.md` | HTML 结构扫描（table/div 数量、样式位置），硬检查失败 = 驳回 |
+| 🎨 封面 Agent | `article-pool/cover-agent.md` | 强制 auto 模式，绝不用 geometric，验证 >100KB |
+| 🚀 发布 Agent | `article-pool/publish-agent.md` | Windows PYTHONIOENCODING=utf-8，必须见 ✅ + draft ID，自动入库 |
 
-| Agent | 职责 | 触发 |
-|-------|------|------|
-| 🎯 分流官 | 路由决策，分配任务 | 自动 |
-| ✍️ 创作官 | 写初稿 | 自动 |
-| 🔍 审阅官 | 质量检查 | 自动 |
-| ✨ 润色官 | 语言优化 | 自动 |
-| 📊 评估官 | 爆款评分 | 自动 |
-| 🚀 发布官 | 最终发布 | 自动 |
+## 编排流程
 
-**使用方式**：
+```
+Stage 0-3 (AI语义)  →  Stage 4 审阅Agent  →  Stage 4.8 封面Agent  →  Stage 5-6 (AI语义)  →  Stage 8 发布Agent
+                           ↑___(fail→修复→重审)___↓
+```
+
+## Agent 定义格式
+
+每个 Agent 是一个 Markdown 文件，包含：
+- YAML frontmatter：name, description, tools, color
+- Prompt 正文：职责、硬约束、执行命令、输出格式
+
+## 使用方式
+
+通过 `skills/article-pipeline/SKILL.md` 自动调用，无需手动配置。
+
 ```bash
 # 触发创作链路
 "创作一篇公众号文章"
-"写一篇小红书笔记"
 ```
-
-**协作流程**：
-```
-分流官 → 创作官 → 审阅官 → 润色官 → 评估官 → 发布官
-              ↑__________|  (如有问题返回修改)
-```
-
----
-
-## 配置说明
-
-创作链路 Agent 通过 `article-pipeline` skill 自动调用，无需在 `openclaw.json` 中配置。
-
-详见：`skills/article-pipeline/SKILL.md`

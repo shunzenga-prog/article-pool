@@ -2,6 +2,20 @@
 
 微信公众号文章的选题、创作、排版、封面生成、发布一站式项目。
 
+## ⚠️ 创作完成标志（不可跳过）
+
+**文章写完 ≠ 创作完成。Stage 8 发布 Agent 执行完毕，才算完成。**
+
+创作流程由 `skills/article-pipeline/SKILL.md` 编排。以下 3 个 Stage 已 Agent 化，不接受跳过：
+
+| Stage | Agent | 硬约束 |
+|-------|-------|--------|
+| Stage 4 审阅 | `review-agent` | HTML 结构扫描（table/div/style），hard check 失败 = 驳回 |
+| Stage 4.8 封面 | `cover-agent` | 强制 auto 模式，绝不用 geometric，验证 >100KB |
+| Stage 8 发布 | `publish-agent` | Windows 自动 PYTHONIOENCODING，必须见 ✅ + draft ID |
+
+**Agent 定义：** `agents/article-pool/*.md`
+
 ## 项目结构
 
 ```
@@ -49,10 +63,18 @@ article-pool/
 - 创作前必须搜索验证信息发布时间
 - <24h：实时热点 | 24-48h：近期热点 | >48h：转分析角度
 
-### 6. 风格约束
-- 标题 ≤30 字，正文不用 emoji（结尾可 1 个 🐱）
-- 表格 ≤2 个/篇，段落 ≤5 行
-- 金句 ≥1 句/篇，行动号召必须
+### 6. 配色与样式（AI 自主生成，不锁死具体色值）
+
+**每篇文章的配色由 AI 根据选题气质自主生成。** 以下为设计原则，不是色值锁：
+
+- **一个主色系贯穿全文**：全文底色、卡片、分隔线、标签都从同一色系衍生，仅靠深浅变化产生层次。严禁暖色调区和冷色调区混搭。
+- **点缀色最多 1 个**：仅用于关键数字和章节标题下划线，用量 <5%。
+- **章节标题必须有下划线**（`border-bottom`）：不能只靠加粗+放大，扫读时一眼定位。
+- **章节之间必须可见分隔**：`···` 用于章节内小过渡，大章节间用更明显的分隔（装饰线或底色交替）。
+- **卡片是调料不是主菜**：大部分文字放页面上，卡片只在摘要/关键数据/结尾金句出现。
+- **结构：内容直接在 `<p>` 中自然流动**，不要用 `<table>` 包裹全文——手机上会产生宽度问题和黑缝。`<table>` 仅用于数据卡片、摘要框等局部区块。
+
+模板（`templates/`）作为兜底方案保留，仅在需快速产出时使用。
 
 ### 7. 教程文章必须带实操截图
 - 每 1500 字至少 1 张真实截图（终端执行、浏览器界面、原文内容）
@@ -67,7 +89,8 @@ article-pool/
 
 - ❌ 禁止 `<div>` / `<section>` → 会被转为 `<p>` 并剥离样式
 - ❌ 禁止在 `<p>` 上放文字样式 → 只能放 `text-align`
-- ✅ 容器用 `<table><tr><td>`
+- ❌ 禁止用 `<table>` 包裹全文 → 手机上宽度问题和黑缝。页面内容直接放在 `<p>` 中
+- ✅ 卡片/数据区用 `<table><tr><td>` 做局部容器
 - ✅ 文字样式用 `<span style="...">`
 
 发布前必须通过「发布前检查」（内容+视觉+微信兼容三维度，见 `skills/wechat-writer/SKILL.md`）。
@@ -107,9 +130,12 @@ article-pool/
 
 ## 封面图生成
 
+由 `cover-agent`（`agents/article-pool/cover-agent.md`）自动执行。强制 auto 模式，绝不 geometric。
+
 ```bash
-# 编辑 scripts/gen_cover.py 修改标题等信息，然后：
-python3 scripts/gen_cover.py
+# 手动备用（Agent 会自动调）
+python scripts/gen_cover.py --title "标题" --subtitle "副标题" --output cover.png
+# 不要加 --mode geometric
 ```
 
 详情见 `skills/cover-gen/SKILL.md`。
@@ -207,11 +233,36 @@ echo "SCRAPE_OUTPUT_DIR=E:/data/news" >> config/.env
 
 ## 文章发布
 
+由 `publish-agent`（`agents/article-pool/publish-agent.md`）自动执行。强制 PYTHONIOENCODING=utf-8，必须见 ✅ + draft ID。
+
 ```bash
-python3 scripts/publish_html.py <文章.html> --cover <封面图.png> --author "小咪"
+# 手动备用（Agent 会自动调）
+PYTHONIOENCODING=utf-8 python scripts/publish_html.py <文章.html> --cover <封面图.png> --author "小咪"
 ```
 
-或手动：浏览器打开 HTML → 全选复制 → 粘贴到公众号后台编辑器。
+## 📋 创作完成检查清单（每篇必过）
+
+文章创作结束后，必须逐项确认以下 **7 项**全部完成：
+
+### 流程完成度（5 项）
+
+| # | 检查项 | 验证方法 |
+|---|--------|----------|
+| 1 | HTML 文章已生成 | 文件存在于 `文章/{年份}年{月份}月/` |
+| 2 | 封面图已生成 | 同名 `.png` 与 HTML 同目录 |
+| 3 | 选题已入库 | `reports/used_tokens.json` 有新条目 |
+| 4 | **已推送到草稿箱** | 看到 `✅ 草稿创建成功！` + 草稿 ID |
+| 5 | 已告知用户草稿位置 | 输出草稿 ID + "登录后台 → 草稿箱"指引 |
+
+### 视觉质量（3 项）⚠️ 新增
+
+| # | 检查项 | 验证方法 |
+|---|--------|----------|
+| 6 | **全文一个色系** | 能用一个颜色形容词描述全文，不会出现冷暖混搭 |
+| 7 | **章节标题有下划线** | 扫一眼能看到每个大章节标题下的装饰线 |
+| 8 | **章节分隔明显** | 大章节之间不会只靠 `···` 过渡，有更明显的分隔方式 |
+
+**8 项全部 ✅ 才算创作完成。第 4 项（推送）和第 6 项（色系统一）最容易漏，特别注意。**
 
 ## 文件命名
 
