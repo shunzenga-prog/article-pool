@@ -93,6 +93,9 @@ def validate_plan(plan: dict, registry: dict) -> list[str]:
             # Capability
             if cap not in caps:
                 errors.append(f"{p}: Capability '{cap}' not in registry")
+            elif caps[cap].get("deprecated"):
+                replaced = caps[cap].get("replaced_by", "?")
+                errors.append(f"{p}: Capability '{cap}' is DEPRECATED, use '{replaced}' instead")
 
             # Register dependencies (resolved after full collection)
             deps = set(task.get("depends_on", []))
@@ -676,12 +679,18 @@ def run_pipeline(plan: dict, registry: dict, dry_run: bool = False,
 def main():
     import argparse
     p = argparse.ArgumentParser(description="Pipeline Orchestration Engine")
-    p.add_argument("plan", help="PipelinePlan JSON file")
+    p.add_argument("plan", nargs="?", help="PipelinePlan JSON file (optional if --type is used)")
+    p.add_argument("--type", dest="article_type",
+                   choices=["深度解析", "技术教程", "早报_晚报", "项目推荐", "小红书"],
+                   help="Article type — auto-load template from config/pipeline_templates/")
     p.add_argument("--dry-run", action="store_true", help="Preview only, no execution")
     p.add_argument("--stage", help="Execute only this stage")
     p.add_argument("--from", dest="from_task", help="Resume from this task")
     p.add_argument("--resume", help="Load completed handoffs from directory")
     args = p.parse_args()
+
+    if not args.plan and not args.article_type:
+        p.error("Either plan file or --type is required")
 
     # Load resume handoffs if provided
     resume_handoffs = {}
@@ -699,7 +708,23 @@ def main():
             print(f"Resume: loaded {len(resume_handoffs)} completed handoff(s)")
 
     registry = load_registry()
-    plan = load_plan(args.plan)
+
+    # Auto-load template if --type is used (code-level routing)
+    if args.article_type:
+        template_path = PROJECT_ROOT / "config" / "pipeline_templates" / f"{args.article_type}.json"
+        if not template_path.exists():
+            print(f"ERROR: Template not found: {template_path}")
+            sys.exit(1)
+        template = json.loads(template_path.read_text(encoding="utf-8"))
+        plan = {
+            "pipeline": f"{args.article_type}_auto",
+            "description": template.get("description", ""),
+            "context": {"article_type": args.article_type, "platform": "wechat"},
+            "stages": template["stages"],
+        }
+        print(f"Template: {args.article_type}")
+    else:
+        plan = load_plan(args.plan)
 
     # Validate
     errors = validate_plan(plan, registry)
