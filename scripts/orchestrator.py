@@ -420,19 +420,24 @@ def execute_hooks(hooks: dict, hook_type: str, context: dict) -> dict | None:
 #  Main Orchestrator
 # ═══════════════════════════════════════════════════════════
 
-def _run_stage(stage: dict, registry: dict, context: dict, log: list,
-               dry_run: bool, resume_handoffs: dict, stage_results: dict) -> str:
-    """Execute a single linear stage. Returns status: ok/failed/blocked/skipped."""
+def _check_stage_deps(stage: dict, stage_results: dict, log: list) -> bool:
+    """Check stage-level depends_on. Returns True if should skip."""
     stage_id = stage["id"]
-
-    # Check stage-level depends_on
-    should_skip = False
     for dep_id in stage.get("depends_on", []):
         if dep_id in stage_results and stage_results[dep_id] != "ok":
             print(f"  [SKIP] Stage depends on {dep_id} (status: {stage_results[dep_id]})")
             log.append({"stage": stage_id, "status": "skipped", "reason": f"depends_on {dep_id} not ok"})
             stage_results[stage_id] = "skipped"
-            return "skipped"
+            return True
+    return False
+
+
+def _run_stage(stage: dict, registry: dict, context: dict, log: list,
+               dry_run: bool, resume_handoffs: dict, stage_results: dict) -> str:
+    """Execute a single linear stage. Returns status: ok/failed/blocked/skipped."""
+    stage_id = stage["id"]
+    if _check_stage_deps(stage, stage_results, log):
+        return "skipped"
 
     # Hook: on_stage_entry
     entry_result = execute_hooks(stage.get("hooks", {}), "on_stage_entry", context)
@@ -471,6 +476,8 @@ def _run_loop(stage: dict, registry: dict, context: dict, log: list,
               dry_run: bool, resume_handoffs: dict, stage_results: dict) -> str:
     """Execute a loop stage: repeat inner stages until condition met or max reached."""
     stage_id = stage["id"]
+    if _check_stage_deps(stage, stage_results, log):
+        return "skipped"
     repeat_cfg = stage.get("repeat", {})
     condition = repeat_cfg.get("until", "true")
     max_iter = repeat_cfg.get("max", 3)
@@ -517,6 +524,8 @@ def _run_foreach(stage: dict, registry: dict, context: dict, log: list,
                   dry_run: bool, resume_handoffs: dict, stage_results: dict) -> str:
     """Execute a foreach stage: repeat inner stages for each item in array."""
     stage_id = stage["id"]
+    if _check_stage_deps(stage, stage_results, log):
+        return "skipped"
     foreach_ref = stage.get("foreach", "")
     inner_stages = stage.get("stages", [])
 
@@ -657,7 +666,6 @@ def run_pipeline(plan: dict, registry: dict, dry_run: bool = False,
         print(f"{'='*50}")
 
         _dispatch_stage(stage, registry, context, log, dry_run, resume_handoffs, stage_results)
-    return log
     return log
 
 
