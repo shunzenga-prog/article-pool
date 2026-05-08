@@ -140,9 +140,17 @@ on_stage_complete:
 | `script.publish_html` | 发布 CLI |
 | `script.topic_tracker` | 选题入库 CLI |
 | `script.terminal_screenshot` | 终端截图 |
+| `script.tutorial_screenshot` | 教程截图自动化（跑代码→截图→验证） |
 | `script.screenshot_util` | 截图工具 |
 | `capture` | 统一截图工具包 |
 | `hotspot_tracker` | 热点追踪 |
+| `flowchart_gen` | 流程图生成（架构图/流程图，教程必用） |
+
+### 教程专属推荐
+编写教程类 PipelinePlan 时，至少包含以下能力之一：
+- `flowchart_gen` — 生成架构流程图（教程开篇必备）
+- `script.tutorial_screenshot` — 自动跑代码 + 截图 + 验证
+- `script.terminal_screenshot` — 手动终端截图（备用）
 
 ## 编排规则
 
