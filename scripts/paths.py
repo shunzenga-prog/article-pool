@@ -97,6 +97,7 @@ SCRAPE_OUTPUT_DIR = _resolve(
 USED_IMAGES_FILE = REPORTS_DIR / "used_images.json"
 USED_TOPICS_FILE = REPORTS_DIR / "used_topics.json"
 PUBLISH_LOG_FILE = REPORTS_DIR / "publish_log.json"
+CSDN_PUBLISH_LOG_FILE = REPORTS_DIR / "csdn_publish_log.json"
 ILLUSTRATION_RULES_FILE = CONFIG_DIR / "illustration_rules.json"
 
 # ── Ensure directories exist ──

@@ -87,3 +87,20 @@ PUBLISH_RESULT:
 - 错误码和含义
 - 建议的修复操作
 - 是否应该重试
+
+## 多平台发布（可选）
+
+### 发布到 CSDN
+
+如果用户要求同时发布到 CSDN（Playwright 浏览器自动化，零配置）：
+
+```bash
+cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && PYTHONIOENCODING=utf-8 python scripts/publish_csdn.py "$ARTICLE" --tags "<标签>" --author "小咪"
+```
+
+CSDN 文章请直接用 Markdown 创作（.md 文件）。跨平台迁移用 AI 重写，不要用机械转换工具。
+
+验证 CSDN 发布日志：
+```bash
+python -c "import json; data=json.load(open('reports/csdn_publish_log.json','r',encoding='utf-8')); print(data[-1])"
+```

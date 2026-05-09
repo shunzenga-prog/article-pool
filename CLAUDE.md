@@ -1,6 +1,8 @@
-# Article Pool — 公众号文章创作工作流
+# Article Pool — 多平台文章创作工作流
 
-微信公众号文章的选题、创作、排版、封面生成、发布一站式项目。
+微信公众号和 CSDN 文章的选题、创作、排版、封面生成、发布一站式项目。
+
+**所有创作规范、格式约束、发布流程均来自本项目内的文件。** 本项目是自包含的完整工具集，clone 即用。
 
 ## ⚠️ 创作完成标志（不可跳过）
 
@@ -8,20 +10,28 @@
 
 创作流程由 Claude 直接按 `skills/` 中的 SKILL.md 执行。技能负责"做什么"，脚本负责"执行"，审阅脚本负责"质量门禁"。
 
+### 创作前必须先选平台
+
+```
+公众号文章 → 写 .html（表格卡片、span 着色、border-bottom 标题）→ publish_html.py
+CSDN 文章   → 写 .md  （# 标题、**粗体**、> 引用、|表格|、- 列表）→ publish_csdn.py
+```
+
+**两套格式体系完全不兼容。禁止先写一个平台再机械转换成另一个。**
+
 ### 质量门禁
 
-| 阶段 | 工具 | 硬约束 |
-|------|------|--------|
-| 审阅 | `python scripts/review_html.py <文章>.html --tutorial` | H1/H2/H3 硬检查全部 PASS，退出码 0 |
-| 封面 | `python scripts/gen_cover.py` | 强制 auto 模式（不传 `--mode geometric`），验证 >100KB |
-| 发布 | `python scripts/publish_html.py` | Windows `PYTHONIOENCODING=utf-8`，必须见 ✅ + draft ID |
+| 阶段 | 公众号 | CSDN |
+|------|--------|------|
+| 审阅 | `python scripts/review_html.py <文章>.html` H1/H2/H3 PASS | 人工检查 Markdown 结构（标题层级、引用、表格） |
+| 封面 | `python scripts/gen_cover.py` auto 模式 >100KB | CSDN 用文章首图自动提取 |
+| 发布 | `python scripts/publish_html.py` 见 ✅ + draft ID | `python scripts/publish_csdn.py` 见 ✅ + articleId |
 
 ### 创作流程
 
 ```
-用户选题 → Claude 读取对应 SKILL.md → 
-  按 Stage 逐步执行（写作 → 截图 → 审阅 → 封面 → 发布）→
-  每个阶段结束运行对应质量门禁 → 
+用户选题 → 选平台（公众号/CSDN）→ Claude 读取对应 SKILL.md → 
+  按 Stage 逐步执行 → 每个阶段结束运行对应质量门禁 → 
   全部通过 → 完成
 ```
 
@@ -35,15 +45,21 @@ article-pool/
 │   ├── hotspot-tracker/     # 热点追踪与早报制作
 │   ├── article-pipeline/    # 多 Agent 协作创作链
 │   └── ...
-├── templates/               # HTML 模板（兜底用，首选根据风格卡即时生成）
+├── agents/                  # Agent 定义
+│   └── article-pool/
+│       ├── publish-agent.md         # 公众号发布
+│       └── csdn-publish-agent.md    # CSDN 发布
+├── templates/               # HTML 模板（兜底用）
 ├── scripts/                 # 工具脚本
+│   ├── publish_html.py      # HTML → 公众号草稿箱
+│   ├── publish_csdn.py      # Markdown → CSDN 编辑器（Playwright）
 │   ├── gen_cover.py         # 封面图生成
 │   ├── review_html.py       # HTML 结构审阅（质量门禁）
-│   ├── publish_html.py      # HTML 直传公众号草稿箱
 │   └── capture/             # 统一截图工具包
-└── archive/                 # 已归档（不再使用）
-    └── orchestrator.py      # 旧编排引擎
-└── config/.env              # 公众号 API 密钥
+├── config/
+│   ├── .env                 # API 密钥 + CSDN profile
+│   └── csdn_profile/        # CSDN 浏览器登录状态（gitignore）
+└── archive/                 # 已归档
 ```
 
 ## ⚠️ 创作铁律
@@ -112,6 +128,12 @@ article-pool/
 - 创作前先定「风格卡」（基调+配色+强调+节奏），而不是先选模板
 - HTML 根据风格卡即时生成，模板仅在风格卡匹配或快速产出时使用
 - 视觉去 AI 味与文字去 AI 味同等重要——整段高亮、过度用色也是 AI 味
+
+### 9. 标题钩子 ⚠️
+- **20-30 字硬约束**（不足 20 = 驳回重写）
+- **≥2 个钩子元素**（数字/反常识/紧迫感/承诺价值/制造好奇/身份认同）
+- 禁止弱词：浅谈/浅析/关于/漫谈/初探/之我见
+- 详细公式见 `skills/wechat-writer/SKILL.md` 标题钩子公式（8 个）
 
 ### HTML 编写规范
 
@@ -245,44 +267,121 @@ python scripts/review_html.py article.html --tutorial --json
 由 Claude 直接执行发布命令：
 
 ```bash
-# Windows
+# 微信公众号（默认）
 PYTHONIOENCODING=utf-8 python scripts/publish_html.py <文章.html> --cover <封面图.png> --author "小咪"
+
+# CSDN（接受 .md 文件，不是 .html）
+PYTHONIOENCODING=utf-8 python scripts/publish_csdn.py <文章.md> --tags "标签1,标签2" --author "小咪"
 ```
 
-**必须看到 `✅ 草稿创建成功！` + 草稿 ID。** 发布后选题自动入库。
+**必须看到 `✅ 草稿创建成功！` / `✅ 内容已填入 CSDN 编辑器`** 才算完成。
+
+### CSDN 发布（可选）
+
+**⚠️ CSDN 和公众号是两套完全不兼容的格式体系。** 公众号用 HTML + 表格卡片 + span 着色，CSDN 用纯 Markdown 结构元素。**两者不能互相机械转换。**
+
+#### 创作铁律：先选平台，原生创作
+
+```
+公众号文章 → 写 .html（表格卡片、span 着色、border-bottom 标题）→ publish_html.py
+CSDN 文章   → 写 .md  （# 标题、**粗体**、> 引用、|表格|、- 列表）→ publish_csdn.py
+```
+
+**禁止做法：** 先写完公众号 HTML，再机械转成 MD 发 CSDN。转换必然有损。
+
+#### CSDN Markdown 格式规范
+
+CSDN 支持的标准 Markdown 结构元素：
+
+| 用途 | 语法 | 示例 |
+|------|------|------|
+| 标题层级 | `#` `##` `###` | `## 1. 章节标题` |
+| 强调 | `**粗体**` | `**关键数据**` |
+| 引用卡片 | `>` | `> 一句话金句` |
+| 数据表格 | `\|列1\|列2\|` | 标准 GFM 表格 |
+| 列表 | `-` `1.` | 无序/有序列表 |
+| 代码 | ` ``` ` 围栏 | 带语言标识 |
+| 分隔线 | `---` | 章节间过渡 |
+| 图片 | `![alt](url)` | 必须用外部 URL |
+
+**CSDN 不支持的（不要写）：** 内联 HTML、`<span style>`、`<table>` 卡片、彩色文字、border-bottom 装饰、emoji 装饰符。
+
+#### 跨平台迁移：AI 重写流程（唯一推荐方式）
+
+**禁止机械转换。** 机械转换对复杂排版文章必然有损。
+
+当用户要求将公众号文章发到 CSDN 时，执行以下 AI 重写流程：
+
+```
+Step 1: 读取原文 HTML，理解语义结构
+        - 识别：标题层级、章节编号、引用卡片、数据表格、要点列表
+        - 区分：哪些是内容结构，哪些是微信专属样式
+
+Step 2: 按 CSDN Markdown 格式规范重写
+        - # → 文章标题（仅一个）
+        - ## → 章节标题
+        - > → 引用卡片/金句
+        - |表格| → 数据表格
+        - - → 列表项
+        - ** → 强调
+        - --- → 章节分隔
+
+Step 3: 保存为 .md 文件（与原文同目录）
+
+Step 4: 发布到 CSDN
+        python scripts/publish_csdn.py <文章.md> --tags "标签"
+```
+
+#### 发布命令
+
+```bash
+# CSDN 原生 Markdown
+python scripts/publish_csdn.py <文章.md> --tags "标签1,标签2"
+
+# 如需自动发布（跳过人工确认）
+python scripts/publish_csdn.py <文章.md> --tags "标签1,标签2" --publish
+```
+
+零配置。首次运行浏览器扫码登录，状态保存到 `config/csdn_profile/`。
 
 ## 📋 创作完成检查清单（每篇必过）
 
-文章创作结束后，必须逐项确认以下 **7 项**全部完成：
-
-### 流程完成度（5 项）
+### 公众号文章
 
 | # | 检查项 | 验证方法 |
 |---|--------|----------|
 | 1 | HTML 文章已生成 | 文件存在于 `文章/{年份}年{月份}月/` |
 | 2 | 封面图已生成 | 同名 `.png` 与 HTML 同目录 |
 | 3 | 选题已入库 | `reports/used_topics.json` 有新条目 |
-| 4 | **已推送到草稿箱** | 看到 `✅ 草稿创建成功！` + 草稿 ID |
-| 5 | 已告知用户草稿位置 | 输出草稿 ID + "登录后台 → 草稿箱"指引 |
+| 4 | **已推送到草稿箱** | `✅ 草稿创建成功！` + 草稿 ID |
+| 5 | 全文一个色系 | 不会出现冷暖混搭 |
+| 6 | 章节标题有下划线 | border-bottom 装饰线 |
+| 7 | 章节分隔明显 | 大章节间有可见分隔 |
 
-### 视觉质量（3 项）⚠️ 新增
+### CSDN 文章
 
 | # | 检查项 | 验证方法 |
 |---|--------|----------|
-| 6 | **全文一个色系** | 能用一个颜色形容词描述全文，不会出现冷暖混搭 |
-| 7 | **章节标题有下划线** | 扫一眼能看到每个大章节标题下的装饰线 |
-| 8 | **章节分隔明显** | 大章节之间不会只靠 `···` 过渡，有更明显的分隔方式 |
+| 1 | .md 文件已生成 | 含 `#` 标题、`##` 章节、`>` 引用、代码围栏 |
+| 2 | 标题 20-30 字 | ≥2 个钩子元素 |
+| 3 | 结构元素正确 | 无内联 HTML、无 span style、无 table 卡片 |
+| 4 | **已推送到 CSDN** | `✅ 草稿已保存` + articleId |
+| 5 | 图片用外部 URL | `![](https://...)` |
 
-**8 项全部 ✅ 才算创作完成。第 4 项（推送）和第 6 项（色系统一）最容易漏，特别注意。**
+**7 项全部 ✅ 才算创作完成。**
 
 ## 文件命名
 
-文章：`E:\WorkSpace\创作\微信公众号\文章\{年份}年{月份}月\{日期}-{标题}.html`
-封面：同目录，`.png` 后缀，与文章同名。
+```
+公众号：文章/{年份}年{月份}月/{日期}-{标题}.html（封面同名 .png）
+CSDN：  文章/{年份}年{月份}月/{日期}-{标题}.md
+```
 
 ## 参考
 
-- 完整写作规范：`skills/wechat-writer/SKILL.md`
-- 模板清单与配色：`templates/README.md`
+- 公众号写作规范：`skills/wechat-writer/SKILL.md`
+- CSDN 格式规范：本文件 § CSDN Markdown 格式规范
+- CSDN 发布 Agent：`agents/article-pool/csdn-publish-agent.md`
 - 封面生成：`skills/cover-gen/SKILL.md`
-- 发布脚本：`scripts/publish_html.py`
+- 公众号发布脚本：`scripts/publish_html.py`
+- CSDN 发布脚本：`scripts/publish_csdn.py`
