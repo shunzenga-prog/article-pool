@@ -4,17 +4,26 @@
 
 ## ⚠️ 创作完成标志（不可跳过）
 
-**文章写完 ≠ 创作完成。Stage 8 发布 Agent 执行完毕，才算完成。**
+**文章写完 ≠ 创作完成。发布成功才算完成。**
 
-创作流程由 `skills/article-pipeline/SKILL.md` 编排。以下 3 个 Stage 已 Agent 化，不接受跳过：
+创作流程由 Claude 直接按 `skills/` 中的 SKILL.md 执行。技能负责"做什么"，脚本负责"执行"，审阅脚本负责"质量门禁"。
 
-| Stage | Agent | 硬约束 |
-|-------|-------|--------|
-| Stage 4 审阅 | `review-agent` | HTML 结构扫描（table/div/style），hard check 失败 = 驳回 |
-| Stage 4.8 封面 | `cover-agent` | 强制 auto 模式，绝不用 geometric，验证 >100KB |
-| Stage 8 发布 | `publish-agent` | Windows 自动 PYTHONIOENCODING，必须见 ✅ + draft ID |
+### 质量门禁
 
-**Agent 定义：** `agents/article-pool/*.md`
+| 阶段 | 工具 | 硬约束 |
+|------|------|--------|
+| 审阅 | `python scripts/review_html.py <文章>.html --tutorial` | H1/H2/H3 硬检查全部 PASS，退出码 0 |
+| 封面 | `python scripts/gen_cover.py` | 强制 auto 模式（不传 `--mode geometric`），验证 >100KB |
+| 发布 | `python scripts/publish_html.py` | Windows `PYTHONIOENCODING=utf-8`，必须见 ✅ + draft ID |
+
+### 创作流程
+
+```
+用户选题 → Claude 读取对应 SKILL.md → 
+  按 Stage 逐步执行（写作 → 截图 → 审阅 → 封面 → 发布）→
+  每个阶段结束运行对应质量门禁 → 
+  全部通过 → 完成
+```
 
 ## 项目结构
 
@@ -29,7 +38,11 @@ article-pool/
 ├── templates/               # HTML 模板（兜底用，首选根据风格卡即时生成）
 ├── scripts/                 # 工具脚本
 │   ├── gen_cover.py         # 封面图生成
-│   └── publish_html.py      # HTML 直传公众号草稿箱
+│   ├── review_html.py       # HTML 结构审阅（质量门禁）
+│   ├── publish_html.py      # HTML 直传公众号草稿箱
+│   └── capture/             # 统一截图工具包
+└── archive/                 # 已归档（不再使用）
+    └── orchestrator.py      # 旧编排引擎
 └── config/.env              # 公众号 API 密钥
 ```
 
@@ -231,14 +244,36 @@ echo "SCRAPE_OUTPUT_DIR=E:/data/news" >> config/.env
 
 优先级：`独立 *_DIR` > `WORK_DIR` > 硬编码默认值
 
-## 文章发布
+## 文章审阅（质量门禁）
 
-由 `publish-agent`（`agents/article-pool/publish-agent.md`）自动执行。强制 PYTHONIOENCODING=utf-8，必须见 ✅ + draft ID。
+创作完成后、推送前，必须运行 HTML 结构审阅：
 
 ```bash
-# 手动备用（Agent 会自动调）
+# 通用检查
+python scripts/review_html.py article.html --json
+
+# 教程模式（额外检查截图覆盖率）
+python scripts/review_html.py article.html --tutorial --json
+
+# 退出码 0 = 通过，非 0 = 被驳回
+```
+
+检查项：
+- H1: 外层 `<table>` 包裹全文 → 驳回
+- H2: `<div>` / `<section>` 禁用标签 → 驳回
+- H3: `<p>` 标签上的 font-size/color → 驳回
+- S1-S4: 章节标题下划线、颜色种类、金句、行动号召（软警告）
+
+## 文章发布
+
+由 Claude 直接执行发布命令：
+
+```bash
+# Windows
 PYTHONIOENCODING=utf-8 python scripts/publish_html.py <文章.html> --cover <封面图.png> --author "小咪"
 ```
+
+**必须看到 `✅ 草稿创建成功！` + 草稿 ID。** 发布后选题自动入库。
 
 ## 📋 创作完成检查清单（每篇必过）
 

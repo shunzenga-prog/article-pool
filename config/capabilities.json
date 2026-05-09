@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-05-08T21:13:37.152636",
+  "generated_at": "2026-05-08T22:56:35.257760",
   "counts": {
     "agents": 4,
     "skills": 13,
-    "scripts": 7,
-    "total": 25
+    "scripts": 8,
+    "total": 26
   },
   "capabilities": {
     "cover_agent": {
@@ -78,9 +78,7 @@
       "type": "skill",
       "file": "skills/cover-gen/SKILL.md",
       "name": "cover-gen",
-      "description": "[已废弃] 封面生成 Skill 版，请使用 cover_agent",
-      "deprecated": true,
-      "replaced_by": "cover_agent"
+      "description": "封面生成 Skill — 设计规范与配色参考"
     },
     "flowchart_gen": {
       "type": "skill",
@@ -98,9 +96,7 @@
       "type": "skill",
       "file": "skills/illustration-gen/SKILL.md",
       "name": "illustration-gen",
-      "description": "[已废弃] 插图生成 Skill 版，请使用 illustration_agent",
-      "deprecated": true,
-      "replaced_by": "illustration_agent"
+      "description": "插图生成 Skill — 5级级联配图策略与设计规范"
     },
     "news_aggregator": {
       "type": "skill",
@@ -192,8 +188,7 @@
         },
         "width": {
           "help": "Canvas width in px (default: 720)",
-          "default": 720,
-          "type": "<ast.Name object at 0x00000211CF7E3090>"
+          "default": 720
         },
         "markup-only": {
           "help": "Print Mermaid markup only (debug)"
@@ -208,163 +203,35 @@
       "type": "script",
       "file": "scripts/gen_cover.py",
       "name": "gen_cover",
-      "description": "[已废弃] 封面 CLI 直接调用，请使用 cover_agent",
+      "description": "封面图生成 — 1200x675 PNG，auto 模式自动搜索背景图",
       "params": {
-        "title": {
-          "help": "Main title."
-        },
-        "subtitle": {
-          "default": ""
-        },
-        "tag": {
-          "default": "EVENING DIGEST"
-        },
-        "date": {
-          "default": "<ast.Name object at 0x00000211CFE3D510>"
-        },
-        "reading-time": {
-          "default": "深度解读"
-        },
-        "footer": {
-          "default": "<ast.Call object at 0x00000211CFE3DD10>"
-        },
-        "output": {
-          "help": "Output PNG file path."
-        },
-        "mode": {
-          "help": "Background mode: auto (OG->Pexels->AI->Unsplash->Brave->geometric) or geometric (default: from prefs)",
-          "default": "<ast.Call object at 0x00000211CFE3ED50>",
-          "choices": [
-            "<",
-            "a",
-            "s",
-            "t",
-            ".",
-            "L",
-            "i",
-            "s",
-            "t",
-            " ",
-            "o",
-            "b",
-            "j",
-            "e",
-            "c",
-            "t",
-            " ",
-            "a",
-            "t",
-            " ",
-            "0",
-            "x",
-            "0",
-            "0",
-            "0",
-            "0",
-            "0",
-            "2",
-            "1",
-            "1",
-            "C",
-            "F",
-            "E",
-            "3",
-            "E",
-            "B",
-            "1",
-            "0",
-            ">"
-          ]
-        },
-        "theme": {
-          "help": "Force geometric theme.",
-          "choices": [
-            "<",
-            "a",
-            "s",
-            "t",
-            ".",
-            "C",
-            "a",
-            "l",
-            "l",
-            " ",
-            "o",
-            "b",
-            "j",
-            "e",
-            "c",
-            "t",
-            " ",
-            "a",
-            "t",
-            " ",
-            "0",
-            "x",
-            "0",
-            "0",
-            "0",
-            "0",
-            "0",
-            "2",
-            "1",
-            "1",
-            "C",
-            "F",
-            "E",
-            "3",
-            "F",
-            "7",
-            "D",
-            "0",
-            ">"
-          ]
-        },
-        "article": {
-          "help": "Article HTML/text file for OG image extraction."
-        },
-        "keywords": {
-          "help": "Comma-separated keywords for image search."
-        },
-        "list-themes": {
-          "help": "List themes and exit."
-        }
+        "title": {"help": "Main title."},
+        "subtitle": {"default": ""},
+        "tag": {"default": "AI 实战教程"},
+        "date": {"help": "日期显示文本"},
+        "reading-time": {"default": "深度解读"},
+        "footer": {"help": "尾部文字"},
+        "output": {"help": "Output PNG file path."},
+        "mode": {"help": "Background mode: auto (cascade) or geometric"},
+        "article": {"help": "Article HTML/text file for OG image extraction."},
+        "keywords": {"help": "Comma-separated keywords for image search."},
+        "list-themes": {"help": "List themes and exit."}
       },
-      "constraints": [
-        "has_mode_param"
-      ],
-      "deprecated": true,
-      "replaced_by": "cover_agent"
+      "constraints": ["force_auto_mode", "verify_size_gt_100kb"]
     },
     "script.illustration_gen": {
       "type": "script",
       "file": "scripts/illustration_gen.py",
       "name": "illustration_gen",
-      "description": "[已废弃] 插图 CLI 直接调用，请使用 illustration_agent",
+      "description": "插图自动生成 — 5级级联获取配图并嵌入HTML",
       "params": {
-        "type": {
-          "help": "文章类型 (项目推荐, 技术教程, 深度解析, 早报_晚报)",
-          "default": null
-        },
-        "output": {
-          "help": "Output HTML path (default: *_illustrated.html)",
-          "default": null
-        },
-        "dry-run": {
-          "help": "Analyze only, do not download/upload"
-        },
-        "no-upload": {
-          "help": "Skip WeChat CDN upload"
-        },
-        "max-images": {
-          "help": "Override max_images_total",
-          "default": null,
-          "type": "<ast.Name object at 0x00000211CFED7110>"
-        }
+        "type": {"help": "文章类型 (项目推荐, 技术教程, 深度解析, 早报_晚报)"},
+        "output": {"help": "Output HTML path (default: *_illustrated.html)"},
+        "dry-run": {"help": "Analyze only, do not download/upload"},
+        "no-upload": {"help": "Skip WeChat CDN upload"},
+        "max-images": {"help": "Override max_images_total"}
       },
-      "constraints": [],
-      "deprecated": true,
-      "replaced_by": "illustration_agent"
+      "constraints": []
     },
     "script.publish_html": {
       "type": "script",
@@ -377,8 +244,8 @@
           "default": null
         },
         "author": {
-          "help": "<ast.JoinedStr object at 0x00000211CF7EFA50>",
-          "default": "<ast.Name object at 0x00000211CF7EFB10>"
+          "help": "作者署名",
+          "default": "小咪"
         }
       },
       "constraints": [
@@ -386,6 +253,20 @@
         "must_see_success_output"
       ],
       "is_terminal_stage": true
+    },
+    "script.review_html": {
+      "type": "script",
+      "file": "scripts/review_html.py",
+      "name": "review_html",
+      "description": "HTML 结构审阅 — 硬检查(H1/H2/H3) + 软检查(S1-S4)，教程模式额外检查截图覆盖率",
+      "params": {
+        "html": {"help": "文章 HTML 文件路径"},
+        "json": {"help": "JSON 格式输出"},
+        "tutorial": {"help": "教程模式（额外检查截图覆盖率）"}
+      },
+      "constraints": ["is_quality_gate", "blocking"],
+      "is_quality_gate": true,
+      "blocking": true
     },
     "script.screenshot_util": {
       "type": "script",
@@ -397,12 +278,10 @@
           "default": "annotated.png"
         },
         "width": {
-          "default": 1280,
-          "type": "<ast.Name object at 0x00000211CF7EEC10>"
+          "default": 1280
         },
         "height": {
-          "default": 800,
-          "type": "<ast.Name object at 0x00000211CF7EF490>"
+          "default": 800
         },
         "selector": {
           "help": "CSS 选择器，只截取该元素"
@@ -434,48 +313,7 @@
         },
         "os": {
           "help": "终端样式: windows|macos|linux (默认: 自动检测)",
-          "default": null,
-          "choices": [
-            "<",
-            "a",
-            "s",
-            "t",
-            ".",
-            "L",
-            "i",
-            "s",
-            "t",
-            " ",
-            "o",
-            "b",
-            "j",
-            "e",
-            "c",
-            "t",
-            " ",
-            "a",
-            "t",
-            " ",
-            "0",
-            "x",
-            "0",
-            "0",
-            "0",
-            "0",
-            "0",
-            "2",
-            "1",
-            "1",
-            "C",
-            "F",
-            "7",
-            "E",
-            "0",
-            "9",
-            "D",
-            "0",
-            ">"
-          ]
+          "default": null
         },
         "title": {
           "help": "标题栏文本 (默认: 按 OS 自动)",
@@ -483,6 +321,37 @@
         }
       },
       "constraints": []
+    },
+    "script.tutorial_screenshot": {
+      "type": "script",
+      "file": "scripts/tutorial_screenshot.py",
+      "name": "tutorial_screenshot",
+      "description": "教程截图自动化——跑Python代码→截终端输出→验证结果",
+      "params": {
+        "script": {
+          "type": "str",
+          "required": true
+        },
+        "args": {
+          "type": "str",
+          "default": ""
+        },
+        "output": {
+          "type": "str",
+          "required": true
+        },
+        "verify": {
+          "type": "str",
+          "default": ""
+        },
+        "title": {
+          "type": "str",
+          "default": "PowerShell"
+        }
+      },
+      "constraints": [
+        "tutorial_pipeline_only"
+      ]
     },
     "script.topic_tracker": {
       "type": "script",

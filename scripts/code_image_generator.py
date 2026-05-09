@@ -106,13 +106,13 @@ def main():
     args = parser.parse_args()
 
     if args.command == "code":
-        with open(args.input, "r") as f:
+        with open(args.input, "r", encoding="utf-8") as f:
             code = f.read()
         path = code_to_image(code, args.output, lang=args.language, style=args.style)
         print(f"OK code: {path}")
 
     elif args.command == "exec":
-        with open(args.input, "r") as f:
+        with open(args.input, "r", encoding="utf-8") as f:
             code = f.read()
         r = exec_to_image(code, args.output)
         print(f"OK exec: {r['path']}")
@@ -120,7 +120,7 @@ def main():
             print(f"  exit={r['returncode']}")
 
     elif args.command == "chart":
-        with open(args.input, "r") as f:
+        with open(args.input, "r", encoding="utf-8") as f:
             code = f.read()
         r = chart_screenshot(code, args.output)
         print(f"OK chart: {r['path']}")
@@ -128,7 +128,7 @@ def main():
             print(f"  stderr: {r['error'][:200]}")
 
     elif args.command == "anim":
-        with open(args.input, "r") as f:
+        with open(args.input, "r", encoding="utf-8") as f:
             code = f.read()
         path = code_to_animation(code, args.output)
         print(f"OK anim: {path}")
