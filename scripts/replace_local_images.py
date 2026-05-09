@@ -101,7 +101,7 @@ def process_html(html_path):
             print(f"  ⚠️  Image not found: {img_path}")
         return match.group(0)
 
-    pattern = r'<img\s+src="([^"]+)"([^>]*)>'
+    pattern = r'<img\s[^>]*src="([^"]+)"([^>]*)>'
     updated = re.sub(pattern, replace_src, html)
 
     # Save
