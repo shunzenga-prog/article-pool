@@ -89,7 +89,12 @@ def review(html_path: str, tutorial: bool = False) -> dict:
     if tutorial:
         img_count = len(re.findall(r'<img\b', html))
         pre_count = len(re.findall(r'<pre\b', html))
-        word_count = len(re.sub(r'<[^>]+>', '', html).replace('\n', '').replace(' ', ''))
+        # Strip <style> and <script> blocks before counting chars (avoid CSS/JS pollution)
+        clean = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.DOTALL | re.IGNORECASE)
+        clean = re.sub(r'<script[^>]*>.*?</script>', '', clean, flags=re.DOTALL | re.IGNORECASE)
+        clean = re.sub(r'<[^>]+>', '', clean)
+        clean = clean.replace('\n', '').replace(' ', '')
+        word_count = len(clean)
         tutorial_checks = {
             "t_img_count": img_count,
             "t_code_block_count": pre_count,

@@ -167,6 +167,20 @@ def main():
     with open(args.article, "r", encoding="utf-8") as f:
         html_content = f.read()
 
+    # 自动检测本地图片并上传到微信 CDN
+    local_imgs = re.findall(r'<img\s[^>]*src="(?!https?://|data:)([^"]+)"', html_content)
+    if local_imgs:
+        print(f"\n🖼️  检测到 {len(local_imgs)} 张本地图片，正在上传到微信 CDN...")
+        from replace_local_images import process_html
+        process_html(args.article)
+        cdn_path = args.article.replace(".html", "_cdn.html")
+        if os.path.exists(cdn_path):
+            with open(cdn_path, "r", encoding="utf-8") as f:
+                html_content = f.read()
+            print(f"✅ 已替换为 CDN 版本: {cdn_path}")
+        else:
+            print(f"⚠️  CDN 替换未生成，使用原始文件继续")
+
     # 标题
     title = args.title or extract_title_from_html(html_content)
     if not title:

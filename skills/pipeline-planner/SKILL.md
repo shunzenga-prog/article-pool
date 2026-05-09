@@ -1,6 +1,6 @@
 ---
 name: pipeline-planner
-description: AI 任务规划器 — 读取能力清单，按用户需求生成 PipelinePlan JSON，由编排引擎执行
+description: AI 任务规划器 — 读取能力清单，按用户需求生成 PipelinePlan JSON，供创作流程参考
 ---
 
 # Pipeline Planner

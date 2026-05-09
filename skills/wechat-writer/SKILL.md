@@ -512,7 +512,7 @@ setup/config 类酌情适用，overview/output/summary 类不适用。
 ```bash
 # 编辑 scripts/gen_cover.py 中的标题、副标题、日期等
 # 然后运行：
-python3 scripts/gen_cover.py
+python scripts/gen_cover.py
 ```
 
 封面图规格：1200×675px PNG，16:9 比例，深蓝黑底色 + 双色渐变 + 几何装饰。
@@ -521,7 +521,7 @@ python3 scripts/gen_cover.py
 
 ```bash
 # HTML 文章直接发布到草稿箱
-python3 scripts/publish_html.py <文章.html> --cover <封面图.png> --author "小咪"
+python scripts/publish_html.py <文章.html> --cover <封面图.png> --author "小咪"
 ```
 
 ### ⚠️ 模板注意

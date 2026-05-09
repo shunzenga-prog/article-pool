@@ -368,23 +368,17 @@ python scripts/code_image_generator.py chart chart_code.py -o stepN_chart.png
 ### Stage 8: 封面生成（教程专用）
 
 ```bash
-# 教程封面：使用 gen_cover.py
+# 教程封面：使用 gen_cover.py（强制 auto 模式，绝不传 --mode geometric）
 python scripts/gen_cover.py \
     --title "保姆级教程：5 分钟上手 XX" \
     --subtitle "零基础也能学会" \
-    --mode auto \
-    --output cover.png
-
-# 几何风格兜底（如果没配 Pexels API Key）
-python scripts/gen_cover.py \
-    --title "保姆级教程：5 分钟上手 XX" \
-    --mode geometric \
     --output cover.png
 ```
 
+> ⚠️ **永不传 `--mode geometric`**。auto 模式内置了 geometric 兜底（5级级联的最后一级），无需手动指定。手动传 geometric 会跳过真实背景图搜索，产出的纯色封面只有 ~50KB，不符合 >100KB 的质量要求。
+
 **教程封面参数建议：**
-- `--mode auto`：自动搜索背景图（需 Pexels/Unsplash API Key）
-- `--mode geometric`：纯几何抽象（无需 API，始终可用）
+- 不传 `--mode`——默认 auto，自动级联搜索背景（OG→Pexels→AI→Unsplash→Brave→geometric）
 - 标题格式偏好：「保姆级教程：xxx」或「手把手教你 xxx」
 - tag 用 `AI 实战教程` / `技术教程`
 
