@@ -113,33 +113,9 @@ article-pool/
 - HTML 根据风格卡即时生成，模板仅在风格卡匹配或快速产出时使用
 - 视觉去 AI 味与文字去 AI 味同等重要——整段高亮、过度用色也是 AI 味
 
-### 模板编写规范
+### HTML 编写规范
 
-> **模板现在是兜底方案。** 创作时应先根据选题定「风格卡」（见 `skills/wechat-writer/SKILL.md` 风格规划章节），然后即时生成 HTML。只有当风格卡与某个模板高度匹配、或需要快速产出时，才使用模板。
-
-**文件头部**：注释块后必须紧跟 `<meta charset="UTF-8">`，否则 Windows 浏览器默认用 GBK 解码导致乱码。
-
-```html
-<!-- 模板注释
--->
-<meta charset="UTF-8">
-<table width="100%">
-```
-
-**占位符系统**：
-| 标记 | 用途 | 示例 |
-|------|------|------|
-| `<!-- REPLACE:key -->default<!-- /REPLACE -->` | 单值替换 | `<!-- REPLACE:标题 -->默认标题<!-- /REPLACE -->` |
-| `<!-- REPEAT:名称 -->...<!-- /REPEAT -->` | 列表循环 | 夹在重复区块的首尾 |
-| `<!-- REPLACE:keyN -->` (N=1,2,3...) | 固定编号替换 | `<!-- REPLACE:前提条件1 -->条件1<!-- /REPLACE -->` |
-
-**REPEAT 区块规则**：
-- ✅ 标题、表头放在 REPEAT 区块**外部**，避免每项重复
-- ✅ `_strip_replace_comments` 会自动清理所有未替换的 REPLACE 和 REPEAT 标记
-- ✅ `template_filler.py` 的 `_fill_repeat_*` 方法匹配 `<!-- REPEAT:名称 -->` 前缀
-
-**注释规范**：
-- 章节分隔注释中使用 "循环区块" 而非 "REPEAT 区块"（避免干扰自动化测试）
+详见 `skills/wechat-writer/references/html-authoring-guide.md`（文件头部格式、HTML 骨架、占位符系统、WeChat CSS 兼容性）。
 
 ## 封面图生成
 

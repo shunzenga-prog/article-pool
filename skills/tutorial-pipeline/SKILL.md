@@ -412,4 +412,4 @@ python scripts/gen_cover.py \
 - `skills/wechat-writer/SKILL.md` — 写作规范 + 教程截图规范 + 代码讲解规范
 - `skills/cover-gen/SKILL.md` — 封面图生成
 - `skills/illustration-gen/SKILL.md` — 通用插图生成（教程不依赖此流程）
-- `CLAUDE.md` — WeChat CSS 兼容性铁律
+- `skills/wechat-writer/references/html-authoring-guide.md` — HTML 编写规范（文件头部、骨架、WeChat CSS 兼容性）
