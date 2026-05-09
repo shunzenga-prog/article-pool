@@ -120,7 +120,7 @@ article-pool/
 **文件头部**：注释块后必须紧跟 `<meta charset="UTF-8">`，否则 Windows 浏览器默认用 GBK 解码导致乱码。
 
 ```html
-<!-- 模板注释 -->
+<!-- 模板注释
 -->
 <meta charset="UTF-8">
 <table width="100%">
