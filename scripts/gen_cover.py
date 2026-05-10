@@ -362,10 +362,10 @@ def generate_ai_background(keywords, title, seed_text=""):
 
         # Vary the base style prompt to avoid similar outputs
         style_templates = [
-            "professional editorial photography, {topic}, {mods}, cinematic lighting, deep depth of field, dark atmosphere, wide angle, negative space on left, 8k photorealistic, no text no watermark",
-            "abstract {topic} concept art, {mods}, dramatic composition, shallow depth of field, dark background, left side empty for text, ultra detailed, no text no watermark",
-            "{mods} scene about {topic}, documentary photography style, natural lighting, rule of thirds, empty left composition, high resolution, no text no watermark",
-            "minimalist {topic} illustration, {mods}, dark theme, sleek design, empty space on left, professional quality, no text no watermark",
+            "professional editorial photography, {topic}, {mods}, bright natural lighting, shallow depth of field, light and airy atmosphere, wide angle, negative space on left, 8k photorealistic, no text no watermark",
+            "abstract {topic} concept art, {mods}, bright composition, clean light background, left side empty for text, ultra detailed, no text no watermark",
+            "{mods} scene about {topic}, documentary photography style, bright natural lighting, rule of thirds, empty left composition, high resolution, no text no watermark",
+            "minimalist {topic} illustration, {mods}, light theme, clean and bright design, empty space on left, professional quality, no text no watermark",
         ]
         style = style_templates[random.randint(0, len(style_templates)-1)]
         prompt = style.format(topic=topic, mods=', '.join(modifiers[:2]))
@@ -481,9 +481,19 @@ def get_background_image(title, keywords, article_content=None):
 # ── Geometric theme system (unchanged from original) ──
 
 def select_theme(title, themes):
+    """Select a theme deterministically from title hash, with 2x weight on bright themes."""
+    bright_names = []
+    dark_names = []
+    for k, t in themes.items():
+        base = t.get("base", [0, 0, 0])
+        if sum(base) > 500:
+            bright_names.append(k)
+        else:
+            dark_names.append(k)
+    # Triple bright themes for 3x selection probability (~77% bright)
+    weighted = bright_names * 3 + dark_names
     h = hashlib.md5(title.encode()).digest()[0]
-    names = list(themes.keys())
-    return themes[names[h % len(names)]]
+    return themes[weighted[h % len(weighted)]]
 
 def is_cjk(cp):
     return (0x4E00 <= cp <= 0x9FFF or 0x3400 <= cp <= 0x4DBF or
@@ -577,22 +587,22 @@ def build_geometric_background(img, draw, px, theme):
 # ── Text backdrop overlay for photo backgrounds ──
 
 def apply_text_backdrop(img, px):
-    """Apply a soft text-backdrop panel on the left side of the photo,
-    keeping most of the image visible and bright. The backdrop ensures
-    white text remains readable without crushing the photo."""
+    """Apply a subtle vignette and frame border — cover is pure image, title beside it in feed."""
     W, H = img.size
 
-    # Subtle overall vignette (very light, just to focus attention)
+    # Very subtle edge vignette
     for x in range(W):
         for y in range(H):
             o = px[x, y]
-            # Edge darkening: only at extreme edges
             edge_factor = 1.0
-            if x < 80:
-                edge_factor = 0.85 + 0.15 * (x / 80)
-            if x > W - 80:
-                edge_factor = min(edge_factor, 0.85 + 0.15 * ((W - x) / 80))
-
+            if x < 60:
+                edge_factor = 0.92 + 0.08 * (x / 60)
+            if x > W - 60:
+                edge_factor = min(edge_factor, 0.92 + 0.08 * ((W - x) / 60))
+            if y < 40:
+                edge_factor = min(edge_factor, 0.92 + 0.08 * (y / 40))
+            if y > H - 40:
+                edge_factor = min(edge_factor, 0.92 + 0.08 * ((H - y) / 40))
             if edge_factor < 1.0:
                 px[x, y] = (
                     int(o[0] * edge_factor),
@@ -600,54 +610,14 @@ def apply_text_backdrop(img, px):
                     int(o[2] * edge_factor),
                 )
 
-    # Left-side text backdrop: gradient from dark (left) to transparent (right)
-    # This creates a readable surface for titles and body text
-    for x in range(0, min(580, W)):
-        for y in range(0, H):
-            o = px[x, y]
-            # Opacity: 60% at left edge, fading to 0% at x=580
-            if x < 80:
-                opacity = 0.55
-            elif x < 400:
-                opacity = 0.55 * (1.0 - (x - 80) / 320.0)
-            elif x < 580:
-                opacity = 0.55 * max(0, (580 - x) / 180.0)
-            else:
-                continue
-
-            # Blend to dark charcoal
-            dark_r, dark_g, dark_b = 10, 12, 20
-            px[x, y] = (
-                int(o[0] * (1 - opacity) + dark_r * opacity),
-                int(o[1] * (1 - opacity) + dark_g * opacity),
-                int(o[2] * (1 - opacity) + dark_b * opacity),
-            )
-
-    # Bottom gradient bar for footer text readability
-    for y in range(H - 130, H):
-        for x in range(W):
-            o = px[x, y]
-            ratio = (y - (H - 130)) / 130.0
-            opacity = 0.15 + 0.55 * ratio  # 15% at top of bar, 70% at bottom
-            dark_r, dark_g, dark_b = 8, 10, 18
-            px[x, y] = (
-                int(o[0] * (1 - opacity) + dark_r * opacity),
-                int(o[1] * (1 - opacity) + dark_g * opacity),
-                int(o[2] * (1 - opacity) + dark_b * opacity),
-            )
-
-    # Add a subtle frame border
-    border_color = (40, 42, 50)
+    # Subtle frame border
+    border_color = (70, 75, 85)
     for y in range(H):
         px[0, y] = border_color
-        px[1, y] = border_color
-        px[W-1, y] = border_color
-        px[W-2, y] = border_color
+        px[W - 1, y] = border_color
     for x in range(W):
         px[x, 0] = border_color
-        px[x, 1] = border_color
-        px[x, H-1] = border_color
-        px[x, H-2] = border_color
+        px[x, H - 1] = border_color
 
 
 # ── Keyword extraction ──
@@ -682,58 +652,108 @@ for _domain, _terms in _CJK_KW_DICT.items():
         _CJK_KW_FLAT[_t.lower()] = _domain
 
 
-def _extract_keywords(title, subtitle=""):
-    """Extract search keywords from title/subtitle, supporting Chinese and English.
+def _strip_html(html_text):
+    """Remove HTML tags and return plain text."""
+    text = re.sub(r'<(style|script)[^>]*>.*?</\1>', '', html_text, flags=re.DOTALL)
+    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
 
-    Strategy: dictionary match → n-gram fallback → English detection → generic.
+
+def _extract_keywords_from_body(body_text):
+    """Extract keywords from article body text by term frequency.
+
+    Returns list of (term, count) sorted by frequency descending, top 15.
     """
-    text = f"{title} {subtitle}".lower()
-    en_keywords = []
-    cjk_domains = set()
-
-    # 1. Dictionary match for both CJK and EN terms
-    for term, domain in _CJK_KW_FLAT.items():
-        if term in text:
-            if term.isascii():
-                en_keywords.append(term)
-            else:
-                cjk_domains.add(domain)
-                en_keywords.append(term)
-
-    # 2. EN tech keyword detection
+    text = body_text.lower()
+    tf = {}
+    for term in _CJK_KW_FLAT:
+        count = text.count(term)
+        if count > 0:
+            domain = _CJK_KW_FLAT[term]
+            # Keep highest count per domain for each term
+            tf[term] = (count, domain)
+    # Also count EN tech keywords
     en_tech = ["ai", "gpt", "openai", "llm", "api", "gpu", "cpu", "cloud",
                "code", "dev", "app", "data", "web", "security", "ios",
                "android", "chip", "robot", "space", "energy", "battery"]
     for k in en_tech:
-        if k in text and k not in en_keywords:
-            en_keywords.append(k)
+        count = text.count(k)
+        if count > 0 and k not in tf:
+            tf[k] = (count, "tech")
+    # Sort by count desc
+    sorted_terms = sorted(tf.items(), key=lambda x: -x[1][0])
+    return [(term, info[0], info[1]) for term, info in sorted_terms[:15]]
 
-    # 3. CJK n-gram fallback for unmatched Chinese text
-    cjk_chars = [ch for ch in text if '一' <= ch <= '鿿']
-    if not en_keywords and len(cjk_chars) >= 4:
-        # Extract 2-gram and 3-gram from CJK substring
-        ngrams = []
-        for n in [3, 2]:
-            for i in range(len(cjk_chars) - n + 1):
-                ng = ''.join(cjk_chars[i:i+n])
-                ngrams.append(ng)
-        # Pick top 2-3 distinctive ones (skip very common chars)
-        stop_chars = set("的是我了在有不这一个人他她它吗们就来对和而以可要也都会去")
-        scored = [(ng, sum(1 for c in ng if c not in stop_chars)) for ng in ngrams]
-        scored.sort(key=lambda x: -x[1])
-        seen = set()
-        for ng, score in scored:
-            if score >= 2 and ng not in seen:
-                en_keywords.append(ng)
-                seen.add(ng)
-                if len(en_keywords) >= 3:
-                    break
 
-    # 4. Final fallback
-    if not en_keywords:
-        en_keywords = ["technology", "digital"]
+def _extract_keywords(title, subtitle="", body_text=None):
+    """Extract search keywords from title/subtitle + optional article body.
 
-    return en_keywords[:5]
+    Strategy: title keywords get weight 3, body TF keywords get weight = frequency.
+    Merged and ranked by total score, deduped by domain, top 5 returned.
+    When body_text is None, falls back to original title-only extraction.
+    """
+    text = f"{title} {subtitle}".lower()
+    title_keywords = {}
+
+    en_tech = ["ai", "gpt", "openai", "llm", "api", "gpu", "cpu", "cloud",
+               "code", "dev", "app", "data", "web", "security", "ios",
+               "android", "chip", "robot", "space", "energy", "battery"]
+
+    # 1. Title keyword extraction (weight = 3 per match)
+    for term, domain in _CJK_KW_FLAT.items():
+        if term in text:
+            title_keywords[term] = {"score": 3, "domain": domain}
+
+    for k in en_tech:
+        if k in text and k not in title_keywords:
+            title_keywords[k] = {"score": 3, "domain": "tech"}
+
+    # 2. Body text TF extraction (weight = frequency)
+    body_scores = {}
+    if body_text:
+        body_plain = _strip_html(body_text).lower()
+        for term in _CJK_KW_FLAT:
+            count = body_plain.count(term)
+            if count > 0:
+                body_scores[term] = {"score": count, "domain": _CJK_KW_FLAT[term]}
+        for k in en_tech:
+            count = body_plain.count(k)
+            if count > 0 and k not in body_scores:
+                body_scores[k] = {"score": count, "domain": "tech"}
+
+    # 3. Merge: title + body scores, dedup by domain (keep highest)
+    merged = {}
+    for term, info in title_keywords.items():
+        merged[term] = info["score"]
+
+    for term, info in body_scores.items():
+        combined = info["score"] + title_keywords.get(term, {}).get("score", 0)
+        existing = merged.get(term, 0)
+        merged[term] = max(combined, existing)
+
+    # 4. CJK n-gram fallback for unmatched text
+    if not merged:
+        cjk_chars = [ch for ch in text if '一' <= ch <= '鿿']
+        if len(cjk_chars) >= 4:
+            stop_chars = set("的是我了在有不这一个人他她它吗们就来对和而以可要也都会去")
+            ngrams = {}
+            for n in [3, 2]:
+                for i in range(len(cjk_chars) - n + 1):
+                    ng = ''.join(cjk_chars[i:i+n])
+                    score = sum(1 for c in ng if c not in stop_chars)
+                    if score >= 2:
+                        ngrams[ng] = max(ngrams.get(ng, 0), score)
+            for ng, score in sorted(ngrams.items(), key=lambda x: -x[1])[:5]:
+                merged[ng] = score
+
+    # 5. Final fallback
+    if not merged:
+        merged["technology"] = 1
+        merged["digital"] = 1
+
+    sorted_kw = sorted(merged.items(), key=lambda x: -x[1])
+    return [kw for kw, _ in sorted_kw[:5]]
 
 
 def _measure_text_width(text, cjk_font, lat_font):
@@ -755,23 +775,27 @@ def _measure_text_width(text, cjk_font, lat_font):
     return total
 
 
-def _wrap_title_by_width(title, max_width, cjk_font, lat_font):
+def _wrap_title_by_width(title, max_width, cjk_font, lat_font, max_lines=2):
     """Wrap title into balanced lines based on pixel width, not character count.
 
-    Returns list of 1-3 lines, each fitting within max_width.
-    """
+    Returns list of 1-N lines, each fitting within max_width.
+    max_lines controls the maximum number of lines (default 2).
+    When the title exceeds max_lines, the last line is truncated with …"""
     # Handle explicit line breaks
     if '\\n' in title:
-        return title.split('\\n')
+        lines = title.split('\\n')
+        return lines[:max_lines]
+
+    ellipsis = '…'
+    ellipsis_w = _measure_text_width(ellipsis, cjk_font, lat_font)
 
     width = _measure_text_width(title, cjk_font, lat_font)
     if width <= max_width:
         return [title]
 
     # Need wrapping: find best split point by pixel measurement
-    # Scan character by character, tracking cumulative width
     n = len(title)
-    widths = []  # cumulative width after each character
+    widths = []
     cum = 0
     dummy = Image.new('RGB', (1, 1))
     draw = ImageDraw.Draw(dummy)
@@ -788,11 +812,9 @@ def _wrap_title_by_width(title, max_width, cjk_font, lat_font):
             widths.append(cum)
         i = j
 
-    # Find candidate break points near the midpoint in pixel space
     target = cum / 2
     sep_chars = set(' |,，:：-—·.。!！?？、/')
 
-    # Classify each position as valid/invalid break point
     valid_break = [False] * n
     for idx in range(1, n):
         prev_cjk = is_cjk(ord(title[idx - 1]))
@@ -800,18 +822,18 @@ def _wrap_title_by_width(title, max_width, cjk_font, lat_font):
         if title[idx - 1] in sep_chars or title[idx] in sep_chars:
             valid_break[idx] = True
         elif prev_cjk and curr_cjk:
-            valid_break[idx] = True  # between two CJK chars, always ok
+            valid_break[idx] = True
         elif not prev_cjk and not curr_cjk:
-            valid_break[idx] = False  # inside a Latin word, don't break
+            valid_break[idx] = False
         else:
-            valid_break[idx] = True  # CJK↔Latin boundary
+            valid_break[idx] = True
 
     candidates = []
     for idx in range(len(title) - 1):
         if not valid_break[idx]:
             continue
         w = widths[idx]
-        if w < max_width and cum - w < max_width:
+        if w < max_width and cum - w < (max_width if max_lines >= 3 else max_width - ellipsis_w):
             priority = 0
             if title[idx] in sep_chars:
                 priority = 10
@@ -824,37 +846,42 @@ def _wrap_title_by_width(title, max_width, cjk_font, lat_font):
     candidates.sort()
     if candidates:
         split = candidates[0][2]
-        # Try to split after the separator, not before
         if title[split] in sep_chars:
             split += 1
         elif split > 0 and title[split - 1] in sep_chars:
-            pass  # split right after separator
+            pass
         line1 = title[:split].rstrip()
         line2 = title[split:].lstrip()
     else:
-        # Fallback: character split at midpoint
         mid = n // 2
         line1, line2 = title[:mid], title[mid:]
 
-    # Check if 3 lines needed (after splitting, one line still too wide)
-    if _measure_text_width(line1, cjk_font, lat_font) > max_width or \
-       _measure_text_width(line2, cjk_font, lat_font) > max_width:
-        third = n // 3
-        two_thirds = (n * 2) // 3
-        # Find nearest valid break points
-        split1, split2 = third, two_thirds
-        for sp in range(third, 0, -1):
-            if sp < n and valid_break[sp]:
-                split1 = sp; break
-        for sp in range(two_thirds, 0, -1):
-            if sp < n and valid_break[sp]:
-                split2 = sp; break
-        if split2 <= split1:
-            split2 = min(split1 + (n - split1) // 2, n)
-        line1 = title[:split1].rstrip()
-        line2 = title[split1:split2].strip()
-        line3 = title[split2:].lstrip()
-        return [line1, line2, line3]
+    # Check if line2 still too wide
+    l2w = _measure_text_width(line2, cjk_font, lat_font)
+    if l2w > max_width:
+        if max_lines >= 3:
+            # Try 3-way split
+            third = n // 3
+            two_thirds = (n * 2) // 3
+            split1, split2 = third, two_thirds
+            for sp in range(third, 0, -1):
+                if sp < n and valid_break[sp]:
+                    split1 = sp; break
+            for sp in range(two_thirds, 0, -1):
+                if sp < n and valid_break[sp]:
+                    split2 = sp; break
+            if split2 <= split1:
+                split2 = min(split1 + (n - split1) // 2, n)
+            line1 = title[:split1].rstrip()
+            line2 = title[split1:split2].strip()
+            line3 = title[split2:].lstrip()
+            return [line1, line2, line3]
+        else:
+            # Truncate line2 to fit with ellipsis
+            for i in range(len(line2) - 1, 0, -1):
+                if _measure_text_width(line2[:i] + ellipsis, cjk_font, lat_font) <= max_width:
+                    line2 = line2[:i] + ellipsis
+                    break
 
     return [line1, line2]
 
@@ -929,12 +956,18 @@ def _extract_adaptive_colors(px):
         mid = (0xBB, 0xB7, 0xB3)
         dim = (0x88, 0x84, 0x80)
         wm = (0x44, 0x40, 0x3C)
-    else:
-        # Bright background → darker text for readability
+    elif avg_lum < 180:
+        # Medium-bright → darker text for readability
         light = (0x1A, 0x18, 0x20)
         mid = (0x44, 0x40, 0x4C)
         dim = (0x66, 0x62, 0x6E)
         wm = (0xCC, 0xC8, 0xC4)
+    else:
+        # Very bright background → deep text, high contrast
+        light = (0x0D, 0x0C, 0x16)
+        mid = (0x33, 0x30, 0x40)
+        dim = (0x55, 0x52, 0x60)
+        wm = (0xBB, 0xB8, 0xB4)
 
     return accent, light, mid, dim, wm
 
@@ -948,13 +981,7 @@ def generate_cover(title, subtitle, tag, date_str, reading_info, footer, output_
     """
     themes = load_themes()
 
-    # Determine keywords for image search
-    if keywords is None:
-        keywords = []
-    if not keywords:
-        keywords = _extract_keywords(title, subtitle)
-
-    # Read article content if path provided
+    # Read article content if path provided (before keyword extraction)
     article_content = None
     if article_path and os.path.exists(article_path):
         try:
@@ -962,6 +989,12 @@ def generate_cover(title, subtitle, tag, date_str, reading_info, footer, output_
                 article_content = f.read()
         except Exception:
             pass
+
+    # Determine keywords for image search (uses article body when available)
+    if keywords is None:
+        keywords = []
+    if not keywords:
+        keywords = _extract_keywords(title, subtitle, body_text=article_content)
 
     bg_source = 'geometric'
     photo_bg = None
@@ -1000,83 +1033,16 @@ def generate_cover(title, subtitle, tag, date_str, reading_info, footer, output_
         WM = _tuple(theme["watermark_color"])
         theme_name = theme["name"]
 
-    # ── Common text layout ──
-    f68c = ImageFont.truetype(FCJK, 68); f68l = ImageFont.truetype(FLATB, 68)
-    f48c = ImageFont.truetype(FCJK, 48); f48l = ImageFont.truetype(FLATB, 48)
-    f20c = ImageFont.truetype(FCJK, 20); f20l = ImageFont.truetype(FLAT, 20)
-    f16c = ImageFont.truetype(FCJK, 16); f16l = ImageFont.truetype(FLAT, 16)
-    f14l = ImageFont.truetype(FLAT, 14)
+    # ── Pure image cover (title shown beside cover in feed, not on it) ──
+    f9l = ImageFont.truetype(FLAT, 9)
 
-    # Accent bar
-    bar_h = 200 if photo_bg else 200
-    draw.rectangle([LEFT-20, 120, LEFT-16, 120+bar_h], fill=ACCENT)
-    draw.ellipse([(LEFT-22, 110), (LEFT-14, 118)], fill=ACCENT)
-
-    # Tag
-    if photo_bg:
-        draw_text(draw, (LEFT+2, 102), tag, (0,0,0), ImageFont.truetype(FCJK, 16), ImageFont.truetype(FLAT, 16))
-    draw_text(draw, (LEFT, 100), tag, ACCENT, ImageFont.truetype(FCJK, 16), ImageFont.truetype(FLAT, 16))
-
-    # Title — pixel-width-based line wrapping
-    title_lines = _wrap_title_by_width(title, W - LEFT - 120, f68c, f68l)
-
-    TFC = f68c if len(title_lines) <= 2 else f48c
-    TFL = f68l if len(title_lines) <= 2 else f48l
-    if len(title_lines) > 2:
-        title_lines = _wrap_title_by_width(title, W - LEFT - 120, f48c, f48l)
-    for i, line in enumerate(title_lines):
-        y_pos = 135 + i*87 if len(title_lines)<=2 else 120 + i*61
-        # Text shadow for photo backgrounds (stronger, multi-layer)
-        if photo_bg:
-            # Multi-layer shadow for depth
-            for sdx, sdy in [(3,3), (2,2), (1,1)]:
-                draw_text(draw, (LEFT+sdx, y_pos+sdy), line, (0,0,0), TFC, TFL)
-        draw_text(draw, (LEFT, y_pos), line, LIGHT, TFC, TFL)
-
-    # Underline
-    UY = 310 if len(title_lines)<=2 else 120+len(title_lines)*55+10
-    if not photo_bg:
-        theme_for_underline = themes[theme_name] if theme_name and theme_name in themes else select_theme(title, themes)
-        GS = _tuple(theme_for_underline["gradient_start"])
-        GE = _tuple(theme_for_underline["gradient_end"])
-    else:
-        GS, GE = ACCENT, (0xCC, 0x88, 0x44)
-    for x in range(LEFT, LEFT+240):
-        ratio = (x-LEFT)/240.0
-        r = int(GS[0]*(1-ratio)+GE[0]*ratio)
-        g = int(GS[1]*(1-ratio)+GE[1]*ratio)
-        b = int(GS[2]*(1-ratio)+GE[2]*ratio)
-        for y in range(UY, UY+4):
-            if 0<=x<W and 0<=y<H: px[x,y] = (r,g,b)
-
-    SY = UY+45
-    if photo_bg:
-        draw_text(draw, (LEFT+1, SY+1), subtitle, (0,0,0), f20c, f20l)
-    draw_text(draw, (LEFT,SY), subtitle, MID, f20c, f20l)
-    DY = SY+60
-    if photo_bg:
-        draw_text(draw, (LEFT+1, DY+1), date_str, (0,0,0), f16c, f16l)
-    draw_text(draw, (LEFT,DY), date_str, MID, f16c, f16l)
-    draw.line([(LEFT,DY+35),(LEFT+60,DY+35)], fill=ACCENT, width=2)
-    if photo_bg:
-        draw_text(draw, (LEFT+1, DY+56), reading_info, (0,0,0), f16c, f14l)
-    draw_text(draw, (LEFT,DY+55), reading_info, DIM, f16c, f14l)
-
-    # Day number watermark
-    nums = re.findall(r'\d+', date_str)
-    day_num = nums[2] if len(nums)>=3 else '??'
-    fb = ImageFont.truetype(FLATB, 200)
-    draw.text((W-280, 80), day_num, fill=WM, font=fb)
-
-    # Source badge
-    ft = ImageFont.truetype(FLAT, 11)
+    # Source badge (bottom-left, barely visible)
     badge_text = bg_source if photo_bg else theme_name
-    bb = draw.textbbox((0,0), badge_text, font=ft)
-    bw = bb[2]-bb[0]+12
-    draw.rectangle([W-bw-20, 592, W-20, 610], fill=WM)
-    draw.text((W-bw-14, 593), badge_text, fill=DIM, font=ft)
+    bb = draw.textbbox((0, 0), badge_text, font=f9l)
+    bw = bb[2] - bb[0] + 6
+    draw.rectangle([18, H - 22, 20 + bw, H - 12], fill=WM)
+    draw.text((21, H - 21), badge_text, fill=DIM, font=f9l)
 
-    draw_text(draw, (LEFT, 605), footer, DIM, f16c, f14l)
     img.save(output_path)
     src_label = f'bg:{bg_source}' if photo_bg else f'theme:{theme_name}'
     print(f'OK: {output_path} ({os.path.getsize(output_path)/1024:.1f} KB) {src_label}')

@@ -64,3 +64,4 @@
 - [ ] 所有容器布局用 `<table><tr><td>` 实现
 - [ ] 图片用 `<img style="width:100%; max-width:100%;">` 确保自适应
 - [ ] 代码块用 `<pre style="...">` 并确保暗色背景＋浅色字体
+- [ ] 没有装饰性 HTML 实体（`&middot;` `&bull;` `&mdash;` 等），特殊字符用 Unicode 本体

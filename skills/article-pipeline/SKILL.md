@@ -77,21 +77,38 @@ Agent({
 ```python
 context = {
     "platform": "xiaohongshu|wechat",
-    "article_type": "tutorial|news|opinion|recommendation|general",  # 🆕 文章类型
+    "article_type": "tutorial|news|opinion|recommendation|general",  # 文章类型
     "topic": "选题内容",
     "stage": "triage|creation|review|...",
     "revisions": 0,
     "issues": [],
     "score": 0,
     "human_review": False,  # 是否需要人工确认
-    # ⚠️ 真实性约束（新增）
+    # ⚠️ 真实性约束
     "real_experience": [],  # 真实实践记录
     "hypothetical_parts": [],  # 假设性内容标记
     "truth_check": {"passed": True, "fabricated_parts": [], "suggestions": []},
-    "illustration_config": "config/illustration_rules.json",  # 🆕 插图规则配置
-    "pipeline": "article-pipeline",  # 🆕 当前使用的 pipeline（用于追踪）
+    # 文件约定
+    "html_path": "",  # wechat-writer 产出：文章/{年份}年{月份}月/{日期}-{标题}.html
+    "illustrated_path": "",  # Stage 4.5 产出：*_illustrated.html
+    "cover_path": "",  # Stage 4.8 产出：同名 .png
+    "style_card": {},  # wechat-writer 产出：配色/强调/节奏方案
+    "title": "",  # wechat-writer 产出：最终标题
+    # 配置引用
+    "illustration_config": "config/illustration_rules.json",
+    "pipeline": "article-pipeline",
 }
 ```
+
+### 文件命名约定
+
+```
+HTML 原文：     文章/{年份}年{月份}月/{日期}-{标题}.html  （wechat-writer 产出）
+插图版 HTML：   文章/{年份}年{月份}月/{日期}-{标题}_illustrated.html  （Stage 4.5 产出）
+封面图：        文章/{年份}年{月份}月/{日期}-{标题}.png  （Stage 4.8 产出）
+```
+
+**⚠️ Stage 4.5 之后的所有操作（审阅终检、发布）都针对 `_illustrated.html`。**
 
 ## Stage 0: 分流官（Triage）
 
@@ -182,7 +199,7 @@ python scripts/topic_tracker.py list
 
 ## Stage 2: 创作官（初稿）
 
-**职责：** 根据 skills 写初稿
+**职责：** 调用 `wechat-writer`（或 `xiaohongshu-writer`）完成写作+排版，产出 HTML 文件。
 
 **选择 Skill：**
 ```
@@ -191,6 +208,17 @@ if platform == "小红书":
 else:
     使用 wechat-writer
 ```
+
+**与 wechat-writer 的交接契约：**
+
+| 方向 | 内容 | 说明 |
+|------|------|------|
+| → 传入 | 选题 + 平台 + Context Variables | pipeline Stage 0-1 已确定 |
+| ← 传回 | HTML 文件路径 | `文章/{年份}年{月份}月/{日期}-{标题}.html` |
+| ← 传回 | 风格卡 | 已执行的配色/强调/节奏方案 |
+| ← 传回 | 标题 | 20-30 字最终标题 |
+
+**⚠️ wechat-writer 只负责写作+排版（步骤 1-11），不处理审阅/插图/封面/发布。** wechat-writer 步骤 11 通过后立即交还控制权。pipeline 从 Stage 4 继续。
 
 ### ⚠️ 真实性约束（核心原则）
 
@@ -203,19 +231,13 @@ else:
 | 假设性叙述（"假如..."） | 假装亲历者 |
 | 标注"（示例）" | 假装实践过 |
 
-**没有真实实践时怎么办？**
-1. 用"假设性叙述"：「假如你要 xxx，可以这样...」
-2. 用"通用建议"：「一般来说，xxx」
-3. 明确标注：「（示例）这是一个假设的案例」
-4. 换选题：选一个有真实实践的选题
-
 **Context Variables 新增：**
 ```python
 context["real_experience"] = []  # 真实实践记录
 context["hypothetical_parts"] = []  # 假设性内容标记
 ```
 
-**输出：** 初稿（标题 + 正文 + 封面建议 + 真实性标注）
+**输出：** HTML 文件路径 + 风格卡 + 标题。交还 pipeline 进入 Stage 3。
 
 ---
 
@@ -264,13 +286,32 @@ Agent({
 
 软检查失败 → WARNINGS → 可以继续但建议修复。
 
-**原手工检查项（现由 Agent 机械化执行）：**
-```
-□ 资料验证 □ 时效性验证 □ 真实性验证
-□ AI 身份检查 □ AI 味检查 □ 样式检查
-□ 论述质量 □ 5W1H □ 逻辑性 □ 平台适配
-```
-上述项目暂保留为 AI 语义检查，与 Agent 硬检查并行。未来逐步迁移到 Agent。
+**审阅官同时执行以下内容+视觉+兼容性检查（从 wechat-writer 整合）：**
+
+### 内容
+- [ ] 标题 20-30 字 + ≥2 钩子元素 + 无弱词（浅谈/浅析/关于/漫谈/初探）
+- [ ] 开头 3 秒留人？ [ ] 表格 ≤2 个？
+- [ ] 金句 ≥1 句？ [ ] 无编造？ [ ] 行动号召？
+- [ ] 时效新鲜？ [ ] 真人感 ≥6 项？（见 `references/real-human-feel-checklist.md`）
+
+### 视觉
+- [ ] 风格卡已执行？（配色/强调/节奏是否跟风格卡一致）
+- [ ] **全文一个色系？**（不会出现"这里冷蓝、那里暖黄"的拼贴感）
+- [ ] **点缀色 ≤1 个且克制？**（仅在关键数字或核心结论处出现，全文不超过 5 处）
+- [ ] **章节标题有下划线？**（不能只靠加粗，必须有 border-bottom 锚点）
+- [ ] **大章节之间分隔明显？**（底色交替 或 装饰分隔线，不能只靠 `···` 过渡大章节）
+- [ ] **卡片是调料不是主菜？**（大部分文字直接放页面上，不是每个段落都包卡片）
+- [ ] 字号 15-16px？ [ ] 行距 1.75-1.8？ [ ] 段落 ≤5 行？
+- [ ] 代码块暗底浅字？ [ ] 图片 width=100%？
+
+### 微信兼容
+- [ ] 无 `<div>`/`<section>`？
+- [ ] 文字样式在 `<span>` 上不在 `<p>` 上？
+- [ ] 容器用 `<table><tr><td>`？
+- [ ] 无 flex/grid/border-radius/box-shadow？
+
+**任一硬检查失败 → REJECTED → 返回 Stage 3 修复后重审。**
+内容/视觉/兼容性不通过 → 回 wechat-writer 对应写作/排版步骤修复。
 
 **输出：** `REVIEW_RESULT` 结构化对象（passed + hard_failures + warnings）
 
@@ -333,6 +374,14 @@ Agent({
 - 永不传 `--mode geometric`
 - 验证输出文件 >100KB（真实背景图 200-500KB，geometric 约 50KB）
 - 失败时报告原因，不静默降级
+
+**封面图规格：** 1200×675px PNG，16:9 比例。配色与文章风格卡协调。
+
+**手动备用命令：**
+```bash
+python scripts/gen_cover.py --title "标题" --keywords "关键词1,关键词2" --output cover.png
+# 不要加 --mode geometric
+```
 
 **输出：** `COVER_RESULT` 结构化对象（cover_path + source + file_size_kb + status）
 
@@ -402,7 +451,7 @@ Agent({
   subagent_type: "article-pool/publish-agent",
   description: "发布文章到公众号草稿箱",
   prompt: "发布文章：
-- HTML路径：<文章HTML路径>
+- HTML路径：<_illustrated.html路径>  ← ⚠️ 必须是插图版，不是原始 HTML
 - 封面路径：<封面PNG路径>
 - 作者：小咪
 - 标题：<文章标题>
@@ -414,12 +463,41 @@ Agent({
 ```
 
 **发布 Agent 硬约束：**
+- ⚠️ HTML 路径必须是 `_illustrated.html`（含微信 CDN 插图），不是原始 HTML
 - Windows 自动加 `PYTHONIOENCODING=utf-8`
 - 必须看到 `✅ 草稿创建成功！` + 草稿 ID
 - 失败报告错误码和含义
 - 发布成功自动入库 `reports/used_topics.json`
 
+**手动发布命令（备用）：**
+```bash
+# Windows 必须加 PYTHONIOENCODING=utf-8（否则 GBK 编码报错）
+# ⚠️ 使用 _illustrated.html（含插图），不是原始 HTML
+PYTHONIOENCODING=utf-8 python scripts/publish_html.py <文章_illustrated.html> "标题" --cover <封面图.png> --author "小咪"
+
+# 发布后题目入库
+python scripts/topic_tracker.py add "标题" "关键词1,关键词2,关键词3" "深度解析"
+```
+
 **输出：** `PUBLISH_RESULT` 结构化对象（draft_id + article_size + status + next_step）
+
+---
+
+## ⚠️ 创作完成检查清单（Stage 8 发布后逐项确认）
+
+Stage 8 完成后，逐项确认以下 7 项：
+
+| # | 检查项 | 通过标志 |
+|---|--------|----------|
+| 1 | HTML 已生成 | 文件在 `文章/{年份}年{月份}月/` 目录（wechat-writer 产出） |
+| 2 | **插图已嵌入** | `_illustrated.html` 存在，含微信 CDN 图片链接（Stage 4.5 产出） |
+| 3 | 封面图已生成 | 同名 `.png` 与 HTML 同目录，文件 >100KB（Stage 4.8 产出） |
+| 4 | 审阅已通过 | `review_html.py --json` 返回 `passed: true`（Stage 4 产出） |
+| 5 | 选题已入库 | `reports/used_topics.json` 有新条目 |
+| 6 | **已推送草稿箱** | 终端输出 `✅ 草稿创建成功！` + 草稿 ID |
+| 7 | 推送的是插图版 | 发布命令用的是 `_illustrated.html` |
+
+**7 项全部 ✅ 才算创作完成。缺第 6 项 = 文章没发出。**
 
 ---
 
@@ -442,11 +520,12 @@ Stage 1: Guardrails → 选题通过
 Stage 2: 创作官 → 生成初稿
 Stage 3: Guardrails → 初稿通过
 Stage 4: 审阅官 → 质量检查（内容定稿）
-Stage 4.5: 插图生成 → 自动配图 🆕
+Stage 4.5: 插图生成 → 自动配图
+Stage 4.8: 封面生成 → 1200×675 PNG
 Stage 5: 润色官 → 语言优化（基于带图文档）
 Stage 6: 评估官 → 评分预测
 Stage 7: Human Loop → 等待用户确认
-Stage 8: 发布官 → 封面生成 + 发布确认
+Stage 8: 发布官 → 推送草稿箱 + 题目入库
 ```
 
 ## 关键改进（学习自 OpenAI Agents SDK）
