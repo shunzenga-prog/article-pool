@@ -298,19 +298,43 @@ S 情境 → C 冲突 → Q 疑问 → A 答案
 
 **根据风格卡即时生成 HTML，而不是填模板。**
 
-### 核心约束（微信 CSS，不可商量）
+### ⚠️ 核心约束（微信 CSS，不可商量，违反即驳回）
 
-| 约束 | 说明 |
-|------|------|
-| 容器 | 必须用 `<table><tr><td>`，禁止 `<div>`/`<section>` |
-| 文字样式 | 必须放在 `<span style="...">` 上，不要在 `<p>` 上放 color/font-size |
-| 章节标题 | 不能只靠加粗+放大。用 `border-bottom` 下划线（点缀色，2px），让标题有"锚点感" |
-| 章节分隔 | 大章节之间必须交替底色（同色系深浅交替）或插装饰线。`···` 仅用于章节内的轻过渡 |
-| 代码块 | 用 `<pre style="...">` 暗底浅字 |
-| 图片 | 用 `<img width="100%">` 属性控制，外层 `<td>` 包裹 |
-| 段落 | `<p>` 只放 `margin` + `text-align`，其余样式下沉到 `<span>` |
+> **微信发布时会强制改写 DOM：`<div>`→`<p>`、剥离 `<p>` 上的 style 属性、删除 `<style>` 块。预览正常≠发布正常。必须从第一行代码就遵守以下规则。**
 
-完整约束见 `references/wechat-css-guide.md`。
+| # | 约束 | 说明 | 违反后果 |
+|---|------|------|----------|
+| H0 | **禁止 `<style>` 块** | 所有样式必须 inline。`<style>` 标签内的规则会被微信全部删除 | 全局样式丢失 |
+| H1 | **容器** | 必须用 `<table><tr><td>`，禁止 `<div>`/`<section>` | div→p，样式剥离 |
+| H2 | **文字样式** | 必须放在 `<span style="...">` 上，包括 `font-size`、`color`、`line-height`、`font-weight` | 文字恢复默认样式 |
+| H3 | **`<p>` 上只能放 `text-align`** | ❌ `font-size` ❌ `color` ❌ `line-height` ❌ `margin`（不可靠） | 部分浏览器保留 margin，微信发布后大概率丢失 |
+| H4 | **行距 `line-height`** | 必须在每个 `<span>` 上设置，不能依赖 `<p>` 或 `<style>` 块 | 行距回退到 ~1.5，段落拥挤 |
+| H5 | **段落间距** | 用 `<p style="margin:10px 0 0 0;text-align:left;">`（仅 inline margin-top），正文段与段间距 8-10px，章节前 24-28px | 间距丢失，文字堆叠 |
+| -- | **章节标题** | 用 `border-bottom` 下划线（点缀色，2px），不能只靠加粗+放大 | -- |
+| -- | **章节分隔** | 大章节间交替底色或装饰线。`···` 仅用于章节内轻过渡 | -- |
+| -- | **代码块** | 用 `<pre style="...">` 暗底浅字 | -- |
+| -- | **图片** | 用 `<img style="width:100%; max-width:100%;">` 属性控制，外层 `<td>` 包裹 | -- |
+
+**编写范例（必须照此模式）：**
+
+```html
+<!-- ✅ 正确：无 style 块，所有样式 inline，line-height 在 span 上 -->
+<p style="margin:10px 0 0 0;text-align:left;"><span style="font-size:15px;color:#2c2c2c;line-height:1.85;">正文内容</span></p>
+
+<!-- ✅ 章节标题 -->
+<p style="margin:28px 0 0 0;text-align:left;">
+  <span style="font-size:18px;font-weight:bold;color:#1a1a1a;border-bottom:2px solid #c8853e;padding-bottom:4px;">章节标题</span>
+</p>
+
+<!-- ✅ 分隔符 -->
+<p style="margin:24px 0 0 0;text-align:center;"><span style="font-size:14px;color:#b5b0a8;">·  ·  ·</span></p>
+
+<!-- ❌ 错误：style 块 + p 上放 line-height -->
+<style>p { font-size:15px; line-height:1.9; color:#2c2c2c; }</style>
+<p style="margin:8px 0;">正文</p>
+```
+
+**发布前必须逐条核对 `references/wechat-css-guide.md` 检查清单。**
 
 ### 即时生成的要点
 

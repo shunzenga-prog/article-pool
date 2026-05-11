@@ -112,17 +112,22 @@ article-pool/
 - **禁止在文章中出现本地文件路径**（如 `教程资源/xx/xx.py`、`E:\xxx`）——公众号读者看不到本地文件，用"后台回复 xxx 获取"替代
 - 详细规范见 `skills/wechat-writer/SKILL.md` 「教程类文章截图规范」
 
-## ⚠️ 微信公众号 CSS 兼容性
+## ⚠️ 微信公众号 CSS 兼容性（创作前必读，违反即驳回）
+
+> **微信发布时强制改写 DOM：** `<div>`→`<p>`、删除 `<style>` 块、剥离 `<p>` 上除 `text-align` 外的所有 style。**预览正常 ≠ 发布正常。**
 
 完整规范见 `skills/wechat-writer/references/wechat-css-guide.md`。核心原则：
 
+- ❌ **禁止 `<style>` 块** → 微信全部删除，全局样式归零
 - ❌ 禁止 `<div>` / `<section>` → 会被转为 `<p>` 并剥离样式
-- ❌ 禁止在 `<p>` 上放文字样式 → 只能放 `text-align`
+- ❌ **禁止在 `<p>` 上放 `font-size` / `color` / `line-height`** → 只能放 `text-align`（`margin` 也可能丢失）
 - ❌ 禁止用 `<table>` 包裹全文 → 手机上宽度问题和黑缝。页面内容直接放在 `<p>` 中
 - ✅ 卡片/数据区用 `<table><tr><td>` 做局部容器
-- ✅ 文字样式用 `<span style="...">`
+- ✅ **所有文字样式用 `<span style="...">`**，包括 `line-height`、`font-size`、`color`
+- ✅ **段落间距用 `<p style="margin:10px 0 0 0;text-align:left;">`**（仅 inline margin-top）
+- ✅ 编写模式统一为：`<p style="margin:Xpx 0 0 0;text-align:left;"><span style="font-size:15px;color:#2c2c2c;line-height:1.85;">正文</span></p>`
 
-发布前必须通过「发布前检查」（内容+视觉+微信兼容三维度，见 `skills/wechat-writer/SKILL.md`）。
+发布前必须通过「发布前检查」（内容+视觉+微信兼容三维度，见 `skills/wechat-writer/SKILL.md`）。**每篇创作的第一步，先读 `wechat-css-guide.md` 检查清单。**
 
 ### 8. 风格先行，模板兜底
 - 创作前先定「风格卡」（基调+配色+强调+节奏），而不是先选模板

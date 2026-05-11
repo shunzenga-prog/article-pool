@@ -251,12 +251,17 @@ context["hypothetical_parts"] = []  # 假设性内容标记
 □ 结构：是否完整？
 □ 小咪风格：是否有真实实践？
 □ 时效标注：是否正确标注？
+□ 微信CSS：是否符合 wechat-css-guide.md？（公众号必查）
+  - 无 <style> 块？
+  - line-height 在 <span> 上不在 <p> 上？
+  - font-size/color 在 <span> 上不在 <p> 上？
+  - 无 <div>/<section>？
 ```
 
 **决策：**
 - ✅ 通过 → 进入审阅
 - ⚠️ 需修改 → 返回创作官修改
-- ❌ 不合格 → 重新创作
+- ❌ 不合格 → 重新创作（微信CSS不合格直接驳回）
 
 ---
 
