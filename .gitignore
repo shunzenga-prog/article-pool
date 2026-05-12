@@ -41,6 +41,7 @@ Thumbs.db
 # 输出文件
 reports/
 output/
+文章/
 *.log
 
 # 浏览器登录状态
