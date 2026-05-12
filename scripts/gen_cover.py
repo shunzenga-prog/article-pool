@@ -2,7 +2,7 @@
 """Professional cover image generator for WeChat articles.
 
 Two modes:
-  auto (default): OG → Pexels → AI-gen → Unsplash → Brave → geometric fallback
+  auto (default): OG → Pexels → AI-gen(quality gate+retry) → Unsplash → Brave → geometric
   geometric:      abstract 8-theme design (original behavior)
 
 Usage:
@@ -352,15 +352,65 @@ def search_pexels(keywords, api_key, seed_text="", count=8):
         print(f'  pexels: error - {e}')
     return None
 
-def generate_ai_background(keywords, title, seed_text=""):
-    """Generate an AI image using Pollinations.ai with prompt variation."""
+def score_cover_image(img_data: BytesIO) -> tuple:
+    """Score AI-generated cover image quality (0-100). Tuned for 1200x675."""
+    try:
+        img = Image.open(img_data)
+        w, h = img.size
+        kb = len(img_data.getvalue()) / 1024
+        pixel_count = w * h
+
+        issues = []
+        deductions = 0
+
+        # 1. File size: 1200x675 photo should be 150-500KB
+        if kb < 60:
+            deductions += 40
+            issues.append(f"tiny({kb:.0f}KB)")
+        elif kb < 100:
+            deductions += 20
+            issues.append(f"small({kb:.0f}KB)")
+
+        # 2. Histogram diversity
+        if img.mode in ("RGB", "RGBA"):
+            rgb = img.convert("RGB")
+            hist = rgb.histogram()
+            active_bins = sum(1 for v in hist if v > 0)
+            if active_bins < 50:
+                deductions += 40
+                issues.append("near_uniform")
+            elif active_bins < 100:
+                deductions += 20
+                issues.append("low_variety")
+
+        # 3. Luminosity std dev: flat = bad
+        gray = img.convert("L")
+        pixels = list(gray.getdata())
+        mean = sum(pixels) / len(pixels)
+        std = (sum((p - mean) ** 2 for p in pixels) / len(pixels)) ** 0.5
+        if std < 15:
+            deductions += 30
+            issues.append("too_flat")
+        elif std < 25:
+            deductions += 12
+            issues.append("flat")
+
+        score = max(5, 100 - deductions)
+        detail = ",".join(issues) if issues else "ok"
+        return score, detail
+    except Exception:
+        return 0, "error"
+
+
+def generate_ai_background(keywords, title, seed_text="", quality_threshold=50, max_retries=3):
+    """Generate an AI image using Pollinations.ai with quality gate + retry."""
     if not HAS_REQUESTS:
         return None
-    try:
-        topic = ' '.join(keywords[:3]) if keywords else 'technology'
-        modifiers = get_random_modifier(seed_text or title)
+    topic = ' '.join(keywords[:3]) if keywords else 'technology'
 
-        # Vary the base style prompt to avoid similar outputs
+    for attempt in range(max_retries):
+        modifiers = get_random_modifier((seed_text or title) + str(attempt))
+
         style_templates = [
             "professional editorial photography, {topic}, {mods}, bright natural lighting, shallow depth of field, light and airy atmosphere, wide angle, negative space on left, 8k photorealistic, no text no watermark",
             "abstract {topic} concept art, {mods}, bright composition, clean light background, left side empty for text, ultra detailed, no text no watermark",
@@ -374,21 +424,28 @@ def generate_ai_background(keywords, title, seed_text=""):
         url = f"https://image.pollinations.ai/prompt/{quote(prompt)}"
         params = {'width': 1200, 'height': 675, 'model': 'flux', 'nologo': 'true', 'seed': seed_val}
 
-        print(f'  ai-gen: "{topic}" + "{modifiers[0]}" (seed={seed_val})...')
-        r = requests.get(url, params=params, timeout=120)
-        if r.status_code == 200 and len(r.content) > 1000:
-            try:
-                img = Image.open(BytesIO(r.content))
-                img.verify()
-                print(f'  ai-gen: generated ({len(r.content)/1024:.0f} KB)')
-                return BytesIO(r.content)
-            except Exception:
-                print(f'  ai-gen: invalid image')
-                return None
-        else:
-            print(f'  ai-gen: HTTP {r.status_code}')
-    except Exception as e:
-        print(f'  ai-gen: error - {e}')
+        try:
+            print(f'  ai-gen (attempt {attempt+1}/{max_retries}): "{topic}" + "{modifiers[0]}" (seed={seed_val})...')
+            r = requests.get(url, params=params, timeout=120)
+            if r.status_code == 200 and len(r.content) > 1000:
+                try:
+                    img = Image.open(BytesIO(r.content))
+                    img.verify()
+                except Exception:
+                    print(f'  ai-gen: invalid image')
+                    continue
+
+                q_score, q_detail = score_cover_image(BytesIO(r.content))
+                print(f'  ai-gen: quality {q_score:.0f}/100 ({q_detail})')
+                if q_score >= quality_threshold:
+                    print(f'  ai-gen: generated ({len(r.content)/1024:.0f} KB)')
+                    return BytesIO(r.content)
+                if attempt < max_retries - 1:
+                    print(f'  ai-gen: below threshold {quality_threshold}, retrying...')
+            else:
+                print(f'  ai-gen: HTTP {r.status_code}')
+        except Exception as e:
+            print(f'  ai-gen: error - {e}')
     return None
 
 def download_image(url, timeout=12):
@@ -409,7 +466,7 @@ def get_background_image(title, keywords, article_content=None):
     """Multi-tier fallback for cover backgrounds:
     Tier 1: OG images from article links
     Tier 2: Pexels API (free, 200 req/hour — needs PEXELS_API_KEY in .env)
-    Tier 3: AI-generated image via Pollinations.ai (free, no key needed)
+    Tier 3: AI-generated image via Pollinations.ai (quality gate + max 3 retries)
     Tier 4: Unsplash search + source.unsplash.com fallback
     Tier 5: Brave Image Search (needs BRAVE_API_KEY in .env)
     Tier 6: None → geometric fallback
