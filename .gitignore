@@ -43,8 +43,9 @@ reports/
 output/
 *.log
 
-# CSDN 浏览器登录状态
+# 浏览器登录状态
 config/csdn_profile/
+config/chatgpt_profile/
 
 # 图片缓存
 *.png

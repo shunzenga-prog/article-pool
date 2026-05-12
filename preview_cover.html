@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>封面预览 - 纯图片</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#1a1a2e; color:#fff;
+    font-family: -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
+    padding:40px; text-align:center;
+  }
+  h2 { margin:30px 0 10px; color:#00d4ff; font-size:18px; }
+  .label { color:#888; font-size:13px; margin-bottom:12px; }
+  .cover-full { width:600px; border-radius:8px; box-shadow:0 8px 40px rgba(0,0,0,.5); }
+  .cover-mobile { width:375px; height:150px; object-fit:cover; object-position:center; border-radius:4px; }
+  .cover-feed { width:375px; height:100px; object-fit:cover; object-position:center; border-radius:2px; }
+  .info { background:rgba(255,255,255,.05); border-radius:8px; padding:16px 24px; margin:20px auto; max-width:600px; text-align:left; font-size:13px; line-height:1.8; }
+  .info span { color:#00d4ff; }
+</style>
+</head>
+<body>
+  <h2>纯图片封面 (1200×675)</h2>
+  <div class="label">无文字叠加 — 标题在订阅号列表中已并排显示</div>
+  <img class="cover-full" src="test_cover_demo.png" alt="封面">
+
+  <h2>订阅号列表缩略图 (375×150)</h2>
+  <div class="label">封面 + 旁边系统标题 = 信息完整</div>
+  <img class="cover-mobile" src="test_cover_demo.png" alt="缩略图">
+
+  <div class="info">
+    <span>设计原则：</span>纯图片，不叠加文字<br>
+    <span>原因：</span>微信订阅号列表中封面和标题本来就是并排的，图上文字是冗余的<br>
+    <span>背景：</span>AI 生成 / 网络图库照片<br>
+    <span>亮度：</span>明亮、有吸引力
+  </div>
+</body>
+</html>
