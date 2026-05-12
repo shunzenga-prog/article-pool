@@ -10,7 +10,7 @@
     "dedup_ttl_days": 30,
     "wechat_upload": true,
     "output_dir": "test_images/illustrations",
-    "img_table_template": "<table width=\"100%\"><tr><td style=\"text-align:center; padding:6px 0 14px;\">\n  <img src=\"{url}\" style=\"max-width:100%;\" />\n</td></tr></table>"
+    "img_table_template": "<table width=\"100%\"><tr><td style=\"text-align:center; padding:6px 0 14px;\">\n  <img src=\"{url}\" style=\"max-width:100%; height:auto; display:block;\" />\n</td></tr></table>"
   },
 
   "article_types": {
@@ -97,7 +97,7 @@
     },
 
     "深度解析": {
-      "description": "行业深度分析 — 概念插图 + 数据图表 + 公司Logo",
+      "description": "行业深度分析 — 概念插图 + 数据图表 + 公司Logo（AI图经质量闸门过滤）",
       "triggers": {
         "concepts": true,
         "company_names": true,
@@ -111,21 +111,30 @@
           "per_section": 1,
           "_note": "T1: 从文章引用的链接提取 og:image"
         },
-        "ai_generate": {
-          "enabled": true,
-          "priority": 2,
-          "per_section": 1,
-          "style_modifiers": ["editorial illustration", "conceptual art", "abstract technology", "dark theme"]
-        },
         "web_search": {
           "enabled": true,
-          "priority": 3,
+          "priority": 2,
           "per_item": 1,
-          "search_query_template": "{name} technology concept"
+          "search_query_template": "{name} technology concept screenshot"
+        },
+        "ai_generate": {
+          "enabled": true,
+          "priority": 3,
+          "per_section": 1,
+          "quality_threshold": 55,
+          "max_retries": 4,
+          "style_modifiers": [
+            "minimalist technology editorial, clean composition, subtle gradient background, 3D glass material, sleek",
+            "modern tech concept visualization, dark blue and cyan palette, clean lines, professional",
+            "abstract technology illustration, geometric shapes, soft lighting, corporate tech aesthetic",
+            "futuristic tech diagram, wireframe glow, dark theme, polished render"
+          ],
+          "_note": "T3: AI生成 + 质量闸门(清晰度+色彩多样性+文件大小)，低分自动重试"
         },
         "fallback_pattern": {
           "enabled": true,
-          "priority": 4
+          "priority": 4,
+          "_note": "T5: 几何抽象图案最后兜底"
         }
       },
       "placement": "after_section_header"
@@ -225,7 +234,9 @@
     "width": 670,
     "height": 380,
     "model": "flux",
-    "timeout_seconds": 120
+    "timeout_seconds": 120,
+    "quality_threshold": 50,
+    "max_retries": 3
   },
 
   "fallback_pattern": {

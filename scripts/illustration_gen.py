@@ -398,8 +398,61 @@ def t3_web_search(query: str, rules: dict, src_cfg: dict = None) -> BytesIO | No
     return None
 
 
+def score_ai_image(img_data: BytesIO) -> tuple:
+    """Score AI-generated image quality (0-100). Checks detail, variety, flatness."""
+    if not HAS_PIL:
+        return 60, "no_pil"
+    try:
+        img = Image.open(img_data)
+        w, h = img.size
+        kb = len(img_data.getvalue()) / 1024
+        pixel_count = w * h
+
+        issues = []
+        deductions = 0
+
+        # 1. File size: too small = low detail / flat color wash
+        expected_kb = pixel_count / 3500
+        if kb < expected_kb * 0.25:
+            deductions += 35
+            issues.append(f"tiny({kb:.0f}KB)")
+        elif kb < expected_kb * 0.45:
+            deductions += 18
+            issues.append(f"small({kb:.0f}KB)")
+
+        # 2. Histogram diversity: low unique bins = near-uniform blob
+        if img.mode in ("RGB", "RGBA"):
+            rgb = img.convert("RGB")
+            hist = rgb.histogram()  # 768 values
+            active_bins = sum(1 for v in hist if v > 0)
+            if active_bins < 40:
+                deductions += 40
+                issues.append("near_uniform")
+            elif active_bins < 80:
+                deductions += 20
+                issues.append("low_variety")
+
+        # 3. Std deviation of luminosity: very flat = bad, very noisy = bad
+        gray = img.convert("L")
+        pixels = list(gray.getdata())
+        mean = sum(pixels) / len(pixels)
+        std = (sum((p - mean) ** 2 for p in pixels) / len(pixels)) ** 0.5
+        if std < 12:
+            deductions += 30
+            issues.append("too_flat")
+        elif std < 20:
+            deductions += 10
+            issues.append("flat")
+
+        score = max(5, 100 - deductions)
+        detail = ",".join(issues) if issues else "ok"
+        return score, detail
+    except Exception:
+        return 0, "error"
+
+
 def t4_ai_generate(keywords: str, rules: dict) -> BytesIO | None:
-    """Generate illustration via Pollinations.ai."""
+    """Generate illustration via Pollinations.ai with quality gate + retry."""
     if not HAS_REQUESTS:
         return None
     cfg = rules.get("ai_generate", {})
@@ -408,28 +461,36 @@ def t4_ai_generate(keywords: str, rules: dict) -> BytesIO | None:
     model = cfg.get("model", "flux")
     timeout = cfg.get("timeout_seconds", 120)
     style_mods = cfg.get("style_modifiers", ["clean UI", "tech interface"])
+    quality_threshold = cfg.get("quality_threshold", 55)
+    max_retries = cfg.get("max_retries", 3)
 
     import random as _random
-    mod = _random.choice(style_mods)
-    prompt = f"{keywords}, {mod}, professional quality, no text no watermark"
-    seed_val = str(_random.randint(1, 99999))
 
-    try:
-        url = f"https://image.pollinations.ai/prompt/{quote(prompt)}"
-        params = {"width": w, "height": h, "model": model, "nologo": "true", "seed": seed_val}
-        print(f"  [T4] AI generate: {keywords[:50]}... (seed={seed_val})")
-        r = requests.get(url, params=params, timeout=timeout)
-        if r.status_code == 200 and len(r.content) > 1000:
-            # Verify it's a valid image
-            if HAS_PIL:
-                try:
-                    Image.open(BytesIO(r.content)).verify()
-                except Exception:
-                    return None
-            print(f"  [T4] Generated: {len(r.content)/1024:.0f} KB")
-            return BytesIO(r.content)
-    except Exception:
-        pass
+    for attempt in range(max_retries):
+        mod = _random.choice(style_mods)
+        prompt = f"{keywords}, {mod}, professional quality, no text no watermark"
+        seed_val = str(_random.randint(1, 99999))
+
+        try:
+            url = f"https://image.pollinations.ai/prompt/{quote(prompt)}"
+            params = {"width": w, "height": h, "model": model, "nologo": "true", "seed": seed_val}
+            print(f"  [T4] AI generate (attempt {attempt+1}/{max_retries}): {keywords[:45]}... (seed={seed_val})")
+            r = requests.get(url, params=params, timeout=timeout)
+            if r.status_code == 200 and len(r.content) > 1000:
+                if HAS_PIL:
+                    try:
+                        Image.open(BytesIO(r.content)).verify()
+                    except Exception:
+                        continue
+                q_score, q_detail = score_ai_image(BytesIO(r.content))
+                print(f"  [T4] Quality: {q_score:.0f}/100 ({q_detail})")
+                if q_score >= quality_threshold:
+                    print(f"  [T4] Generated: {len(r.content)/1024:.0f} KB")
+                    return BytesIO(r.content)
+                if attempt < max_retries - 1:
+                    print(f"  [T4] Below threshold {quality_threshold}, retrying...")
+        except Exception:
+            pass
     return None
 
 
@@ -800,7 +861,7 @@ def generate_illustrations(article_path: str, article_type: str | None = None,
     max_images = max_images or type_cfg.get("max_images_total", 20)
     img_template = type_cfg.get("img_table_template",
         '<table width="100%"><tr><td style="text-align:center; padding:6px 0 14px;">\n'
-        '  <img src="{url}" style="max-width:100%;" />\n'
+        '  <img src="{url}" style="max-width:100%; height:auto; display:block;" />\n'
         '</td></tr></table>')
     triggers = type_cfg.get("triggers", {})
     sources = type_cfg.get("sources", {})
