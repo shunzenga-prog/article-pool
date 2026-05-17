@@ -1,6 +1,6 @@
 ---
 name: cover-agent
-description: 封面图生成 Agent - 永远用 auto 模式生成真实背景图，校验输出质量
+description: 封面图生成 Agent - 优先使用可用的 Agent/Codex 图片生成能力，兼容 auto 旧背景级联，校验输出质量
 tools: Bash, Read
 color: amber
 ---
@@ -14,6 +14,8 @@ color: amber
 1. **永远不传 `--mode geometric`**。默认是 auto，你不传 `--mode` 参数即可。
 2. 必须验证输出文件存在且 >100KB（真实背景图通常 200-500KB，geometric 纯色图约 50KB）。
 3. 如果 gen_cover.py 失败，报告具体原因，绝不静默降级。
+4. 当前 Agent 支持图片生成时，优先生成一张 1200×675 本地背景图，再交给 `gen_cover.py --background-image` 做裁切、校验和输出。
+5. 涉及真实产品、真实界面、新闻现场、公司 Logo 时，不要用 AI 伪造事实图片；改走旧 auto 来源或真实截图。
 
 ## 执行
 
@@ -27,6 +29,23 @@ cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && python script
   --footer "<尾部文字>" \
   --keywords "<逗号分隔关键词>" \
   --article "<文章HTML路径>" \
+  --output "<封面PNG路径>"
+```
+
+如果已经通过 Agent/Codex 生成了本地背景图：
+
+```bash
+cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && python scripts/gen_cover.py \
+  --title "<标题>" \
+  --subtitle "<副标题>" \
+  --tag "<标签>" \
+  --date "<日期> YYYY / MM / DD" \
+  --reading-time "<阅读时长>" \
+  --footer "<尾部文字>" \
+  --keywords "<逗号分隔关键词>" \
+  --article "<文章HTML路径>" \
+  --background-image "<Agent生成的背景图路径>" \
+  --image-strategy auto \
   --output "<封面PNG路径>"
 ```
 
@@ -55,7 +74,7 @@ ls -la "<封面PNG路径>"  # 确认文件存在
 ```
 COVER_RESULT:
   cover_path: <绝对路径>
-  source: <pexels|ai-gen|unsplash|brave|geometric>
+  source: <agent-local|pexels|ai-gen|unsplash|brave|geometric>
   file_size_kb: <数字>
   status: <ok|retry|failed>
 ```

@@ -50,6 +50,10 @@ WECHAT_APPID = _WECHAT_APPID
 WECHAT_SECRET = _WECHAT_SECRET
 BRAVE_API_KEY = get_env("BRAVE_API_KEY") or ""
 
+VALID_IMAGE_STRATEGIES = {"auto", "legacy", "agent_first", "factual_first"}
+FACTUAL_SOURCES = {"code_screenshot", "github_screenshot", "og_image", "web_search"}
+GENERATIVE_SOURCES = {"agent_generate", "ai_generate", "fallback_pattern"}
+
 
 # ======================================================================
 # Block 1: Configuration Loader
@@ -92,6 +96,149 @@ def get_type_config(rules: dict, article_type: str) -> dict:
     merged = dict(defaults)
     merged.update(type_cfg)
     return merged
+
+
+def normalize_image_strategy(value: str | None) -> str:
+    """Normalize image strategy names to a safe default."""
+    strategy = (value or "auto").strip()
+    return strategy if strategy in VALID_IMAGE_STRATEGIES else "auto"
+
+
+def resolve_image_strategy(cli_value: str | None, rules: dict) -> str:
+    """Resolve CLI/config image strategy."""
+    if cli_value:
+        return normalize_image_strategy(cli_value)
+    configured = rules.get("defaults", {}).get("image_strategy")
+    return normalize_image_strategy(configured)
+
+
+def get_ordered_source_configs(sources: dict, image_strategy: str = "auto") -> list[tuple[str, dict]]:
+    """Return enabled image sources ordered for the selected strategy."""
+    strategy = normalize_image_strategy(image_strategy)
+    enabled = [(k, v) for k, v in sources.items() if v.get("enabled")]
+    if strategy == "legacy":
+        enabled = [(k, v) for k, v in enabled if k != "agent_generate"]
+
+    def rank(item: tuple[str, dict]) -> tuple[int, int]:
+        name, cfg = item
+        priority = cfg.get("priority", 99)
+        if strategy == "agent_first" and name == "agent_generate":
+            return (-100, priority)
+        if strategy == "factual_first":
+            if name in FACTUAL_SOURCES:
+                return (0, priority)
+            if name == "agent_generate":
+                return (1, priority)
+            if name == "ai_generate":
+                return (2, priority)
+            return (3, priority)
+        return (priority, 0)
+
+    return sorted(enabled, key=rank)
+
+
+def _item_label(item: dict) -> str:
+    return (
+        item.get("full_name")
+        or item.get("name")
+        or item.get("title")
+        or item.get("category")
+        or "technology"
+    )
+
+
+def build_agent_image_requests(article_path: str, article_type: str, items: list[dict],
+                               rules: dict, image_strategy: str, max_count: int) -> list[dict]:
+    """Build a portable request manifest for Agent/Codex-generated images."""
+    cfg = rules.get("agent_generate", {})
+    width = cfg.get("width", 670)
+    height = cfg.get("height", 380)
+    style = cfg.get(
+        "prompt_style",
+        "clean editorial technology illustration, no text, no watermark",
+    )
+    requests_out = []
+    for idx, item in enumerate(items[:max_count]):
+        label = _item_label(item)
+        req_id = f"image_{idx + 1:03d}"
+        output_path = OUTPUT_DIR / f"agent_image_{idx + 1:03d}.png"
+        prompt = (
+            f"为微信公众号文章生成一张配图。文章类型：{article_type}。"
+            f"主题：{label}。风格：{style}。"
+            f"画面需适合科技/互联网/编程内容，横版构图，避免任何文字、Logo、水印。"
+        )
+        requests_out.append({
+            "id": req_id,
+            "article": article_path,
+            "article_type": article_type,
+            "image_strategy": normalize_image_strategy(image_strategy),
+            "label": label,
+            "prompt": prompt,
+            "width": width,
+            "height": height,
+            "output_path": str(output_path),
+        })
+    return requests_out
+
+
+def write_agent_image_requests(path: str, article_path: str, article_type: str,
+                               image_strategy: str, requests_out: list[dict]) -> None:
+    """Write Agent/Codex image requests for a second-stage generator."""
+    out_path = Path(path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "version": "1.0",
+        "article": article_path,
+        "article_type": article_type,
+        "image_strategy": normalize_image_strategy(image_strategy),
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "instructions": (
+            "在支持图片生成的 Agent 中，逐条生成图片并保存到 output_path，"
+            "然后把同一结构写成 generated_images.json，供 --use-local-images 读取。"
+        ),
+        "images": requests_out,
+    }
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+
+def load_agent_image_manifest(path: str | None) -> dict[str, dict]:
+    """Load local generated-image manifest. Missing files are ignored."""
+    if not path:
+        return {}
+    manifest_path = Path(path)
+    if not manifest_path.exists():
+        print(f"  [agent] manifest not found: {manifest_path}")
+        return {}
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception as exc:
+        print(f"  [agent] manifest read failed: {exc}")
+        return {}
+
+    entries = data.get("images", data) if isinstance(data, dict) else data
+    if not isinstance(entries, list):
+        return {}
+
+    images: dict[str, dict] = {}
+    for idx, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            continue
+        image_id = entry.get("id") or f"image_{idx + 1:03d}"
+        raw_path = entry.get("path") or entry.get("output_path") or entry.get("file")
+        if not raw_path:
+            continue
+        image_path = Path(raw_path)
+        if not image_path.is_absolute():
+            image_path = manifest_path.parent / image_path
+        if not image_path.exists():
+            print(f"  [agent] missing generated image: {image_path}")
+            continue
+        fixed_entry = dict(entry)
+        fixed_entry["path"] = str(image_path)
+        images[image_id] = fixed_entry
+    return images
 
 
 # ======================================================================
@@ -288,6 +435,31 @@ def download_image(url: str, timeout: int = 12) -> BytesIO | None:
             return BytesIO(r.content)
     except Exception:
         pass
+    return None
+
+
+def t0_agent_generated_image(index: int, agent_images: dict[str, dict]) -> BytesIO | None:
+    """Load an image generated by Codex/Agent from a local manifest."""
+    if not agent_images:
+        return None
+    image_id = f"image_{index + 1:03d}"
+    entry = agent_images.get(image_id)
+    if not entry:
+        values = list(agent_images.values())
+        entry = values[index] if index < len(values) else None
+    if not entry:
+        return None
+    path = entry.get("path")
+    if not path:
+        return None
+    try:
+        with open(path, "rb") as f:
+            data = f.read()
+        if len(data) > 500:
+            print(f"  [T0] Agent-generated local image: {path}")
+            return BytesIO(data)
+    except Exception as exc:
+        print(f"  [T0] Agent image read failed: {exc}")
     return None
 
 
@@ -839,7 +1011,10 @@ def find_placement_positions(html: str, placement_strategy: str,
 
 def generate_illustrations(article_path: str, article_type: str | None = None,
                            dry_run: bool = False, no_upload: bool = False,
-                           max_images: int | None = None, output_path: str | None = None) -> dict:
+                           max_images: int | None = None, output_path: str | None = None,
+                           image_strategy: str | None = None,
+                           emit_image_requests: str | None = None,
+                           use_local_images: str | None = None) -> dict:
     """Main orchestrator: analyze article → source images → embed → output."""
     # Load config
     rules = load_illustration_rules()
@@ -858,6 +1033,8 @@ def generate_illustrations(article_path: str, article_type: str | None = None,
         print(f"自动检测文章类型: {article_type}")
 
     type_cfg = get_type_config(rules, article_type)
+    image_strategy = resolve_image_strategy(image_strategy, rules)
+    agent_images = load_agent_image_manifest(use_local_images)
     max_images = max_images or type_cfg.get("max_images_total", 20)
     img_template = type_cfg.get("img_table_template",
         '<table width="100%"><tr><td style="text-align:center; padding:6px 0 14px;">\n'
@@ -872,7 +1049,10 @@ def generate_illustrations(article_path: str, article_type: str | None = None,
     print(f"  文章: {article_path}")
     print(f"  类型: {article_type}")
     print(f"  策略: {placement_strategy}")
+    print(f"  图片策略: {image_strategy}")
     print(f"  最大图片数: {max_images}")
+    if agent_images:
+        print(f"  本地 Agent 图片: {len(agent_images)} 张")
     print(f"{'='*60}\n")
 
     # ── Step 1: Content Analysis ──
@@ -936,6 +1116,24 @@ def generate_illustrations(article_path: str, article_type: str | None = None,
         print("  未检测到需要配图的内容，跳过")
         return {"status": "skipped", "reason": "no content to illustrate"}
 
+    agent_requests = build_agent_image_requests(
+        article_path=article_path,
+        article_type=article_type,
+        items=items,
+        rules=rules,
+        image_strategy=image_strategy,
+        max_count=total_needed,
+    )
+    if emit_image_requests:
+        write_agent_image_requests(
+            emit_image_requests,
+            article_path,
+            article_type,
+            image_strategy,
+            agent_requests,
+        )
+        print(f"  [agent] 图片生成请求: {emit_image_requests}")
+
     # ── Step 3: Source images via cascade ──
     print("\n[3] 获取图片...")
     sourced_images = []
@@ -954,13 +1152,15 @@ def generate_illustrations(article_path: str, article_type: str | None = None,
 
         img = None
         source_used = "none"
-        source_configs = sorted(
-            [(k, v) for k, v in sources.items() if v.get("enabled")],
-            key=lambda x: x[1].get("priority", 99)
-        )
+        source_configs = get_ordered_source_configs(sources, image_strategy)
 
         for src_name, src_cfg in source_configs:
-            if src_name == "github_screenshot" and github_repos and idx < len(github_repos):
+            if src_name == "agent_generate":
+                img = t0_agent_generated_image(idx, agent_images)
+                if not img:
+                    print("  [T0] Agent-generated image unavailable, fallback to next source")
+                    continue
+            elif src_name == "github_screenshot" and github_repos and idx < len(github_repos):
                 img = t1_github_screenshot(github_repos[idx], rules)
             elif src_name == "og_image" and urls:
                 # Use cache if available, otherwise fetch once
@@ -1010,7 +1210,7 @@ def generate_illustrations(article_path: str, article_type: str | None = None,
                 continue
 
         source_names_cn = {
-            "github_screenshot": "GitHub截图", "og_image": "OG图片",
+            "agent_generate": "Agent自生成", "github_screenshot": "GitHub截图", "og_image": "OG图片",
             "web_search": "网络搜索", "ai_generate": "AI生成",
             "fallback_pattern": "几何图案", "fallback_auto": "兜底",
             "code_screenshot": "代码截图",
@@ -1139,6 +1339,8 @@ def main():
   python illustration_gen.py article.html --type 项目推荐
   python illustration_gen.py article.html --type 技术教程 --dry-run
   python illustration_gen.py article.html --type 深度解析 --no-upload
+  python illustration_gen.py article.html --emit-image-requests reports/image_requests.json --dry-run
+  python illustration_gen.py article.html --use-local-images reports/generated_images.json
   python illustration_gen.py article.html                       # 自动检测类型
         """,
     )
@@ -1149,6 +1351,12 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Analyze only, do not download/upload")
     parser.add_argument("--no-upload", action="store_true", help="Skip WeChat CDN upload")
     parser.add_argument("--max-images", type=int, default=None, help="Override max_images_total")
+    parser.add_argument("--image-strategy", choices=sorted(VALID_IMAGE_STRATEGIES), default=None,
+                        help="Image source strategy: auto, legacy, agent_first, factual_first")
+    parser.add_argument("--emit-image-requests", default=None,
+                        help="Write Agent/Codex image generation request JSON")
+    parser.add_argument("--use-local-images", default=None,
+                        help="Read Agent/Codex generated local image manifest JSON")
 
     args = parser.parse_args()
 
@@ -1163,6 +1371,9 @@ def main():
         no_upload=args.no_upload,
         max_images=args.max_images,
         output_path=args.output,
+        image_strategy=args.image_strategy,
+        emit_image_requests=args.emit_image_requests,
+        use_local_images=args.use_local_images,
     )
 
     if result.get("status") == "skipped":

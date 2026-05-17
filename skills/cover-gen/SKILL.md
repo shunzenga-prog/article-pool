@@ -1,13 +1,13 @@
 ---
 name: cover-gen
-description: 公众号封面图生成。自动搜索网络图片作为背景（Pexels→AI→Unsplash→Brave→几何），生成 1200x675 专业封面。触发：生成封面、做封面图、封面图片。
+description: 公众号封面图生成。支持 Agent/Codex 本地背景图优先，并兼容自动搜索网络图片作为背景（OG→Pexels→AI→Unsplash→Brave→几何），生成 1200x675 专业封面。触发：生成封面、做封面图、封面图片。
 ---
 
 # 公众号封面图生成
 
 基于 Python PIL 的专业封面图生成器，生成 1200×675px 的公众号 16:9 封面。
 
-**v2.0 重大更新：** 支持自动从网络获取真实照片作为背景（Pexels 图库 → AI 生成 → Unsplash → 几何抽象），不再是纯渐变效果。
+**v2.1 更新：** 当前 Agent 支持图片生成时，可先生成本地背景图，再交给 `gen_cover.py --background-image` 处理。非 Codex 环境继续走旧 auto 来源，不会报错。
 
 ## 触发场景
 
@@ -27,6 +27,9 @@ python3 scripts/gen_cover.py --title "标题" --article article.html --output co
 # 指定关键词辅助图片搜索
 python3 scripts/gen_cover.py --title "标题" --keywords "AI,OpenAI,芯片" --output cover.png
 
+# 使用 Agent/Codex 已生成的本地背景图
+python3 scripts/gen_cover.py --title "标题" --background-image cover-bg.png --output cover.png
+
 # 纯几何模式（如果不需要照片背景）
 python3 scripts/gen_cover.py --title "标题" --mode geometric --output cover.png
 ```
@@ -37,6 +40,7 @@ python3 scripts/gen_cover.py --title "标题" --mode geometric --output cover.pn
 
 | 优先级 | 来源 | 需要 API Key | 说明 |
 |--------|------|-------------|------|
+| T0 | Agent/Codex 本地背景图 | 否 | 通过 `--background-image` 传入，适合概念封面 |
 | T1 | OG:Image | 否 | 从文章链接的网页提取 og:image |
 | T2 | Pexels | 是（推荐） | 高质量摄影照片，200次/小时免费 |
 | T3 | Pollinations.ai | 否 | AI 生成，主题相关，完全免费 |

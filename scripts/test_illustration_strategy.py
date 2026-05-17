@@ -1,0 +1,95 @@
+import json
+import sys
+import unittest
+from pathlib import Path
+
+
+SCRIPTS = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPTS))
+
+import illustration_gen
+
+
+class IllustrationStrategyTests(unittest.TestCase):
+    def test_legacy_strategy_removes_agent_generate_source(self):
+        sources = {
+            "agent_generate": {"enabled": True, "priority": 1},
+            "og_image": {"enabled": True, "priority": 2},
+            "fallback_pattern": {"enabled": True, "priority": 9},
+        }
+
+        ordered = illustration_gen.get_ordered_source_configs(sources, "legacy")
+
+        self.assertEqual([name for name, _ in ordered], ["og_image", "fallback_pattern"])
+
+    def test_agent_first_strategy_promotes_agent_generate_source(self):
+        sources = {
+            "og_image": {"enabled": True, "priority": 1},
+            "agent_generate": {"enabled": True, "priority": 9},
+            "fallback_pattern": {"enabled": True, "priority": 10},
+        }
+
+        ordered = illustration_gen.get_ordered_source_configs(sources, "agent_first")
+
+        self.assertEqual([name for name, _ in ordered][:2], ["agent_generate", "og_image"])
+
+    def test_local_agent_manifest_ignores_missing_images(self):
+        tmp_path = SCRIPTS / self._testMethodName
+        tmp_path.mkdir(exist_ok=True)
+        self.addCleanup(lambda: self._remove_tree(tmp_path))
+        image_path = (tmp_path / "generated.png").resolve()
+        image_path.write_bytes(b"fake-image")
+        missing_path = (tmp_path / "missing.png").resolve()
+        manifest_path = tmp_path / "generated_images.json"
+        manifest_path.write_text(
+            json.dumps(
+                {
+                    "images": [
+                        {"id": "image_001", "path": str(image_path)},
+                        {"id": "image_002", "path": str(missing_path)},
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        images = illustration_gen.load_agent_image_manifest(str(manifest_path))
+
+        self.assertEqual(list(images.keys()), ["image_001"])
+        self.assertEqual(images["image_001"]["path"], str(image_path))
+
+    def test_build_agent_image_requests_uses_stable_ids_and_workspace_paths(self):
+        tmp_path = SCRIPTS / self._testMethodName
+        tmp_path.mkdir(exist_ok=True)
+        self.addCleanup(lambda: self._remove_tree(tmp_path))
+        article_path = tmp_path / "article.html"
+        article_path.write_text("<html></html>", encoding="utf-8")
+        items = [{"title": "AI Agent 入门"}, {"name": "Claude Code"}]
+        rules = {"agent_generate": {"width": 670, "height": 380}}
+
+        requests = illustration_gen.build_agent_image_requests(
+            article_path=str(article_path),
+            article_type="深度解析",
+            items=items,
+            rules=rules,
+            image_strategy="auto",
+            max_count=2,
+        )
+
+        self.assertEqual([req["id"] for req in requests], ["image_001", "image_002"])
+        self.assertEqual(requests[0]["width"], 670)
+        self.assertEqual(requests[0]["height"], 380)
+        self.assertTrue(requests[0]["output_path"].endswith("agent_image_001.png"))
+        self.assertIn("AI Agent 入门", requests[0]["prompt"])
+
+    @staticmethod
+    def _remove_tree(path: Path):
+        if not path.exists():
+            return
+        for child in path.iterdir():
+            child.unlink()
+        path.rmdir()
+
+
+if __name__ == "__main__":
+    unittest.main()

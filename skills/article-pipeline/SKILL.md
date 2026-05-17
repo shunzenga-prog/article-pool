@@ -38,7 +38,7 @@ Stage 4 (Agent)        ┌─ 审阅Agent ─┐
   → passed?            │ 软检查4项    │
     ↓ yes              └──────────────┘
 Stage 4.5 (Agent)      ┌─ 插图Agent ─┐
-  5级级联获取配图       │ 失败不阻塞   │
+  Agent图/旧级联配图    │ 失败不阻塞   │
   → _illustrated.html  └──────────────┘
     ↓
 Stage 4.8 (Agent)      ┌─ 封面Agent ─┐
@@ -377,7 +377,9 @@ Agent({
 })
 ```
 
-**5 级图片源：** GitHub截图 → 网页OG → Brave搜索 → AI生成 → 几何兜底
+**图片策略：** 默认 `auto`。Agent/Codex 本地图可用时优先使用；不可用时自动回退旧级联。事实型图片优先真实来源。
+
+**旧级联兜底：** GitHub截图 → 网页OG → Brave搜索 → AI生成 → 几何兜底
 
 **输出：** `_illustrated.html` + 插图清单 JSON。插图 Agent 失败不阻塞后续 Stage。
 
@@ -402,7 +404,7 @@ Agent({
 - 输出路径：<PNG路径>
 - 关键词：<逗号分隔>
 
-使用 auto 模式（不要传 --mode 参数），生成后验证文件 >100KB。"
+使用 auto 模式（不要传 --mode 参数）。如果当前 Agent/Codex 已生成本地背景图，传 --background-image；生成后验证文件 >100KB。"
 })
 ```
 
@@ -416,6 +418,7 @@ Agent({
 **手动备用命令：**
 ```bash
 python scripts/gen_cover.py --title "标题" --keywords "关键词1,关键词2" --output cover.png
+python scripts/gen_cover.py --title "标题" --background-image cover-bg.png --keywords "关键词1,关键词2" --output cover.png
 # 不要加 --mode geometric
 ```
 

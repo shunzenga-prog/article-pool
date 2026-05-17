@@ -462,6 +462,22 @@ def download_image(url, timeout=12):
         pass
     return None
 
+def load_local_background_image(image_path):
+    """Load a local Agent/Codex-generated background image if available."""
+    if not image_path:
+        return None, None
+    path = Path(image_path)
+    if not path.exists():
+        print(f'  bg: local background missing: {path}')
+        return None, None
+    try:
+        img = Image.open(path).convert('RGB')
+        print(f'  bg: [T0] Agent local background: {path}')
+        return img, 'agent-local'
+    except Exception as e:
+        print(f'  bg: local background invalid - {e}')
+        return None, None
+
 def get_background_image(title, keywords, article_content=None):
     """Multi-tier fallback for cover backgrounds:
     Tier 1: OG images from article links
@@ -1030,10 +1046,11 @@ def _extract_adaptive_colors(px):
 
 
 def generate_cover(title, subtitle, tag, date_str, reading_info, footer, output_path,
-                   mode='auto', theme_name=None, article_path=None, keywords=None):
+                   mode='auto', theme_name=None, article_path=None, keywords=None,
+                   background_image=None, image_strategy='auto'):
     """Generate a 1200x675 cover image.
 
-    mode='auto': intelligent background (OG->Brave->Unsplash->geometric)
+    mode='auto': intelligent background (local Agent image->OG->Pexels->AI->Unsplash->Brave->geometric)
     mode='geometric': abstract 8-theme design
     """
     themes = load_themes()
@@ -1057,7 +1074,10 @@ def generate_cover(title, subtitle, tag, date_str, reading_info, footer, output_
     photo_bg = None
 
     if mode == 'auto':
-        photo_bg, bg_source = get_background_image(title, keywords, article_content)
+        if image_strategy != 'legacy':
+            photo_bg, bg_source = load_local_background_image(background_image)
+        if not photo_bg:
+            photo_bg, bg_source = get_background_image(title, keywords, article_content)
 
     if photo_bg:
         # Resize/crop to cover dimensions
@@ -1127,10 +1147,14 @@ def main():
     p.add_argument('--output', '-o', help='Output PNG file path.')
     p.add_argument('--mode', choices=['auto', 'geometric'],
                    default=_cover_prefs.get('cover', {}).get('default_mode', 'auto'),
-                   help='Background mode: auto (OG->Pexels->AI->Unsplash->Brave->geometric) or geometric (default: from prefs)')
+                   help='Background mode: auto (local Agent image->OG->Pexels->AI->Unsplash->Brave->geometric) or geometric')
     p.add_argument('--theme', choices=list(themes.keys()), help='Force geometric theme.')
     p.add_argument('--article', help='Article HTML/text file for OG image extraction.')
     p.add_argument('--keywords', help='Comma-separated keywords for image search.')
+    p.add_argument('--background-image', help='Local Agent/Codex-generated background image path.')
+    p.add_argument('--image-strategy', choices=['auto', 'legacy', 'agent_first', 'factual_first'],
+                   default=_cover_prefs.get('cover', {}).get('image_strategy', 'auto'),
+                   help='Image source strategy. legacy ignores --background-image.')
     p.add_argument('--list-themes', action='store_true', help='List themes and exit.')
 
     args = p.parse_args()
@@ -1160,6 +1184,8 @@ def main():
         theme_name=args.theme,
         article_path=args.article,
         keywords=keywords,
+        background_image=args.background_image,
+        image_strategy=args.image_strategy,
     )
 
 if __name__ == '__main__':

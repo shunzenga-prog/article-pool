@@ -169,6 +169,9 @@ article-pool/
 ```bash
 # 手动备用（Agent 会自动调）
 python scripts/gen_cover.py --title "标题" --subtitle "副标题" --output cover.png
+
+# 如果当前 Agent/Codex 已生成本地封面背景
+python scripts/gen_cover.py --title "标题" --subtitle "副标题" --background-image cover-bg.png --output cover.png
 # 不要加 --mode geometric
 ```
 
@@ -188,11 +191,19 @@ python scripts/illustration_gen.py article.html --type 项目推荐
 # 干跑测试
 python scripts/illustration_gen.py article.html --type 项目推荐 --dry-run
 
+# Codex/Agent 图片生成请求（支持时使用；不支持时继续旧流程）
+python scripts/illustration_gen.py article.html --type 深度解析 --emit-image-requests reports/image_requests.json --dry-run
+python scripts/illustration_gen.py article.html --type 深度解析 --use-local-images reports/generated_images.json
+
 # 限制图片数量
 python scripts/illustration_gen.py article.html --type 技术教程 --max-images 5
 ```
 
-**5 级图片源级联：** GitHub截图 → 网页OG图片 → Brave搜索 → AI生成 → 几何兜底
+**图片策略：** 默认 `auto`。有 Agent/Codex 本地图时优先使用；没有时自动回退旧级联。事实型图片（项目截图、教程截图、Logo、新闻图）优先真实来源，不用 AI 伪造。
+
+**兼容旧流程：** 需要完全旧链路时传 `--image-strategy legacy`。
+
+**旧级联兜底：** GitHub截图 → 网页OG图片 → Brave搜索 → AI生成 → 几何兜底
 
 **配置驱动：** `config/illustration_rules.json` 按文章类型定义规则，新增类型只需加 JSON 条目。
 
