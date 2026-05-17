@@ -42,6 +42,16 @@ grep -c '<p[^>]*style="[^"]*font-size' <文章HTML路径>
 
 - 结果 >0 → **REJECT**：文字样式在 `<p>` 上，公众号会剥离。样式必须下沉到 `<span>`。
 
+### H4: 正文首屏重复标题检查
+
+公众号后台会在正文外自动渲染文章标题。正文第一块可见内容如果再次出现同名标题，预览页会出现双标题。
+
+```bash
+python scripts/review_html.py <文章HTML路径> --title "<公众号系统标题>"
+```
+
+- 结果出现 `H4: 正文首块内容重复公众号系统标题` → **REJECT**：删除正文内同名大标题，让正文直接从导语/钩子开始。
+
 ## 软检查（失败 → WARN）
 
 ### S1: 章节标题下划线
@@ -78,6 +88,7 @@ REVIEW_RESULT:
     h1_root_tables: <pass|fail> <count>
     h2_forbidden_tags: <pass|fail> <count>
     h3_style_on_p: <pass|fail> <count>
+    h4_duplicate_title: <pass|fail> <detail>
   
   soft_checks:
     s1_title_underline: <pass|warn> <count>

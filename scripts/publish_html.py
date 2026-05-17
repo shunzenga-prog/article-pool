@@ -108,6 +108,26 @@ def extract_digest_from_html(html, max_len=54):
     return text
 
 
+def validate_before_publish(article_path, html_content, title):
+    """Run local structural checks before touching WeChat APIs."""
+    try:
+        from review_html import review
+    except Exception as exc:
+        print(f"⚠️  无法加载 review_html.py，跳过发布前结构审阅: {exc}")
+        return
+
+    result = review(article_path, title=title)
+    if result.get("passed"):
+        print("✅ 发布前结构审阅通过")
+        return
+
+    print("\n❌ 发布前结构审阅未通过，已停止创建草稿。")
+    for failure in result.get("failures", []):
+        print(f"  - {failure}")
+    print("\n请修复 HTML 后重新运行 publish_html.py。")
+    sys.exit(1)
+
+
 def create_draft(access_token, title, html_content, thumb_media_id, author="小咪", digest=None):
     """创建公众号草稿（直接使用 HTML，不做转换）"""
     url = f"https://api.weixin.qq.com/cgi-bin/draft/add?access_token={access_token}"
@@ -166,6 +186,7 @@ def main():
 
     with open(args.article, "r", encoding="utf-8") as f:
         html_content = f.read()
+    publish_article_path = args.article
 
     # 自动检测本地图片并上传到微信 CDN
     local_imgs = re.findall(r'<img\s[^>]*src="(?!https?://|data:)([^"]+)"', html_content)
@@ -177,6 +198,7 @@ def main():
         if os.path.exists(cdn_path):
             with open(cdn_path, "r", encoding="utf-8") as f:
                 html_content = f.read()
+            publish_article_path = cdn_path
             print(f"✅ 已替换为 CDN 版本: {cdn_path}")
         else:
             print(f"⚠️  CDN 替换未生成，使用原始文件继续")
@@ -189,6 +211,8 @@ def main():
 
     print(f"\n📝 标题: {title}")
     print(f"📄 文章大小: {len(html_content)} 字符")
+
+    validate_before_publish(publish_article_path, html_content, title)
 
     # 获取 token
     print("\n🔑 正在获取 access_token...")

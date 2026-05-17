@@ -286,6 +286,7 @@ context["hypothetical_parts"] = []  # 假设性内容标记
   - line-height 在 <span> 上不在 <p> 上？
   - font-size/color 在 <span> 上不在 <p> 上？
   - 无 <div>/<section>？
+□ 标题去重：正文第一块可见内容不重复公众号系统标题？
 ```
 
 **决策：**
@@ -317,6 +318,7 @@ Agent({
 - H1：根级 `<table>` 数量 ≤1 且不包裹全文
 - H2：无 `<div>` / `<section>` 标签
 - H3：文字样式不在 `<p>` 上（必须在 `<span>` 内）
+- H4：正文首块内容不重复公众号系统标题（避免预览双标题）
 
 **任一硬检查失败 → REJECTED → 返回 Stage 3 修复后重审。**
 
@@ -345,6 +347,7 @@ Agent({
 - [ ] 文字样式在 `<span>` 上不在 `<p>` 上？
 - [ ] 容器用 `<table><tr><td>`？
 - [ ] 无 flex/grid/border-radius/box-shadow？
+- [ ] 正文开头没有重复文章标题？
 
 **任一硬检查失败 → REJECTED → 返回 Stage 3 修复后重审。**
 内容/视觉/兼容性不通过 → 回 wechat-writer 对应写作/排版步骤修复。

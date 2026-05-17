@@ -62,6 +62,7 @@
 - [ ] 所有文字样式用 `<span style="...">` 包裹，不在 `<p>` 上设置
 - [ ] 没有 `border-radius`、`flex`/`grid`、`box-shadow`、`gradient` 等黑名单属性
 - [ ] 所有容器布局用 `<table><tr><td>` 实现
+- [ ] 正文第一块可见内容不是文章标题（公众号系统会自动显示标题）
 - [ ] 图片用 `<img style="width:100%; max-width:100%;">` 确保自适应
 - [ ] 代码块用 `<pre style="...">` 并确保暗色背景＋浅色字体
 - [ ] 没有装饰性 HTML 实体（`&middot;` `&bull;` `&mdash;` 等），特殊字符用 Unicode 本体

@@ -122,6 +122,7 @@ article-pool/
 - ❌ 禁止 `<div>` / `<section>` → 会被转为 `<p>` 并剥离样式
 - ❌ **禁止在 `<p>` 上放 `font-size` / `color` / `line-height`** → 只能放 `text-align`（`margin` 也可能丢失）
 - ❌ 禁止用 `<table>` 包裹全文 → 手机上宽度问题和黑缝。页面内容直接放在 `<p>` 中
+- ❌ 禁止正文第一块重复文章标题 → 公众号顶部已自动显示标题，正文重复会出现双标题
 - ✅ 卡片/数据区用 `<table><tr><td>` 做局部容器
 - ✅ **所有文字样式用 `<span style="...">`**，包括 `line-height`、`font-size`、`color`
 - ✅ **段落间距用 `<p style="margin:10px 0 0 0;text-align:left;">`**（仅 inline margin-top）
@@ -294,6 +295,7 @@ python scripts/review_html.py article.html --tutorial --json
 - H1: 外层 `<table>` 包裹全文 → 驳回
 - H2: `<div>` / `<section>` 禁用标签 → 驳回
 - H3: `<p>` 标签上的 font-size/color → 驳回
+- H4: 正文首块内容重复公众号系统标题 → 驳回
 - S1-S4: 章节标题下划线、颜色种类、金句、行动号召（软警告）
 
 ## 文章发布
@@ -389,8 +391,9 @@ python scripts/publish_csdn.py <文章.md> --tags "标签1,标签2" --publish
 | 3 | 选题已入库 | `reports/used_topics.json` 有新条目 |
 | 4 | **已推送到草稿箱** | `✅ 草稿创建成功！` + 草稿 ID |
 | 5 | 全文一个色系 | 不会出现冷暖混搭 |
-| 6 | 章节标题有下划线 | border-bottom 装饰线 |
-| 7 | 章节分隔明显 | 大章节间有可见分隔 |
+| 6 | 正文不重复系统标题 | 顶部直接进入导语/钩子 |
+| 7 | 章节标题有下划线 | border-bottom 装饰线 |
+| 8 | 章节分隔明显 | 大章节间有可见分隔 |
 
 ### CSDN 文章
 
