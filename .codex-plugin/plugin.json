@@ -1,0 +1,22 @@
+{
+  "name": "article-pool",
+  "version": "1.0.0",
+  "description": "Self-contained article creation workflows for Codex, including the mm-article multimodal skill.",
+  "license": "MIT",
+  "keywords": ["article", "wechat", "multimodal", "codex", "workflow"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Article Pool",
+    "shortDescription": "Multimodal article workflow skills",
+    "longDescription": "Article Pool provides self-contained skills, workflow contracts, and deterministic scripts for creating, reviewing, illustrating, and publishing articles with Codex-like multimodal agents.",
+    "developerName": "Article Pool",
+    "category": "Productivity",
+    "capabilities": ["Write", "Research", "Multimodal"],
+    "defaultPrompt": [
+      "Use mm-article to create a WeChat draft.",
+      "Plan visuals for this article with mm-article.",
+      "Review this article with multimodal gates."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

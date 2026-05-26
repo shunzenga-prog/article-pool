@@ -1,0 +1,497 @@
+{
+  "schema_version": "0.1",
+  "workflow": "mm-article",
+  "skill": "mm-article",
+  "purpose": "Semantic-first multimodal article creation for Codex-like agents while keeping the legacy Article Pool workflow intact.",
+  "external_inputs": [
+    "user_request",
+    "platform",
+    "article_type",
+    "topic_history",
+    "web_sources",
+    "platform_rules",
+    "host_capabilities"
+  ],
+  "host_capabilities": [
+    {
+      "name": "image_generation",
+      "preferred_for": ["concept_cover", "concept_illustration"],
+      "fallback": "legacy_image_cascade"
+    },
+    {
+      "name": "vision_inspection",
+      "preferred_for": ["cover_readability", "illustration_relevance", "wechat_preview_review"],
+      "fallback": "manual_review_checklist"
+    },
+    {
+      "name": "browser_capture",
+      "preferred_for": ["official_docs", "web_ui", "publish_preview"],
+      "fallback": "source_link_with_text_evidence"
+    },
+    {
+      "name": "terminal_capture",
+      "preferred_for": ["tutorial_steps", "command_output"],
+      "fallback": "verified_text_output"
+    }
+  ],
+  "output_contract": {
+    "article_root": "文章",
+    "base_dir": "文章/{YYYY}年{MM}月",
+    "basename": "{MMDD}-{safe_title}",
+    "safe_title_rule": "Use the final title with filesystem-unsafe characters removed; keep readable Chinese and spaces when the existing article pool style uses them; never expose local absolute paths in article body.",
+    "legacy_reference_examples": [
+      "文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent.html",
+      "文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent_cdn.html",
+      "文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent.png",
+      "文章/2026年05月/images_claude_agent_view/agent-view-blog-01.png"
+    ],
+    "wechat": {
+      "draft_html": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.html",
+      "illustrated_html": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_illustrated.html",
+      "cdn_html": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_cdn.html",
+      "publish_variant_html": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_publish.html",
+      "cover_png": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png",
+      "cover_background": "文章/{YYYY}年{MM}月/{MMDD}_cover_bg.png",
+      "visual_dir": "文章/{YYYY}年{MM}月/{visual_slug}",
+      "body_image_pattern": "文章/{YYYY}年{MM}月/{visual_slug}/{NN}-{image_slug}.png",
+      "screenshot_pattern": "文章/{YYYY}年{MM}月/{visual_slug}/{NN}-{screenshot_slug}.png",
+      "visual_slug_examples": [
+        "images_claude_agent_view",
+        "screenshots_ep5",
+        "claude-code-harness-images"
+      ]
+    },
+    "reports": {
+      "run_dir": "reports/mm-article/{YYYYMMDD-HHMMSS}-{slug}",
+      "evidence": "reports/mm-article/{run_id}/evidence.json",
+      "title_decision": "reports/mm-article/{run_id}/title_decision.json",
+      "content_prompt": "reports/mm-article/{run_id}/content_prompt.md",
+      "visual_plan": "reports/mm-article/{run_id}/visual_plan.json",
+      "image_requests": "reports/mm-article/{run_id}/image_requests.json",
+      "generated_images": "reports/mm-article/{run_id}/generated_images.json",
+      "review": "reports/mm-article/{run_id}/review.json",
+      "publish_result": "reports/mm-article/{run_id}/publish_result.json"
+    }
+  },
+  "illustration_policy": {
+    "default_strategy": "agent_first_when_available",
+    "real_visuals_first_for": ["tutorial_steps", "product_ui", "official_docs", "logos", "news_photos", "data_charts"],
+    "concept_generation_for": ["abstract_concepts", "methodology", "metaphor", "non_factual_section_opener"],
+    "agent_first_flow": [
+      "emit_image_requests",
+      "agent_generates_local_images",
+      "write_generated_images_manifest",
+      "embed_with_use_local_images",
+      "review_visual_relevance"
+    ],
+    "request_manifest": "reports/mm-article/{run_id}/image_requests.json",
+    "generated_manifest": "reports/mm-article/{run_id}/generated_images.json",
+    "embed_command": "python scripts/illustration_gen.py <article.html> --use-local-images reports/mm-article/{run_id}/generated_images.json",
+    "rules": [
+      "Every image must map to a paragraph or cover goal.",
+      "Factual visuals must be captured or sourced from real pages; generated images cannot replace evidence.",
+      "Decorative-only images are rejected unless they serve the cover or a section opener.",
+      "Tutorial key steps need real screenshots or verified output."
+    ]
+  },
+  "cover_policy": {
+    "default_strategy": "agent_background_then_cover_layout",
+    "agent_background": "文章/{YYYY}年{MM}月/{MMDD}_cover_bg.png",
+    "final_cover": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png",
+    "aspect_ratio": "1200x675",
+    "prompt_rules": [
+      "Generate pure visual artwork with no title text inside the image.",
+      "Derive the cover brief from the article claim, content symbols, brand visual elements, composition, and avoid-generic list before generation.",
+      "Use bright but natural lighting, one clear central subject, and low background clutter.",
+      "Optimize for WeChat thumbnail readability.",
+      "Do not fabricate product UI, official screenshots, logos, or news photos.",
+      "Do not claim a concrete underlying model name when the built-in image tool does not expose one.",
+      "Regenerate if the result looks like generic stock technology art rather than the article's specific argument."
+    ],
+    "layout_command": "python scripts/gen_cover.py --title \"<title>\" --background-image <cover-bg.png> --output <cover.png>",
+    "success_checks": [
+      "cover file exists",
+      "cover is 1200x675",
+      "cover is readable at thumbnail size",
+      "cover source is not geometric fallback when image generation is available"
+    ]
+  },
+  "legacy_lane": {
+    "mode": "preserved",
+    "protected_skills": [
+      "article-pipeline",
+      "wechat-writer",
+      "cover-gen",
+      "illustration-gen"
+    ],
+    "protected_tools": [
+      "scripts/review_html.py",
+      "scripts/gen_cover.py",
+      "scripts/illustration_gen.py",
+      "scripts/publish_html.py",
+      "config/pipeline_templates/深度解析.json",
+      "config/pipeline_templates/技术教程.json",
+      "config/pipeline_templates/早报_晚报.json"
+    ],
+    "rules": [
+      "New multimodal semantics live under skills/mm-article and workflow/mm-article.",
+      "Legacy skills and CLI defaults remain callable without mm-article.",
+      "Deterministic scripts may be used as leaf tools, not as the semantic planner."
+    ]
+  },
+  "semantic_tasks": [
+    {
+      "kind": "research.sources",
+      "intent": "Choose source types before searching: official or primary sources first, then authoritative media, then community sources only as supplementary signals.",
+      "inputs": ["user_request", "platform", "article_type"],
+      "outputs": ["source_plan_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "research.timeliness",
+      "intent": "Verify publication dates and classify freshness before using facts in the article.",
+      "inputs": ["source_plan_artifact", "web_sources"],
+      "outputs": ["timeliness_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "research.topic",
+      "intent": "Understand the topic, freshness, evidence quality, and publish angle before drafting.",
+      "inputs": ["user_request", "topic_history", "web_sources", "timeliness_artifact"],
+      "outputs": ["evidence_artifacts", "angle_decision"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "research.depth",
+      "intent": "For release, trend, policy, pricing, benchmark, incident, or analysis articles, build the root question, rejected shallow angles, metric map, mechanism chain, comparison frame, neutral counterpoints, positive value framing, and reader payoff before title and drafting.",
+      "inputs": ["user_request", "web_sources", "evidence_artifacts", "angle_decision"],
+      "outputs": ["research_depth_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "title.generate",
+      "intent": "Generate and select a platform title that satisfies length, hook, weak-word, and anti-AI constraints.",
+      "inputs": ["angle_decision", "evidence_artifacts", "research_depth_artifact", "platform_rules"],
+      "outputs": ["title_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "draft.prompt",
+      "intent": "Build the article content prompt with audience, root question, angle, metric map, mechanism, positive user value, neutral counterpoints, reader payoff, structure, evidence, tone, visual slots, and platform rules before drafting.",
+      "inputs": ["title_artifact", "angle_decision", "evidence_artifacts", "research_depth_artifact", "platform_rules"],
+      "outputs": ["content_prompt_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "draft.writing_craft",
+      "intent": "Design the reader scene, opening strategy, positive value plan, nut graf, section motion, transition plan, and stiffness scan before drafting so the article does not sound forced, argumentative, or report-like.",
+      "inputs": ["content_prompt_artifact", "research_depth_artifact", "title_artifact"],
+      "outputs": ["writing_craft_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "draft.article",
+      "intent": "Write platform-native article content with claims tied to evidence and visual slots marked intentionally.",
+      "inputs": ["content_prompt_artifact", "writing_craft_artifact", "title_artifact", "evidence_artifacts"],
+      "outputs": ["draft_artifact", "visual_slot_artifacts"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "rewrite.humanize",
+      "intent": "Remove text and visual AI flavor while preserving facts, structure, and platform compatibility.",
+      "inputs": ["draft_artifact", "evidence_artifacts", "title_artifact"],
+      "outputs": ["humanized_draft_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "layout.wechat",
+      "intent": "Apply WeChat-safe layout rules, including inline span styling, local table cards only, section dividers, and no repeated system title in the body.",
+      "inputs": ["humanized_draft_artifact", "visual_slot_artifacts", "platform_rules"],
+      "outputs": ["layout_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "plan.visuals",
+      "intent": "Decide which visuals must be factual captures and which can be generated concept images.",
+      "inputs": ["layout_artifact", "evidence_artifacts", "host_capabilities"],
+      "outputs": ["visual_plan_artifact", "cover_brief_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "capture.factual",
+      "intent": "Capture real UI, terminal, code, chart, or source evidence when the article makes factual or tutorial claims.",
+      "inputs": ["visual_plan_artifact"],
+      "outputs": ["screenshot_artifacts"],
+      "execution": "host_tool"
+    },
+    {
+      "kind": "generate.image",
+      "intent": "Generate local concept images for covers and illustrations only when factual capture is not required.",
+      "inputs": ["visual_plan_artifact", "cover_brief_artifact", "host_capabilities"],
+      "outputs": ["image_artifacts"],
+      "execution": "host_tool"
+    },
+    {
+      "kind": "inspect.visual",
+      "intent": "Review images and screenshots for relevance, readability, truthfulness, and thumbnail strength.",
+      "inputs": ["image_artifacts", "screenshot_artifacts", "layout_artifact"],
+      "outputs": ["visual_review_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "finalize.cover",
+      "intent": "Select or render the final cover artifact after title, local image assets, and visual review are ready.",
+      "inputs": ["title_artifact", "cover_brief_artifact", "image_artifacts", "visual_review_artifact"],
+      "outputs": ["cover_artifact"],
+      "execution": "deterministic_tool"
+    },
+    {
+      "kind": "validate.format",
+      "intent": "Validate platform file format, title/body separation, HTML or Markdown structure, and required metadata before final review.",
+      "inputs": ["layout_artifact", "title_artifact", "visual_review_artifact", "cover_artifact"],
+      "outputs": ["format_validation_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "review.editorial",
+      "intent": "Run a full editorial review for title, evidence, timeliness, human feel, layout, visuals, platform fit, and publish readiness.",
+      "inputs": ["format_validation_artifact", "visual_review_artifact", "evidence_artifacts"],
+      "outputs": ["editorial_review_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "review.wechat_render",
+      "intent": "Check WeChat HTML compatibility and visual structure before publishing.",
+      "inputs": ["editorial_review_artifact", "layout_artifact", "image_artifacts"],
+      "outputs": ["review_artifact"],
+      "execution": "deterministic_tool"
+    },
+    {
+      "kind": "publish.draft",
+      "intent": "Publish only after semantic and deterministic quality gates pass.",
+      "inputs": ["review_artifact", "layout_artifact", "cover_artifact"],
+      "outputs": ["publish_result_artifact"],
+      "execution": "deterministic_tool"
+    }
+  ],
+  "artifact_kinds": [
+    "evidence",
+    "draft",
+    "visual_plan",
+    "image",
+    "screenshot",
+    "review",
+    "publish_result"
+  ],
+  "deterministic_tools": [
+    {
+      "name": "wechat_html_review",
+      "path": "scripts/review_html.py",
+      "use_when": "A WeChat HTML draft is ready for compatibility checking."
+    },
+    {
+      "name": "cover_layout",
+      "path": "scripts/gen_cover.py",
+      "use_when": "A semantic cover direction and local background image already exist."
+    },
+    {
+      "name": "illustration_embedding",
+      "path": "scripts/illustration_gen.py",
+      "use_when": "The workflow has approved local images or needs image request slots."
+    },
+    {
+      "name": "wechat_publish",
+      "path": "scripts/publish_html.py",
+      "use_when": "All publish gates pass and the user wants a WeChat draft."
+    }
+  ],
+  "production_standards": [
+    {
+      "id": "platform_contract",
+      "gate": "必须先确定平台和产物格式；公众号、CSDN、小红书不能机械互转。",
+      "failure_mode": "阻断创作并要求重新选择平台或重建格式。"
+    },
+    {
+      "id": "topic_dedup",
+      "gate": "创作前必须检查近期选题库，避免同一事件、同一角度重复发布。",
+      "failure_mode": "阻断创作，要求换角度、换选题或说明与旧题的明确差异。"
+    },
+    {
+      "id": "source_reliability",
+      "gate": "关键事实优先使用官方、一手、论文、release、监管公告和权威媒体。",
+      "failure_mode": "降级为观点或假设；不能作为事实写入。"
+    },
+    {
+      "id": "timeliness",
+      "gate": "时效性信息必须确认发布时间并按实时、近期、过期转分析分类。",
+      "failure_mode": "阻断新闻写法，改为分析/复盘/方法论或重新搜索。"
+    },
+    {
+      "id": "evidence_ledger",
+      "gate": "必须维护证据清单，记录来源、发布时间、检索时间、支持的具体说法。",
+      "failure_mode": "不进入起草，先补齐证据清单。"
+    },
+    {
+      "id": "claim_boundary",
+      "gate": "事实、推断、观点、假设、亲历必须分清；没有亲测不得写亲测。",
+      "failure_mode": "退回重写相关段落，并标注事实边界。"
+    },
+    {
+      "id": "title_quality",
+      "gate": "标题必须满足平台长度、钩子、弱词、品牌准确性和去 AI 味约束。",
+      "failure_mode": "标题重写，不允许继续用不合格标题发布。"
+    },
+    {
+      "id": "content_prompt",
+      "gate": "起草前必须生成内容提示词，包含读者、研究问题、角度、证据、指标、机制、正向价值、中性限制边界、读者决策、开头策略、段落推进、结构、视觉和平台规则。",
+      "failure_mode": "阻断起草，先补提示词。"
+    },
+    {
+      "id": "positive_value_framing",
+      "gate": "新闻发布、模型发布、产品发布类文章默认从客观事实、正面意义和消费者/用户可获得的实际价值出发；限制边界只能中性说明，不能写成抬杠、唱反调或莫名反思。",
+      "failure_mode": "退回内容提示词和写作策略阶段，重写为正向价值框架。"
+    },
+    {
+      "id": "writing_craft",
+      "gate": "深度文章必须先形成读者场景、开头策略、正向价值计划、nut graf、段落推进、转场计划和生硬度自检；开头不得强行引导读者或直接抛抽象判断，全文不得为了显得深刻而抬杠。",
+      "failure_mode": "开头、转场或结尾生硬时退回写作策略阶段，不能靠格式审阅放行。"
+    },
+    {
+      "id": "research_depth",
+      "gate": "模型发布、产品发布、技术趋势、政策、融资、价格、榜单、事故和热点复盘必须先形成研究问题、浅层角度拒绝、指标拆解、机制链路、参照系、中性限制边界、正向价值和读者抓手。",
+      "failure_mode": "深度不足时退回研究阶段；不能用来源摘要加普通评论进入排版。"
+    },
+    {
+      "id": "narrative_structure",
+      "gate": "正文必须有明确开头钩子、信息推进、转折、案例或证据和自然结尾。",
+      "failure_mode": "退回结构重写。"
+    },
+    {
+      "id": "human_voice",
+      "gate": "文字和视觉都要去 AI 味，避免报告腔、模板腔、整段高亮和过度装饰。",
+      "failure_mode": "退回改写，直到真人感检查通过。"
+    },
+    {
+      "id": "reader_visible_process_leak",
+      "gate": "正文、图注、alt、卡片和结尾不得出现提示词、审阅说明、工作流规则或图片处理备注。",
+      "failure_mode": "阻断发布，删除生产痕迹并重新做读者视角审阅。"
+    },
+    {
+      "id": "wechat_layout",
+      "gate": "公众号 HTML 必须遵守微信 CSS 兼容规则，正文不重复系统标题。",
+      "failure_mode": "阻断发布，回排版阶段修复。"
+    },
+    {
+      "id": "format_validation",
+      "gate": "目标文件必须匹配平台格式，并通过对应格式检查。",
+      "failure_mode": "阻断审阅和发布，回格式修复。"
+    },
+    {
+      "id": "output_contract",
+      "gate": "所有文章、封面、配图、截图、报告必须输出到约定目录和文件名。",
+      "failure_mode": "阻断发布，先整理产物位置和命名。"
+    },
+    {
+      "id": "illustration_policy",
+      "gate": "配图必须按事实优先、Agent 概念图补充、manifest 嵌入的流程执行。",
+      "failure_mode": "退回视觉计划或重新生成配图。"
+    },
+    {
+      "id": "cover_policy",
+      "gate": "封面必须先形成从文章主张提炼的语义 brief，包含内容符号、品牌视觉元素、构图和避雷词；Agent 生成无文字背景图，再输出同名 PNG 封面。",
+      "failure_mode": "封面泛化、审美失败、模型归因不实或 geometric 兜底时，回到 brief 重新生成封面。"
+    },
+    {
+      "id": "visual_truthfulness",
+      "gate": "生成图不能伪装成截图、新闻图、官方图或现实证据。",
+      "failure_mode": "删除或重生成图片，并修正文案说明。"
+    },
+    {
+      "id": "multimodal_assets",
+      "gate": "每个视觉资产必须有用途、来源、路径、插入位置和是否事实型的标记。",
+      "failure_mode": "阻断嵌入或发布，先补资产记录。"
+    },
+    {
+      "id": "accessibility",
+      "gate": "图片必须有清晰 alt/说明，图文关系明确，缩略图可读。",
+      "failure_mode": "回视觉检查和排版修复。"
+    },
+    {
+      "id": "compliance_safety",
+      "gate": "敏感、医疗、法律、金融、政策和安全内容必须降低断言强度并标明来源。",
+      "failure_mode": "阻断发布，要求补来源、改写或人工确认。"
+    },
+    {
+      "id": "privacy_secrets",
+      "gate": "不得输出 API Key、Cookie、token、本地绝对路径、用户隐私或登录态截图。",
+      "failure_mode": "阻断发布，清理内容和截图后重审。"
+    },
+    {
+      "id": "editorial_review",
+      "gate": "发布前必须完成标题、事实、时效、内容、风格、排版、格式、视觉全量审阅。",
+      "failure_mode": "任一硬项失败均退回对应语义阶段。"
+    },
+    {
+      "id": "publish_readiness",
+      "gate": "只有审阅通过、封面和插图就绪、目标平台返回草稿或文章 ID 才算完成。",
+      "failure_mode": "不得宣称完成，只能报告当前阻断点。"
+    },
+    {
+      "id": "failure_handling",
+      "gate": "失败必须记录原因、影响范围、下一步和是否可降级，禁止静默跳过硬门禁。",
+      "failure_mode": "停止流程并输出失败报告。"
+    },
+    {
+      "id": "observability",
+      "gate": "关键阶段必须产生可追踪产物：证据、标题、提示词、草稿、视觉计划、审阅、发布结果。",
+      "failure_mode": "不进入下一阶段，先补齐缺失产物。"
+    },
+    {
+      "id": "legacy_isolation",
+      "gate": "v2 只新增或读取旧能力，不修改旧 skill 语义和旧脚本默认行为。",
+      "failure_mode": "回滚 v2 改动或拆分提交，避免污染旧流程。"
+    }
+  ],
+  "quality_gates": [
+    {
+      "name": "legacy_isolation",
+      "must": "Do not mutate protected legacy skills or default script behavior for v2-only changes."
+    },
+    {
+      "name": "truthful_visuals",
+      "must": "Generated images must not be presented as real screenshots, official photos, or evidence."
+    },
+    {
+      "name": "title_constraints",
+      "must": "The selected title must pass platform length, hook count, weak-word, and anti-AI checks."
+    },
+    {
+      "name": "source_and_timeliness",
+      "must": "Facts must be backed by reliable sources with checked publication dates and freshness classification."
+    },
+    {
+      "name": "human_voice",
+      "must": "The draft must remove formulaic AI patterns while preserving factual accuracy."
+    },
+    {
+      "name": "positive_value_framing",
+      "must": "Release, model, and product articles should lead with objective facts, positive significance, and user or consumer value; limits must stay neutral rather than argumentative."
+    },
+    {
+      "name": "reader_visible_process_leak",
+      "must": "Reader-visible text must not include workflow prompts, review notes, image-processing notes, or creator-only instructions."
+    },
+    {
+      "name": "format_validation",
+      "must": "The final file must match the target platform format before publish review."
+    },
+    {
+      "name": "visual_relevance",
+      "must": "Every visual artifact must map to a paragraph, cover goal, or publish requirement."
+    },
+    {
+      "name": "wechat_compatibility",
+      "must": "WeChat HTML must pass deterministic review before publishing."
+    }
+  ]
+}
