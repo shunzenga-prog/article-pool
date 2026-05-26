@@ -1,6 +1,6 @@
 ---
 name: news-aggregator
-description: 资讯整合Agent - 根据场景智能抓取、验证、整理新闻素材，供创作Agent使用。支持早报/晚报/周报/月报/指定主题/知识分享等多种场景。
+description: Use when aggregating, validating, and organizing news material for Article Pool drafts, including morning news, evening news, weekly/monthly reports, topic briefs, and knowledge-sharing articles.
 ---
 
 # 资讯整合 Agent

@@ -1,6 +1,6 @@
 ---
 name: article-pipeline
-description: 文章创作完整流程。Stage 4(审阅)、Stage 4.8(封面)、Stage 8(发布) 由独立 Agent 硬约束执行。触发：创作文章、写文章、文章pipeline。
+description: Use when the user asks for the legacy Article Pool article pipeline, including 创作文章, 写文章, 文章pipeline, WeChat articles, Xiaohongshu notes, staged review, cover, and publish flow.
 ---
 
 # 文章创作链（Article Pipeline）
@@ -38,12 +38,12 @@ Stage 4 (Agent)        ┌─ 审阅Agent ─┐
   → passed?            │ 软检查4项    │
     ↓ yes              └──────────────┘
 Stage 4.5 (Agent)      ┌─ 插图Agent ─┐
-  Agent图/旧级联配图    │ 失败不阻塞   │
+  GPT Image优先/旧级联兜底 │ 失败不阻塞 │
   → _illustrated.html  └──────────────┘
     ↓
 Stage 4.8 (Agent)      ┌─ 封面Agent ─┐
-  强制auto模式          │ 验证>100KB  │
-  绝不geometric         └──────────────┘
+  GPT Image优先         │ 验证>100KB  │
+  绝不geometric正常通过 └──────────────┘
     ↓
 Stage 5-6 (AI语义)
   润色 → 评估
@@ -382,6 +382,11 @@ Agent({
 
 **图片策略：** 默认 `auto`。Agent/Codex 本地图可用时优先使用；不可用时自动回退旧级联。事实型图片优先真实来源。
 
+**GPT Image 前置硬约束：**
+- 在支持 `image_gen` / GPT Image 的 Codex 环境中，插图 Agent 必须先执行 `--emit-image-requests`，由当前 Agent 逐张生成本地图，再用 `--use-local-images` 嵌入。
+- 对概念图、流程图、风格图、封面风格插图，默认使用 `--image-strategy agent_first`。
+- 只有事实型素材（官方截图、真实界面、项目截图、Logo、新闻现场）或 GPT Image 不可用时，才允许直接走 OG/GitHub/搜索/旧 AI/几何兜底。
+
 **旧级联兜底：** GitHub截图 → 网页OG → Brave搜索 → AI生成 → 几何兜底
 
 **输出：** `_illustrated.html` + 插图清单 JSON。插图 Agent 失败不阻塞后续 Stage。
@@ -407,13 +412,15 @@ Agent({
 - 输出路径：<PNG路径>
 - 关键词：<逗号分隔>
 
-使用 auto 模式（不要传 --mode 参数）。如果当前 Agent/Codex 已生成本地背景图，传 --background-image；生成后验证文件 >100KB。"
+使用 auto 模式（不要传 --mode 参数）。如果当前 Agent 支持 GPT Image / image_gen，必须先生成本地背景图并传 --background-image；生成后验证文件 >100KB。"
 })
 ```
 
 **封面 Agent 硬约束：**
+- 在支持 GPT Image / image_gen 的 Codex 环境中，必须先由 Agent 生成 1200×675 本地背景图，再调用 `gen_cover.py --background-image`
 - 永不传 `--mode geometric`
 - 验证输出文件 >100KB（真实背景图 200-500KB，geometric 约 50KB）
+- 如果最终来源是 `geometric`，不得直接视为通过；需要重试 GPT Image、换 prompt，或向用户说明 GPT Image 不可用
 - 失败时报告原因，不静默降级
 
 **封面图规格：** 1200×675px PNG，16:9 比例。配色与文章风格卡协调。

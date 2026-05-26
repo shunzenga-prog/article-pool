@@ -1,6 +1,6 @@
 ---
 name: wechat-writer
-description: article-pipeline Stage 2 子模块：内容写作与 HTML 排版。由 pipeline 编排调用，不独立触发。
+description: Use when article-pipeline delegates Stage 2 WeChat content writing and HTML layout; this skill is a pipeline submodule and should not be independently selected for full workflows.
 ---
 
 # 公众号文章写作与排版
@@ -24,10 +24,10 @@ description: article-pipeline Stage 2 子模块：内容写作与 HTML 排版。
 | "作为 AI 助手" | 直接表达观点 |
 | "我是 AI" | 无需说明身份 |
 | "作为一个人工智能" | 直接写观点 |
-| "小咪看到这个消息心情复杂" | "这个消息让人心情复杂" |
+| "小智看到这个消息心情复杂" | "这个消息让人心情复杂" |
 
-**小咪的定位：**
-- ✅ 可以用第三人称"小咪"（笔名/昵称）
+**小智的定位：**
+- ✅ 可以用第三人称"小智"（笔名/昵称）
 - ✅ 可以有观点、情绪、态度
 - ❌ 不能说"我是 AI""作为 AI 助手"
 
@@ -36,7 +36,7 @@ description: article-pipeline Stage 2 子模块：内容写作与 HTML 排版。
 | ❌ AI 味太重 | ✅ 自然写作 |
 |------------|------------|
 | 未来展望分"短期/中期/长期" | 用几句话自然收尾 |
-| "小咪观点"搞大标题 | 结尾自然表达想法 |
+| "小智观点"搞大标题 | 结尾自然表达想法 |
 | 引用原文用翻译后的语言 | 原话说出来 |
 | 大量颜色高亮语法 | 适度强调，简洁为主 |
 | 结构化分层（一、二、三） | 流畅叙述，自然过渡 |
@@ -112,7 +112,7 @@ python scripts/topic_tracker.py list --days 14  # 自定义天数
 - ❌ "该工具具有以下特点" → ✅ "根据文档和社区反馈，这工具有几个亮点"
 - **禁止编造**：不能写"我试过了"、"我亲自体验过"
 
-### 小咪特色
+### 小智特色
 - 🐱 身份标识 | ✅ 真实来源 | 💡 金句（≥1 句） | 🎯 行动号召
 
 ---

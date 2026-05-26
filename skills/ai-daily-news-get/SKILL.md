@@ -1,6 +1,6 @@
 ---
-name: AI Daily News
-description: 每日AI早报 - 简洁风格，自动生成封面图并上传公众号。使用场景：(1) 生成AI早报 (2) 查看今日AI新闻 (3) 定时任务触发
+name: ai-daily-news-get
+description: Use when Codex needs to create a concise AI daily news WeChat draft, fetch today's AI news, or run the scheduled AI morning-news workflow.
 ---
 
 # AI Daily News - 每日AI早报

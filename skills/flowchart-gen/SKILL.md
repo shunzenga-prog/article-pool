@@ -1,6 +1,6 @@
 ---
 name: flowchart-gen
-description: 流程图生成技能。将流水线/架构/流程描述转换为设计级 Mermaid 流程图，通过 Playwright 渲染为暗色卡片 PNG。触发：画流程图、架构全景、流水线图、流程示意。
+description: Use when drawing Article Pool flowcharts, architecture maps, pipeline diagrams, Mermaid diagrams, or rendered dark-card PNG process visuals.
 ---
 
 # 流程图生成（Flowchart Gen）

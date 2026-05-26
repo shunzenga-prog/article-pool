@@ -1,6 +1,6 @@
 ---
 name: hotspot-tracker
-description: 自动追踪 AI 领域热点，生成选题建议。每日检查微博热搜、知乎热榜、AI 媒体动态、学术论文，输出选题清单。触发：追热点、找选题、有什么热点。
+description: Use when tracking AI hotspots, finding article topics, checking trending AI news, or preparing daily topic suggestions from Chinese and technical sources.
 ---
 
 # 热点追踪器

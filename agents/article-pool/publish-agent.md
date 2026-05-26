@@ -35,7 +35,7 @@ fi
 ### Step 1: 发布到草稿箱
 
 ```bash
-cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && PYTHONIOENCODING=utf-8 python scripts/publish_html.py "$ARTICLE" --cover "<封面PNG路径>" --author "小咪"
+cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && PYTHONIOENCODING=utf-8 python scripts/publish_html.py "$ARTICLE" --cover "<封面PNG路径>" --author "小智"
 ```
 
 ### Step 2: 选题入库
@@ -96,7 +96,7 @@ PUBLISH_RESULT:
 如果用户要求同时发布到 CSDN（Playwright 浏览器自动化，零配置）：
 
 ```bash
-cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && PYTHONIOENCODING=utf-8 python scripts/publish_csdn.py "$ARTICLE" --tags "<标签>" --author "小咪"
+cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && PYTHONIOENCODING=utf-8 python scripts/publish_csdn.py "$ARTICLE" --tags "<标签>" --author "小智"
 ```
 
 CSDN 文章请直接用 Markdown 创作（.md 文件）。跨平台迁移用 AI 重写，不要用机械转换工具。

@@ -1,13 +1,13 @@
 ---
 name: cover-gen
-description: 公众号封面图生成。支持 Agent/Codex 本地背景图优先，并兼容自动搜索网络图片作为背景（OG→Pexels→AI→Unsplash→Brave→几何），生成 1200x675 专业封面。触发：生成封面、做封面图、封面图片。
+description: Use when generating or repairing Article Pool WeChat cover images, including 1200x675 covers, GPT Image local backgrounds, gen_cover.py, or cover visual QA.
 ---
 
 # 公众号封面图生成
 
 基于 Python PIL 的专业封面图生成器，生成 1200×675px 的公众号 16:9 封面。
 
-**v2.1 更新：** 当前 Agent 支持图片生成时，可先生成本地背景图，再交给 `gen_cover.py --background-image` 处理。非 Codex 环境继续走旧 auto 来源，不会报错。
+**v2.2 更新：** 当前 Agent 支持 GPT Image / image_gen 时，必须先生成本地背景图，再交给 `gen_cover.py --background-image` 处理。非 Codex 环境继续走旧 auto 来源，不会报错。
 
 ## 触发场景
 
@@ -18,7 +18,10 @@ description: 公众号封面图生成。支持 Agent/Codex 本地背景图优先
 ## 快速使用
 
 ```bash
-# 智能模式（推荐）：自动搜索网络图片作为背景
+# Codex / GPT Image 模式（推荐）：先由 Agent 生成本地背景图，再交给脚本处理
+python3 scripts/gen_cover.py --title "AI 圈沸腾的一周" --background-image cover-bg.png --output cover.png
+
+# 旧智能模式：仅在 GPT Image 不可用或不适合时使用
 python3 scripts/gen_cover.py --title "AI 圈沸腾的一周" --output cover.png
 
 # 指定文章文件，优先提取文章链接中的 OG 图片
@@ -36,6 +39,8 @@ python3 scripts/gen_cover.py --title "标题" --mode geometric --output cover.pn
 
 ## 背景图片获取策略（自动模式）
 
+**重要：** 在 Codex 且可用 GPT Image / image_gen 的环境中，T0 不是可选优化，而是默认必走。脚本不能直接调用 GPT Image，所以必须由 Agent 先生成本地图片，再通过 `--background-image` 传给脚本。
+
 脚本按以下优先级自动获取背景图片：
 
 | 优先级 | 来源 | 需要 API Key | 说明 |
@@ -47,6 +52,8 @@ python3 scripts/gen_cover.py --title "标题" --mode geometric --output cover.pn
 | T4 | Unsplash | 否 | 免费图库，可能被限速 |
 | T5 | Brave 搜索 | 是 | Brave 图片搜索引擎 |
 | T6 | 几何抽象 | 否 | 始终可用的兜底方案 |
+
+如果封面最终走到 T6 几何抽象，在 Codex 环境中应视为需要复核，而不是正常完成。
 
 **推荐配置 Pexels API Key**（免费注册，2分钟搞定）：
 1. 访问 https://www.pexels.com/api/

@@ -1,0 +1,130 @@
+{
+  "schema_version": "0.1",
+  "workflow": "mm-video",
+  "skill": "mm-video",
+  "purpose": "Create explainable existing-video narration assets and render hard-burned subtitle videos while keeping paid model capabilities optional.",
+  "default_ffmpeg_root": "D:\\Environment\\ffmpeg\\ffmpeg-7.0.2",
+  "external_inputs": [
+    "source_video",
+    "user_intent",
+    "target_platform",
+    "host_capabilities",
+    "optional_narration_text",
+    "optional_model_transcript",
+    "optional_vision_notes",
+    "optional_tts_audio"
+  ],
+  "host_capabilities": [
+    {
+      "name": "ffmpeg",
+      "required_for": [
+        "probe_video",
+        "extract_audio",
+        "extract_frames",
+        "burn_subtitles"
+      ],
+      "default_root": "D:\\Environment\\ffmpeg\\ffmpeg-7.0.2"
+    },
+    {
+      "name": "speech_to_text",
+      "preferred_for": [
+        "source_audio_transcript"
+      ],
+      "fallback": "manual_or_external_transcript"
+    },
+    {
+      "name": "vision_inspection",
+      "preferred_for": [
+        "frame_understanding",
+        "ocr_notes",
+        "visual_narration_context"
+      ],
+      "fallback": "human_notes_in_timeline"
+    },
+    {
+      "name": "text_to_speech",
+      "preferred_for": [
+        "voiceover_audio"
+      ],
+      "fallback": "subtitle_only_render"
+    }
+  ],
+  "output_contract": {
+    "run_dir": "reports/mm-video/{YYYYMMDD-HHMMSS}-{slug}",
+    "timeline": "reports/mm-video/{run_id}/timeline.json",
+    "narration": "reports/mm-video/{run_id}/narration.md",
+    "subtitles_ass": "reports/mm-video/{run_id}/subtitles.ass",
+    "subtitles_srt": "reports/mm-video/{run_id}/subtitles.srt",
+    "source_audio": "reports/mm-video/{run_id}/audio/source.wav",
+    "frames": "reports/mm-video/{run_id}/frames/frame_{NNNN}.jpg",
+    "contact_sheet": "reports/mm-video/{run_id}/contact_sheet.jpg",
+    "output_video": "reports/mm-video/{run_id}/output.mp4"
+  },
+  "deterministic_tools": [
+    {
+      "name": "prepare",
+      "command": "python scripts/mm_video.py --ffmpeg-root D:\\Environment\\ffmpeg\\ffmpeg-7.0.2 prepare <input.mp4> --slug <slug>",
+      "outputs": [
+        "timeline",
+        "narration",
+        "subtitles_ass",
+        "subtitles_srt",
+        "source_audio",
+        "frames",
+        "contact_sheet"
+      ]
+    },
+    {
+      "name": "burn_subtitles",
+      "command": "python scripts/mm_video.py --ffmpeg-root D:\\Environment\\ffmpeg\\ffmpeg-7.0.2 burn <input.mp4> --subtitles <subtitles.ass> --output <output.mp4>",
+      "outputs": [
+        "output_video"
+      ]
+    }
+  ],
+  "semantic_tasks": [
+    {
+      "kind": "video.probe",
+      "intent": "Read duration, streams, dimensions, and media constraints before planning narration.",
+      "execution": "script_leaf"
+    },
+    {
+      "kind": "video.extract_timeline",
+      "intent": "Extract audio, frames, contact sheet, and segment placeholders for reviewable narration work.",
+      "execution": "script_leaf"
+    },
+    {
+      "kind": "video.understand_content",
+      "intent": "Use transcript, OCR, frame notes, and human or model observations to explain what happens in the existing video.",
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "narration.write",
+      "intent": "Write concise commentary that supplements the original video without inventing unsupported visual facts.",
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "subtitle.author",
+      "intent": "Create readable ASS/SRT subtitles from the commentary with safe mobile placement.",
+      "execution": "script_leaf"
+    },
+    {
+      "kind": "video.render",
+      "intent": "Hard-burn subtitles into MP4 and preserve source audio unless a voiceover mix is explicitly provided.",
+      "execution": "script_leaf"
+    },
+    {
+      "kind": "review.output",
+      "intent": "Inspect the contact sheet, streams, subtitles, and rendered output before delivery.",
+      "execution": "semantic_agent"
+    }
+  ],
+  "legacy_lane": {
+    "mode": "preserved",
+    "rules": [
+      "mm-video lives under skills/mm-video, workflow/mm-video, scripts/mm_video.py, and reports/mm-video.",
+      "Do not change mm-article or legacy article-pipeline behavior to add video narration.",
+      "Paid ASR, vision, and TTS providers are optional host capabilities, not hard dependencies."
+    ]
+  }
+}

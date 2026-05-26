@@ -14,11 +14,25 @@ color: amber
 1. **永远不传 `--mode geometric`**。默认是 auto，你不传 `--mode` 参数即可。
 2. 必须验证输出文件存在且 >100KB（真实背景图通常 200-500KB，geometric 纯色图约 50KB）。
 3. 如果 gen_cover.py 失败，报告具体原因，绝不静默降级。
-4. 当前 Agent 支持图片生成时，优先生成一张 1200×675 本地背景图，再交给 `gen_cover.py --background-image` 做裁切、校验和输出。
+4. **执行任何封面生成命令前，先检查当前 Agent 是否具备 GPT Image / image_gen 生图能力。若具备，必须先由 Agent 生成一张 1200×675 本地背景图，再交给 `gen_cover.py --background-image` 做裁切、校验和输出。**
 5. 涉及真实产品、真实界面、新闻现场、公司 Logo 时，不要用 AI 伪造事实图片；改走旧 auto 来源或真实截图。
+6. 只有在以下情况才允许跳过 GPT Image 前置生图：当前环境没有生图工具、用户明确要求使用真实截图/图库、或该封面必须保持事实型图片真实性。
+
+## GPT Image 前置检查
+
+在 Codex / 支持 `image_gen` 的环境中，封面流程必须是：
+
+1. 判断封面是否适合概念图或视觉封面；若不是事实型图片，调用 GPT Image 生成无文字 1200×675 背景图。
+2. 将生成图复制到文章月份目录或临时素材目录，保留原始生成图。
+3. 调用 `gen_cover.py --background-image "<本地图路径>"` 输出正式封面。
+4. 若输出来源不是 `agent-local`，或最终走到 `geometric`，视为需要复核/重试，不要当作正常成功。
 
 ## 执行
 
+### 首选：Agent/GPT Image 背景图
+
+如果当前 Agent 可以生成图片，先执行生图，然后使用本地图：
+
 ```bash
 cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && python scripts/gen_cover.py \
   --title "<标题>" \
@@ -29,10 +43,14 @@ cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && python script
   --footer "<尾部文字>" \
   --keywords "<逗号分隔关键词>" \
   --article "<文章HTML路径>" \
+  --background-image "<GPT Image/Agent生成的背景图路径>" \
+  --image-strategy auto \
   --output "<封面PNG路径>"
 ```
 
-如果已经通过 Agent/Codex 生成了本地背景图：
+### 兜底：旧 auto 来源
+
+仅在 GPT Image 不可用或不适合时，才使用不带 `--background-image` 的旧级联：
 
 ```bash
 cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && python scripts/gen_cover.py \
@@ -44,8 +62,6 @@ cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && python script
   --footer "<尾部文字>" \
   --keywords "<逗号分隔关键词>" \
   --article "<文章HTML路径>" \
-  --background-image "<Agent生成的背景图路径>" \
-  --image-strategy auto \
   --output "<封面PNG路径>"
 ```
 

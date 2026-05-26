@@ -1,6 +1,6 @@
 ---
 name: capture
-description: 统一截图工具包。终端截图、浏览器截图、代码高亮截图、流程图渲染、Matplotlib 图表 — 五个截图能力一个包，可被任何工作流独立引用。
+description: Use when Article Pool needs terminal screenshots, browser screenshots, highlighted code images, rendered flowcharts, or Matplotlib chart captures.
 ---
 
 # 截图能力工具包（Capture）

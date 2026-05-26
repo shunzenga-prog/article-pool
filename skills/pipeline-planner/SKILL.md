@@ -1,6 +1,6 @@
 ---
 name: pipeline-planner
-description: AI 任务规划器 — 读取能力清单，按用户需求生成 PipelinePlan JSON，供创作流程参考
+description: Use when planning Article Pool task pipelines, reading capability manifests, or producing PipelinePlan JSON for article, media, capture, review, and publish workflows.
 ---
 
 # Pipeline Planner

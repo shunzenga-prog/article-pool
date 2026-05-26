@@ -37,7 +37,7 @@ color: blue
 ### 发布 Markdown 到 CSDN
 
 ```bash
-cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && PYTHONIOENCODING=utf-8 python scripts/publish_csdn.py "$ARTICLE" --tags "<逗号分隔标签>" --author "小咪"
+cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && PYTHONIOENCODING=utf-8 python scripts/publish_csdn.py "$ARTICLE" --tags "<逗号分隔标签>" --author "小智"
 ```
 
 用户要求自动发布时加 `--publish`。

@@ -13,30 +13,35 @@ color: purple
 
 1. 必须输出 `_illustrated.html` 文件，不覆盖原文件
 2. 自动检测文章类型，按类型走对应的图片策略
-3. 当前 Agent 具备图片生成能力时，优先为适合 AI 生成的概念图/封面风格图生成本地图片
+3. **执行任何插图生成命令前，先检查当前 Agent 是否具备 GPT Image / image_gen 生图能力。若具备，所有适合 AI 生成的概念图、流程图、风格图都必须交给 Agent 先生成本地图，再交给脚本读取、上传、嵌入。**
 4. 对于真实项目截图、教程真实截图、公司 Logo、新闻现场图，不要用 AI 伪造，优先走 GitHub/OG/搜索/真实截图
 5. 失败不阻塞发布流程——插图是锦上添花，不是硬门禁
+6. 只有在当前环境没有生图工具、用户明确要求真实截图/官方截图、或图片必须保持事实真实性时，才允许直接走旧级联来源。
 
 ## 执行
 
-默认兼容旧流程，一条命令仍可运行：
+### 首选：Agent/GPT Image 两阶段流程
 
-```bash
-cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && python scripts/illustration_gen.py "<文章HTML路径>" --type <文章类型> --image-strategy auto
-```
-
-如果当前环境支持 Codex/Agent 图片生成，使用两阶段流程：
+当前环境支持 GPT Image / image_gen 时，必须优先使用两阶段流程：
 
 ```bash
 # 1) 先输出图片生成请求，不下载、不上传
-python scripts/illustration_gen.py "<文章HTML路径>" --type <文章类型> --image-strategy auto --emit-image-requests reports/image_requests.json --dry-run
+python scripts/illustration_gen.py "<文章HTML路径>" --type <文章类型> --image-strategy agent_first --emit-image-requests reports/image_requests.json --dry-run
 
-# 2) Agent 逐条生成 reports/image_requests.json 中的图片，保存到 output_path，并写入：
-#    reports/generated_images.json
+# 2) Agent 逐条读取 reports/image_requests.json，调用 GPT Image 生成图片，
+#    保存到 output_path，并写入 reports/generated_images.json：
 #    {"images":[{"id":"image_001","path":"test_images/illustrations/agent_image_001.png"}]}
 
-# 3) 读取本地生成图，完成上传和嵌入；若图片缺失会自动回退旧来源
-python scripts/illustration_gen.py "<文章HTML路径>" --type <文章类型> --image-strategy auto --use-local-images reports/generated_images.json
+# 3) 读取本地生成图，完成上传和嵌入；若事实型图片缺失，再按规则回退真实来源
+python scripts/illustration_gen.py "<文章HTML路径>" --type <文章类型> --image-strategy agent_first --use-local-images reports/generated_images.json
+```
+
+### 兜底：旧流程
+
+仅在 GPT Image 不可用、不适合，或用户指定真实来源优先时，才直接运行旧流程：
+
+```bash
+cd "E:\WorkSpace\创作\微信公众号\工作流\article-pool" && python scripts/illustration_gen.py "<文章HTML路径>" --type <文章类型> --image-strategy auto
 ```
 
 文章类型自动检测优先级：

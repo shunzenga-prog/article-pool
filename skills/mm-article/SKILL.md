@@ -1,6 +1,6 @@
 ---
 name: mm-article
-description: 当需要在 Article Pool 中使用 Codex 优先的多模态文章工作流时使用，包括创作、规划、审阅、插图、截图、视觉检查或发布文章，同时保留原有 article-pipeline 工作流。
+description: Use when Article Pool should run the Codex-first multimodal article workflow for creation, research, review, visuals, screenshots, WeChat drafts, or publishing while preserving the legacy article-pipeline lane.
 ---
 
 # mm-article

@@ -66,12 +66,12 @@ article-pool/
 
 ### 1. 禁止暴露 AI 身份
 - ❌ "作为 AI 助手"、"我是 AI"、"作为一个人工智能"
-- ❌ "小咪看到这个消息心情复杂" → ✅ "这个消息让人心情复杂"
-- ✅ 可以用第三人称"小咪"作为笔名
+- ❌ "小智看到这个消息心情复杂" → ✅ "这个消息让人心情复杂"
+- ✅ 可以用第三人称"小智"作为笔名
 
 ### 2. 去 AI 味
 - ❌ 结构化分层（一、二、三）→ ✅ 自然叙述
-- ❌ "小咪观点"大标题 → ✅ 结尾自然表达
+- ❌ "小智观点"大标题 → ✅ 结尾自然表达
 - ❌ 整段高亮颜色 → ✅ 适度加粗、引用
 - ❌ 完全无样式 → ✅ 有层次感但不像写报告
 
@@ -167,11 +167,13 @@ article-pool/
 
 由 `cover-agent`（`agents/article-pool/cover-agent.md`）自动执行。强制 auto 模式，绝不 geometric。
 
+**Codex / GPT Image 硬约束：** 当前 Agent 具备 GPT Image / image_gen 生图能力时，封面必须先由 Agent 生成 1200×675 本地背景图，再调用 `gen_cover.py --background-image`。不允许直接跑旧 auto 级联并把 geometric 兜底当作成功；除非用户明确要求事实型真实图片，或当前环境确实没有生图工具。
+
 ```bash
 # 手动备用（Agent 会自动调）
 python scripts/gen_cover.py --title "标题" --subtitle "副标题" --output cover.png
 
-# 如果当前 Agent/Codex 已生成本地封面背景
+# Codex / GPT Image 首选：如果当前 Agent 已生成本地封面背景
 python scripts/gen_cover.py --title "标题" --subtitle "副标题" --background-image cover-bg.png --output cover.png
 # 不要加 --mode geometric
 ```
@@ -201,6 +203,8 @@ python scripts/illustration_gen.py article.html --type 技术教程 --max-images
 ```
 
 **图片策略：** 默认 `auto`。有 Agent/Codex 本地图时优先使用；没有时自动回退旧级联。事实型图片（项目截图、教程截图、Logo、新闻图）优先真实来源，不用 AI 伪造。
+
+**Codex / GPT Image 硬约束：** 当前 Agent 具备 GPT Image / image_gen 生图能力时，插图必须先由 `illustration_gen.py --emit-image-requests` 产出请求，再由 Agent 逐张生成本地图，最后用 `--use-local-images` 上传和嵌入。只有事实型图片或 GPT Image 不可用时，才直接走旧级联。
 
 **兼容旧流程：** 需要完全旧链路时传 `--image-strategy legacy`。
 
@@ -304,10 +308,10 @@ python scripts/review_html.py article.html --tutorial --json
 
 ```bash
 # 微信公众号（默认）
-PYTHONIOENCODING=utf-8 python scripts/publish_html.py <文章.html> --cover <封面图.png> --author "小咪"
+PYTHONIOENCODING=utf-8 python scripts/publish_html.py <文章.html> --cover <封面图.png> --author "小智"
 
 # CSDN（接受 .md 文件，不是 .html）
-PYTHONIOENCODING=utf-8 python scripts/publish_csdn.py <文章.md> --tags "标签1,标签2" --author "小咪"
+PYTHONIOENCODING=utf-8 python scripts/publish_csdn.py <文章.md> --tags "标签1,标签2" --author "小智"
 ```
 
 **必须看到 `✅ 草稿创建成功！` / `✅ 内容已填入 CSDN 编辑器`** 才算完成。

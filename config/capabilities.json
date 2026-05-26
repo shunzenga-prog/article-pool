@@ -245,7 +245,7 @@
         },
         "author": {
           "help": "作者署名",
-          "default": "小咪"
+          "default": "小智"
         }
       },
       "constraints": [

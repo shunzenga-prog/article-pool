@@ -11,7 +11,7 @@ from pathlib import Path
 
 DEFAULTS = {
     "author": {
-        "name": "小咪",
+        "name": "小智",
         "signature_emoji": "🐱",
     },
     "cover": {

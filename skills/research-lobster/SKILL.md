@@ -1,6 +1,6 @@
 ---
 name: research-lobster
-description: 新闻素材搜索与研究。多源搜索验证，时效性检查，提供创作素材。触发：搜素材、查资料、验证信息。
+description: Use when searching news material, researching article evidence, checking timeliness, verifying sources, or preparing sourced facts for Article Pool writing.
 ---
 
 # 新闻素材搜索与研究

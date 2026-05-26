@@ -1,6 +1,6 @@
 ---
 name: tutorial-pipeline
-description: 教程类文章专属创作流水线。分步骤写作，每一步写完后立即生成配图，确保图文一一对应。触发：写教程、教程文章、AI实战教程。
+description: Use when creating tutorial-style Article Pool articles, AI hands-on guides, step-by-step WeChat tutorials, or drafts that need one visual per instruction step.
 ---
 
 # 教程文章创作链（Tutorial Pipeline）

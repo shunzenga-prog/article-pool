@@ -1,6 +1,6 @@
 ---
 name: illustration-gen
-description: 文章插图自动生成。分析文章内容，支持 Agent/Codex 本地生成图优先，并兼容旧级联配图（GitHub截图→OG图片→Brave搜索→AI生成→几何兜底），上传微信CDN，嵌入HTML。触发：插图生成、配图、文章插图。
+description: Use when adding Article Pool article illustrations, emitting image requests, using GPT Image local assets, uploading images to WeChat CDN, or embedding visuals in HTML.
 ---
 
 # 文章插图自动生成
@@ -28,11 +28,11 @@ python scripts/illustration_gen.py article.html --type 技术教程 --dry-run
 # 不上传微信 CDN（仅本地处理）
 python scripts/illustration_gen.py article.html --type 深度解析 --no-upload
 
-# 生成 Agent/Codex 图片请求（当前环境支持图片生成时使用）
-python scripts/illustration_gen.py article.html --type 深度解析 --emit-image-requests reports/image_requests.json --dry-run
+# 生成 Agent/Codex 图片请求（当前环境支持 GPT Image / image_gen 时必须先使用）
+python scripts/illustration_gen.py article.html --type 深度解析 --image-strategy agent_first --emit-image-requests reports/image_requests.json --dry-run
 
-# 使用 Agent/Codex 已生成的本地图片；缺失时自动回退旧级联
-python scripts/illustration_gen.py article.html --type 深度解析 --use-local-images reports/generated_images.json
+# 使用 Agent/Codex 已生成的本地图片；事实型图片缺失时再回退旧级联
+python scripts/illustration_gen.py article.html --type 深度解析 --image-strategy agent_first --use-local-images reports/generated_images.json
 
 # 完全旧流程
 python scripts/illustration_gen.py article.html --type 深度解析 --image-strategy legacy
@@ -44,7 +44,7 @@ python scripts/illustration_gen.py article.html --type 项目推荐 --max-images
 ## 工作流程
 
 ```
-文章 HTML → 内容分析 → 匹配规则 → Agent/Codex 本地图或旧级联获取 → 缩放处理 → 微信上传 → 嵌入HTML → 输出
+文章 HTML → 内容分析 → 生成图片请求 → Agent/GPT Image 生成本地图 → 脚本读取本地图或事实型旧级联 → 缩放处理 → 微信上传 → 嵌入HTML → 输出
 ```
 
 ### 1. 内容分析
@@ -79,10 +79,12 @@ python scripts/illustration_gen.py article.html --type 项目推荐 --max-images
 
 - `auto`：默认。有 Agent/Codex 本地图就优先用，没有就自动回退旧级联。
 - `legacy`：完全旧流程，跳过 Agent/Codex 自生成图。
-- `agent_first`：强制把 Agent/Codex 本地图排到最前，适合概念图优先的文章。
+- `agent_first`：强制把 Agent/Codex 本地图排到最前，适合概念图优先的文章；在 Codex + GPT Image 可用时应作为默认执行策略。
 - `factual_first`：真实截图/OG/搜索优先，AI 只补概念图。
 
 Agent/Codex 生成图不由 Python 脚本直接调用。脚本只负责输出请求 JSON、读取本地图片、上传和嵌入，这样在非 Codex 环境中不会报错。
+
+**Codex 执行硬约束：** 如果当前 Agent 可以调用 GPT Image / image_gen，不要直接运行旧级联命令。必须先 `--emit-image-requests`，由 Agent 生成本地图并写入 `generated_images.json`，再 `--use-local-images`。只有事实型官方截图、项目截图、Logo、新闻图或 GPT Image 不可用时，才允许跳过本地生图。
 
 ### 4. 图片处理
 - 缩放至 670px 宽度（微信公众号正文宽度）

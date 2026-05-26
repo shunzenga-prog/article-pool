@@ -1,6 +1,6 @@
 ---
 name: xiaohongshu-writer
-description: 小红书爆款笔记创作。根据选题生成小红书风格笔记，包含标题、正文、封面建议、标签。触发：写小红书、发笔记、小红书创作。
+description: Use when creating Xiaohongshu notes, viral-style Xiaohongshu titles, post body copy, cover suggestions, tags, or 小红书创作 outputs in Article Pool.
 ---
 
 # 小红书爆款笔记创作
