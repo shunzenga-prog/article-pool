@@ -8,6 +8,7 @@
     "platform",
     "article_type",
     "topic_history",
+    "local_knowledge_root",
     "web_sources",
     "platform_rules",
     "host_capabilities"
@@ -67,6 +68,8 @@
       "title_decision": "reports/mm-article/{run_id}/title_decision.json",
       "content_prompt": "reports/mm-article/{run_id}/content_prompt.md",
       "visual_plan": "reports/mm-article/{run_id}/visual_plan.json",
+      "image_prompt": "reports/mm-article/{run_id}/image_prompt.json",
+      "web_video_plan": "reports/mm-article/{run_id}/web_video_plan.json",
       "image_requests": "reports/mm-article/{run_id}/image_requests.json",
       "generated_images": "reports/mm-article/{run_id}/generated_images.json",
       "review": "reports/mm-article/{run_id}/review.json",
@@ -155,9 +158,16 @@
       "execution": "semantic_agent"
     },
     {
+      "kind": "research.local_kb",
+      "intent": "Retrieve local knowledge, historical article, note, report, or docs evidence through article-research-kb when the topic needs repo-local or user-provided context.",
+      "inputs": ["user_request", "topic_history", "source_plan_artifact", "local_knowledge_root"],
+      "outputs": ["local_kb_evidence_artifacts"],
+      "execution": "semantic_agent"
+    },
+    {
       "kind": "research.topic",
       "intent": "Understand the topic, freshness, evidence quality, and publish angle before drafting.",
-      "inputs": ["user_request", "topic_history", "web_sources", "timeliness_artifact"],
+      "inputs": ["user_request", "topic_history", "web_sources", "timeliness_artifact", "local_kb_evidence_artifacts"],
       "outputs": ["evidence_artifacts", "angle_decision"],
       "execution": "semantic_agent"
     },
@@ -218,6 +228,20 @@
       "execution": "semantic_agent"
     },
     {
+      "kind": "visual.prompt_mode",
+      "intent": "Choose Mode B host-native image generation or Mode C prompt-only advisory before concept cover or illustration generation.",
+      "inputs": ["visual_plan_artifact", "cover_brief_artifact", "host_capabilities"],
+      "outputs": ["image_prompt_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
+      "kind": "repurpose.web_video",
+      "intent": "When requested, turn an approved article direction into script.md and outline.md for 16:9 web-video planning before mm-video or web presentation work.",
+      "inputs": ["layout_artifact", "title_artifact", "visual_plan_artifact"],
+      "outputs": ["web_video_plan_artifact"],
+      "execution": "semantic_agent"
+    },
+    {
       "kind": "capture.factual",
       "intent": "Capture real UI, terminal, code, chart, or source evidence when the article makes factual or tutorial claims.",
       "inputs": ["visual_plan_artifact"],
@@ -227,7 +251,7 @@
     {
       "kind": "generate.image",
       "intent": "Generate local concept images for covers and illustrations only when factual capture is not required.",
-      "inputs": ["visual_plan_artifact", "cover_brief_artifact", "host_capabilities"],
+      "inputs": ["visual_plan_artifact", "cover_brief_artifact", "image_prompt_artifact", "host_capabilities"],
       "outputs": ["image_artifacts"],
       "execution": "host_tool"
     },
@@ -278,6 +302,9 @@
     "evidence",
     "draft",
     "visual_plan",
+    "local_kb_evidence",
+    "image_prompt",
+    "web_video_plan",
     "image",
     "screenshot",
     "review",
@@ -330,6 +357,11 @@
       "id": "evidence_ledger",
       "gate": "必须维护证据清单，记录来源、发布时间、检索时间、支持的具体说法。",
       "failure_mode": "不进入起草，先补齐证据清单。"
+    },
+    {
+      "id": "local_kb_retrieval",
+      "gate": "本地知识库、历史文章和内部资料必须通过 article-research-kb 渐进检索并记录路径、位置和支持的 claim。",
+      "failure_mode": "本地证据缺路径或未经外部时效验证时，不得作为最新事实进入正文。"
     },
     {
       "id": "claim_boundary",
@@ -400,6 +432,16 @@
       "id": "cover_policy",
       "gate": "封面必须先形成从文章主张提炼的语义 brief，包含内容符号、品牌视觉元素、构图和避雷词；Agent 生成无文字背景图，再输出同名 PNG 封面。",
       "failure_mode": "封面泛化、审美失败、模型归因不实或 geometric 兜底时，回到 brief 重新生成封面。"
+    },
+    {
+      "id": "image_mode_awareness",
+      "gate": "概念封面和插图必须先判断 Mode B / Mode C；没有宿主生图能力时只能输出 prompt 和状态说明。",
+      "failure_mode": "如果没有实际图片却声称已生成，阻断发布并回到视觉计划。"
+    },
+    {
+      "id": "article_video_repurpose",
+      "gate": "文章转视频必须先生成 script.md 和 outline.md，并确认节奏、素材和主题后再进入网页演示或媒体处理。",
+      "failure_mode": "缺少脚本或 outline 时，不允许开始录屏、字幕或音频处理。"
     },
     {
       "id": "visual_truthfulness",

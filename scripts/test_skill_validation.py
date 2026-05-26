@@ -16,7 +16,8 @@ class SkillValidationTests(unittest.TestCase):
         report = validate_skills.validate_skills(ROOT / "skills")
 
         self.assertEqual(report["errors"], [])
-        self.assertGreaterEqual(report["skill_count"], 10)
+        self.assertGreaterEqual(report["skill_count"], 16)
+        self.assertIn("article-research-kb", {item["skill"] for item in report["skills"]})
 
     def test_validator_rejects_non_slug_skill_name(self):
         with tempfile.TemporaryDirectory() as tmp:

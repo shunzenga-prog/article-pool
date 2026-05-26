@@ -207,6 +207,61 @@ class MultimodalWorkflowTests(unittest.TestCase):
         ]:
             self.assertIn(phrase, output_spec)
 
+    def test_garden_inspired_controls_are_integrated(self):
+        report = validate_mm_workflow.validate_project(ROOT)
+        skill_text = (ROOT / "skills" / "mm-article" / "SKILL.md").read_text(encoding="utf-8")
+        standards_text = (
+            ROOT / "skills" / "mm-article" / "references" / "production-standards.md"
+        ).read_text(encoding="utf-8")
+        garden_patterns = (
+            ROOT / "skills" / "mm-article" / "references" / "garden-creation-patterns.md"
+        ).read_text(encoding="utf-8")
+        video_skill = (ROOT / "skills" / "mm-video" / "SKILL.md").read_text(encoding="utf-8")
+
+        task_kinds = {task["kind"] for task in report["manifest"]["semantic_tasks"]}
+        required_tasks = {
+            "research.local_kb",
+            "visual.prompt_mode",
+            "repurpose.web_video",
+        }
+        self.assertTrue(required_tasks.issubset(task_kinds))
+
+        required_standards = {
+            "local_kb_retrieval",
+            "image_mode_awareness",
+            "article_video_repurpose",
+        }
+        standard_ids = {item["id"] for item in report["manifest"]["production_standards"]}
+        self.assertTrue(required_standards.issubset(standard_ids))
+
+        for phrase in [
+            "references/garden-creation-patterns.md",
+            "article-research-kb",
+            "Mode B",
+            "Mode C",
+            "不要假装出图成功",
+        ]:
+            self.assertIn(phrase, skill_text)
+
+        for phrase in [
+            "分层索引",
+            "最多 5 轮",
+            "模式感知",
+            "script.md",
+            "outline.md",
+        ]:
+            self.assertIn(phrase, garden_patterns)
+
+        for phrase in [
+            "web-video-presentation",
+            "script.md",
+            "outline.md",
+            "16:9",
+        ]:
+            self.assertIn(phrase, video_skill)
+
+        self.assertIn("image_mode_awareness", standards_text)
+
 
 if __name__ == "__main__":
     unittest.main()

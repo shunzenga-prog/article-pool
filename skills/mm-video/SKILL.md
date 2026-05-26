@@ -7,6 +7,8 @@ description: Use when creating narration assets for existing videos, extracting 
 
 `mm-video` 是 Article Pool 里的现有视频解说工作流。它负责把一个已有视频拆成可审阅的时间轴、音频、关键帧、字幕和最终 MP4。模型负责理解画面与撰写解说，`scripts/mm_video.py` 只做确定性的媒体处理。
 
+它也可以承接 `mm-article` 的文章转视频计划：借鉴 `web-video-presentation` 的文章/口播稿到网页视频方法，先形成 `script.md` 与 `outline.md`，再决定是否进入 16:9 网页演示、字幕或音频处理。
+
 ## 首次加载
 
 先读取 `workflow/mm-video/manifest.json`，确认输入视频、宿主能力、产物路径和 ffmpeg 路径。默认 ffmpeg 根目录是：
@@ -33,6 +35,13 @@ python scripts/mm_video.py --ffmpeg-root D:\Environment\ffmpeg\ffmpeg-7.0.2 prep
 ```powershell
 python scripts/mm_video.py --ffmpeg-root D:\Environment\ffmpeg\ffmpeg-7.0.2 burn <input.mp4> --subtitles <subtitles.ass> --output <output.mp4>
 ```
+
+## 文章转网页视频上游
+
+- 当输入不是已有视频，而是文章、教程或口播稿时，先按 `web-video-presentation` 的思路生成 `script.md` 和 `outline.md`。
+- `script.md` 是口播真源，`outline.md` 只规划章节、节拍、信息密度和素材，不写死动画。
+- 16:9 网页演示要先确认主题、素材、节奏和开发模式；`mm-video` 只在素材进入录屏、字幕、音频或成片阶段后接手。
+- 不要用视频 workflow 倒推文章内容；文章事实、标题、视觉 brief 仍由 `mm-article` 负责。
 
 ## 输出契约
 

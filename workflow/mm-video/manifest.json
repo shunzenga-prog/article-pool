@@ -6,9 +6,12 @@
   "default_ffmpeg_root": "D:\\Environment\\ffmpeg\\ffmpeg-7.0.2",
   "external_inputs": [
     "source_video",
+    "source_article",
     "user_intent",
     "target_platform",
     "host_capabilities",
+    "optional_script_md",
+    "optional_outline_md",
     "optional_narration_text",
     "optional_model_transcript",
     "optional_vision_notes",
@@ -51,6 +54,8 @@
   ],
   "output_contract": {
     "run_dir": "reports/mm-video/{YYYYMMDD-HHMMSS}-{slug}",
+    "script": "reports/mm-video/{run_id}/script.md",
+    "outline": "reports/mm-video/{run_id}/outline.md",
     "timeline": "reports/mm-video/{run_id}/timeline.json",
     "narration": "reports/mm-video/{run_id}/narration.md",
     "subtitles_ass": "reports/mm-video/{run_id}/subtitles.ass",
@@ -83,6 +88,11 @@
     }
   ],
   "semantic_tasks": [
+    {
+      "kind": "article.plan_web_video",
+      "intent": "Convert an article or narration request into script.md and outline.md before any 16:9 web-video presentation or media work.",
+      "execution": "semantic_agent"
+    },
     {
       "kind": "video.probe",
       "intent": "Read duration, streams, dimensions, and media constraints before planning narration.",
