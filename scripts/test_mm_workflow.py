@@ -166,6 +166,7 @@ class MultimodalWorkflowTests(unittest.TestCase):
         self.assertIn("generated_images.json", reports["generated_images"])
         self.assertEqual(illustration["default_strategy"], "agent_first_when_available")
         self.assertEqual(illustration["agent_first_flow"][0], "emit_image_requests")
+        self.assertIn("paragraph_context", illustration["request_context_fields"])
         self.assertEqual(cover["final_cover"], wechat["cover_png"])
         self.assertEqual(cover["agent_background"], wechat["cover_background"])
 

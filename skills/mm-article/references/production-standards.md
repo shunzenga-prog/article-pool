@@ -145,6 +145,7 @@
 - 章节标题必须有 `border-bottom` 下划线。
 - 主色系统一，点缀色最多 1 个。
 - 发布前运行 `python scripts/review_html.py <文章.html> --json`；教程加 `--tutorial`。
+- 宣布交付前运行 `python scripts/validate_mm_delivery.py <文章.html> --run-dir reports/mm-article/<run_id> --title "<title>" --write-report`，确认封面、插图、图片质量、HTML 审阅、流程泄漏、运行报告和发布状态。
 
 ### CSDN
 
@@ -165,15 +166,16 @@
 - 事实型视觉优先真实捕获：官方页面、产品 UI、终端输出、代码运行结果、论文图表。
 - 概念型视觉可以用生图，但必须标记为概念图。
 - 每张图必须有用途、来源、路径、插入位置、事实型/概念型标记。
-- 配图必须先产出 `image_requests.json`，再由 Agent 生成本地图并写入 `generated_images.json`，最后用 `--use-local-images` 嵌入。
+- 配图必须先产出 `image_requests.json`，且每条请求必须包含 `paragraph_context`；再由 Agent 按所在段落内容生成本地图并写入 `generated_images.json`，最后用 `--use-local-images` 嵌入。
 - 封面必须在缩略图尺寸下可读，主体清晰，背景不喧宾夺主。
+- 封面和正文插图必须通过本地图片质量检查：尺寸、比例、体积、非空白、亮度和对比度都合格。
 - 封面默认先由 Agent 生成无文字背景图 `{MMDD}_cover_bg.png`，再用 `gen_cover.py --background-image` 输出同名 `.png`。
 - 重新生成封面前必须更新封面 brief：补充文章主张、正文机制、品牌视觉元素、构图动线和避雷词；不得只在旧 prompt 上叠加“更高级、更牛逼”。
 - `image_mode_awareness`：概念封面和插图必须先判断 `Mode B` / `Mode C`；没有宿主生图能力时只能输出 prompt 和状态说明，不得声称已经生成图片。
 - `article_video_repurpose`：文章转视频必须先生成 `script.md` 和 `outline.md`，并确认节奏、素材和主题后再进入网页演示或媒体处理。
 - 内置生图工具未暴露模型名时，视觉报告只能写“内置 image_gen / Agent 生成”；不得写成已确认的具体模型。
 - 教程关键步骤必须有真实截图或可验证输出，不允许文字模拟终端截图。
-- 插图必须支撑附近段落，不能只是装饰。
+- 插图必须支撑附近段落，不能只是装饰；生成 prompt 必须回应该段落的具体机制、场景、关系或数据，不得只按文章标题生成通用科技背景图。
 - 生成图不得伪装成官方截图、新闻现场、产品 UI 或真实照片。
 
 ## 安全与合规

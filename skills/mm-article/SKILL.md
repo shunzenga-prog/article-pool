@@ -244,8 +244,9 @@ Article Pool 的语义优先多模态文章工作流。
 
 - `python scripts/review_html.py <article.html>`：用于微信 HTML 兼容性门禁。
 - `python scripts/gen_cover.py --title "<title>" --background-image <local-image> --output <cover.png>`：本地背景图已经存在后，用于最终封面排版。
-- `python scripts/illustration_gen.py <article.html> --emit-image-requests <requests.json> --dry-run`：用于生成概念图片需求清单。
+- `python scripts/illustration_gen.py <article.html> --emit-image-requests <requests.json> --dry-run`：用于生成概念图片需求清单；每条请求必须包含 `paragraph_context`，生图 prompt 要根据插图所在段落的具体内容生成，不能只按标题词或主题词泛化。
 - `python scripts/illustration_gen.py <article.html> --use-local-images <generated_images.json>`：用于嵌入已经生成的本地图片。
+- `python scripts/validate_mm_delivery.py <article.html> --run-dir reports/mm-article/<run_id> --title "<title>" --write-report`：用于最终交付门禁，检查封面、插图、图片质量、HTML 审阅、流程泄漏、运行报告和发布状态。
 - `PYTHONIOENCODING=utf-8 python scripts/publish_html.py <article.html> --cover <cover.png>`：在 Windows 上发布到微信公众号草稿箱。
 
 ## 质量门禁
@@ -254,8 +255,10 @@ Article Pool 的语义优先多模态文章工作流。
 
 - 对时效性或事实性内容，文章中的说法必须有来源支撑。
 - 每个视觉产物都要对应它支持的段落或封面目标。
+- 正文插图生成时必须先读 `image_requests.json` 里的 `paragraph_context`；画面要回应该段落的机制、场景或关系，而不是做通用科技背景图。
 - 封面必须能回到 `cover_brief_artifact`，并体现文章主张、内容符号和合法品牌视觉元素。
 - 概念图必须明确是概念图，不能伪装成截图或新闻照片。
 - 发布到微信前，HTML 必须通过微信兼容性审阅。
 - 封面和首屏视觉在缩略图尺寸下仍然可读。
+- 宣布文章交付前，必须运行 `validate_mm_delivery.py` 并把结果写入 `delivery_gate.json`。
 - 除非用户明确要求 dry run，否则只有目标平台返回草稿 ID 或文章 ID，才算发布完成。

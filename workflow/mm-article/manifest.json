@@ -73,7 +73,8 @@
       "image_requests": "reports/mm-article/{run_id}/image_requests.json",
       "generated_images": "reports/mm-article/{run_id}/generated_images.json",
       "review": "reports/mm-article/{run_id}/review.json",
-      "publish_result": "reports/mm-article/{run_id}/publish_result.json"
+      "publish_result": "reports/mm-article/{run_id}/publish_result.json",
+      "delivery_gate": "reports/mm-article/{run_id}/delivery_gate.json"
     }
   },
   "illustration_policy": {
@@ -82,16 +83,19 @@
     "concept_generation_for": ["abstract_concepts", "methodology", "metaphor", "non_factual_section_opener"],
     "agent_first_flow": [
       "emit_image_requests",
+      "bind_each_request_to_paragraph_context",
       "agent_generates_local_images",
       "write_generated_images_manifest",
       "embed_with_use_local_images",
       "review_visual_relevance"
     ],
     "request_manifest": "reports/mm-article/{run_id}/image_requests.json",
+    "request_context_fields": ["label", "paragraph_context", "context_source", "prompt"],
     "generated_manifest": "reports/mm-article/{run_id}/generated_images.json",
     "embed_command": "python scripts/illustration_gen.py <article.html> --use-local-images reports/mm-article/{run_id}/generated_images.json",
     "rules": [
       "Every image must map to a paragraph or cover goal.",
+      "Generated illustration prompts must use the paragraph_context from the insertion section, not only the topic title or keyword.",
       "Factual visuals must be captured or sourced from real pages; generated images cannot replace evidence.",
       "Decorative-only images are rejected unless they serve the cover or a section opener.",
       "Tutorial key steps need real screenshots or verified output."
@@ -296,6 +300,13 @@
       "inputs": ["review_artifact", "layout_artifact", "cover_artifact"],
       "outputs": ["publish_result_artifact"],
       "execution": "deterministic_tool"
+    },
+    {
+      "kind": "validate.delivery",
+      "intent": "Run the final handoff gate for cover, illustrations, image quality, HTML review, process leaks, reports, and publish status.",
+      "inputs": ["review_artifact", "layout_artifact", "cover_artifact", "image_artifacts", "publish_result_artifact"],
+      "outputs": ["delivery_gate_artifact"],
+      "execution": "deterministic_tool"
     }
   ],
   "artifact_kinds": [
@@ -308,7 +319,8 @@
     "image",
     "screenshot",
     "review",
-    "publish_result"
+    "publish_result",
+    "delivery_gate"
   ],
   "deterministic_tools": [
     {
@@ -325,6 +337,11 @@
       "name": "illustration_embedding",
       "path": "scripts/illustration_gen.py",
       "use_when": "The workflow has approved local images or needs image request slots."
+    },
+    {
+      "name": "delivery_gate",
+      "path": "scripts/validate_mm_delivery.py",
+      "use_when": "A WeChat article needs final handoff validation for cover, illustrations, image quality, HTML review, process leaks, run reports, and publish status."
     },
     {
       "name": "wechat_publish",
@@ -474,6 +491,11 @@
       "failure_mode": "任一硬项失败均退回对应语义阶段。"
     },
     {
+      "id": "delivery_gate",
+      "gate": "宣布交付前必须运行最终交付门禁，检查封面、正文插图、图片质量、微信 HTML 审阅、流程泄漏、运行报告和发布状态。",
+      "failure_mode": "任一检查失败都不得宣称完成，必须先补齐资产或报告阻断点。"
+    },
+    {
       "id": "publish_readiness",
       "gate": "只有审阅通过、封面和插图就绪、目标平台返回草稿或文章 ID 才算完成。",
       "failure_mode": "不得宣称完成，只能报告当前阻断点。"
@@ -534,6 +556,10 @@
     {
       "name": "wechat_compatibility",
       "must": "WeChat HTML must pass deterministic review before publishing."
+    },
+    {
+      "name": "delivery_gate",
+      "must": "Final handoff must pass scripts/validate_mm_delivery.py before the agent says the article is ready."
     }
   ]
 }

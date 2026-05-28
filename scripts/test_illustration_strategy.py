@@ -63,7 +63,13 @@ class IllustrationStrategyTests(unittest.TestCase):
         tmp_path.mkdir(exist_ok=True)
         self.addCleanup(lambda: self._remove_tree(tmp_path))
         article_path = tmp_path / "article.html"
-        article_path.write_text("<html></html>", encoding="utf-8")
+        article_html = (
+            "<html><body>"
+            "<p>这段介绍 AI Agent 入门的任务拆解、工具调用和记忆管理。</p>"
+            "<p>另一段介绍 Claude Code 的终端协作。</p>"
+            "</body></html>"
+        )
+        article_path.write_text(article_html, encoding="utf-8")
         items = [{"title": "AI Agent 入门"}, {"name": "Claude Code"}]
         rules = {"agent_generate": {"width": 670, "height": 380}}
 
@@ -74,6 +80,7 @@ class IllustrationStrategyTests(unittest.TestCase):
             rules=rules,
             image_strategy="auto",
             max_count=2,
+            article_html=article_html,
         )
 
         self.assertEqual([req["id"] for req in requests], ["image_001", "image_002"])
@@ -81,6 +88,30 @@ class IllustrationStrategyTests(unittest.TestCase):
         self.assertEqual(requests[0]["height"], 380)
         self.assertTrue(requests[0]["output_path"].endswith("agent_image_001.png"))
         self.assertIn("AI Agent 入门", requests[0]["prompt"])
+        self.assertIn("paragraph_context", requests[0])
+        self.assertIn("任务拆解、工具调用和记忆管理", requests[0]["paragraph_context"])
+        self.assertIn("根据所在段落的具体信息", requests[0]["prompt"])
+
+    def test_build_agent_image_requests_prefers_section_context(self):
+        items = [
+            {
+                "title": "为什么端侧模型会变快",
+                "html": "<p>这一节解释端侧模型通过缓存、量化和小模型协同降低延迟。</p>",
+            }
+        ]
+
+        requests = illustration_gen.build_agent_image_requests(
+            article_path="article.html",
+            article_type="深度解析",
+            items=items,
+            rules={"agent_generate": {}},
+            image_strategy="agent_first",
+            max_count=1,
+            article_html="<p>无关段落</p>",
+        )
+
+        self.assertEqual(requests[0]["context_source"], "section_html")
+        self.assertIn("缓存、量化和小模型协同", requests[0]["paragraph_context"])
 
     @staticmethod
     def _remove_tree(path: Path):

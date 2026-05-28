@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import argparse, json, os, re, sys, time, hashlib, random
+import html as html_lib
 
 # Fix Windows console encoding
 if sys.platform == "win32":
@@ -147,8 +148,55 @@ def _item_label(item: dict) -> str:
     )
 
 
+def _strip_html(value: str) -> str:
+    text = re.sub(r"<(?:script|style)[^>]*>[\s\S]*?</(?:script|style)>", " ", value, flags=re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = html_lib.unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _clip_text(value: str, limit: int = 360) -> str:
+    value = re.sub(r"\s+", " ", value).strip()
+    if len(value) <= limit:
+        return value
+    return value[: limit - 1].rstrip() + "…"
+
+
+def _html_text_blocks(article_html: str) -> list[str]:
+    blocks = []
+    for m in re.finditer(r"<(?:h2|h3|p|li)[^>]*>([\s\S]*?)</(?:h2|h3|p|li)>", article_html, re.I):
+        text = _strip_html(m.group(0))
+        if len(text) >= 8:
+            blocks.append(text)
+    return blocks
+
+
+def _item_paragraph_context(item: dict, article_html: str | None, label: str) -> tuple[str, str]:
+    """Return nearby article text so generated art follows the paragraph, not just a keyword."""
+    if item.get("html"):
+        section_blocks = _html_text_blocks(str(item.get("html")))
+        section_title = item.get("title") or item.get("name") or ""
+        context = "。".join([str(section_title).strip(), *section_blocks[:3]]).strip("。")
+        if context:
+            return _clip_text(context), "section_html"
+
+    if article_html:
+        blocks = _html_text_blocks(article_html)
+        label_lower = label.lower()
+        for i, block in enumerate(blocks):
+            if label_lower and label_lower in block.lower():
+                nearby = [block]
+                if len(block) < 120 and i + 1 < len(blocks):
+                    nearby.append(blocks[i + 1])
+                return _clip_text(" ".join(nearby)), "matched_paragraph"
+
+    metadata = item.get("full_text") or item.get("title") or item.get("name") or item.get("category") or label
+    return _clip_text(str(metadata)), "item_metadata"
+
+
 def build_agent_image_requests(article_path: str, article_type: str, items: list[dict],
-                               rules: dict, image_strategy: str, max_count: int) -> list[dict]:
+                               rules: dict, image_strategy: str, max_count: int,
+                               article_html: str | None = None) -> list[dict]:
     """Build a portable request manifest for Agent/Codex-generated images."""
     cfg = rules.get("agent_generate", {})
     width = cfg.get("width", 670)
@@ -160,12 +208,15 @@ def build_agent_image_requests(article_path: str, article_type: str, items: list
     requests_out = []
     for idx, item in enumerate(items[:max_count]):
         label = _item_label(item)
+        paragraph_context, context_source = _item_paragraph_context(item, article_html, label)
         req_id = f"image_{idx + 1:03d}"
         output_path = OUTPUT_DIR / f"agent_image_{idx + 1:03d}.png"
         prompt = (
             f"为微信公众号文章生成一张配图。文章类型：{article_type}。"
-            f"主题：{label}。风格：{style}。"
-            f"画面需适合科技/互联网/编程内容，横版构图，避免任何文字、Logo、水印。"
+            f"图片锚点：{label}。所在段落内容：{paragraph_context}。"
+            f"请根据所在段落的具体信息生成画面，不要只按标题或关键词泛化发挥。"
+            f"风格：{style}。画面需适合科技/互联网/编程内容，横版构图，"
+            f"避免任何文字、Logo、水印。"
         )
         requests_out.append({
             "id": req_id,
@@ -173,6 +224,8 @@ def build_agent_image_requests(article_path: str, article_type: str, items: list
             "article_type": article_type,
             "image_strategy": normalize_image_strategy(image_strategy),
             "label": label,
+            "paragraph_context": paragraph_context,
+            "context_source": context_source,
             "prompt": prompt,
             "width": width,
             "height": height,
@@ -1123,6 +1176,7 @@ def generate_illustrations(article_path: str, article_type: str | None = None,
         rules=rules,
         image_strategy=image_strategy,
         max_count=total_needed,
+        article_html=html,
     )
     if emit_image_requests:
         write_agent_image_requests(
