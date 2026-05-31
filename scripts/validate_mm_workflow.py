@@ -63,6 +63,19 @@ PROCESS_LEAK_PHRASES = (
 )
 
 
+FIRST_PERSON_OPINION_FRAMES = (
+    "我的判断",
+    "我的观点",
+    "我认为",
+    "我觉得",
+    "个人判断",
+    "个人观点",
+    "我对这次",
+    "这也是我对",
+    "整体评价",
+)
+
+
 def _compact_visible_text(html_text: str) -> str:
     text = re.sub(r"<script[^>]*>.*?</script>", "", html_text, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.DOTALL | re.IGNORECASE)
@@ -84,7 +97,7 @@ def detect_reader_visible_process_leaks(html_text: str) -> list[dict[str, str]]:
     visible_text = _compact_visible_text(html_text)
     scan_text = f"{visible_text}\n{html_text}"
     leaks: list[dict[str, str]] = []
-    for phrase in PROCESS_LEAK_PHRASES:
+    for phrase in PROCESS_LEAK_PHRASES + FIRST_PERSON_OPINION_FRAMES:
         if phrase in scan_text:
             leaks.append({"phrase": phrase, "snippet": _snippet(scan_text, phrase)})
     return leaks

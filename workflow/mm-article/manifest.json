@@ -392,7 +392,7 @@
     },
     {
       "id": "content_prompt",
-      "gate": "起草前必须生成内容提示词，包含读者、研究问题、角度、证据、指标、机制、正向价值、中性限制边界、读者决策、开头策略、段落推进、结构、视觉和平台规则。",
+      "gate": "起草前必须生成内容提示词，包含读者、研究问题、角度、证据、指标、机制、正向价值、中性限制边界、读者决策、开头策略、段落推进、结构、重点句突出计划、视觉和平台规则。",
       "failure_mode": "阻断起草，先补提示词。"
     },
     {
@@ -402,7 +402,7 @@
     },
     {
       "id": "writing_craft",
-      "gate": "深度文章必须先形成读者场景、开头策略、正向价值计划、nut graf、段落推进、转场计划和生硬度自检；开头不得强行引导读者或直接抛抽象判断，全文不得为了显得深刻而抬杠。",
+      "gate": "深度文章必须先形成读者场景、开头策略、正向价值计划、nut graf、段落推进、重点句突出计划、转场计划和生硬度自检；开头不得强行引导读者或直接抛抽象判断，全文不得为了显得深刻而抬杠，发布、测评、模型对比类文章不得用第一人称观点框架收束。",
       "failure_mode": "开头、转场或结尾生硬时退回写作策略阶段，不能靠格式审阅放行。"
     },
     {
@@ -417,7 +417,7 @@
     },
     {
       "id": "human_voice",
-      "gate": "文字和视觉都要去 AI 味，避免报告腔、模板腔、整段高亮和过度装饰。",
+      "gate": "文字和视觉都要去 AI 味，避免报告腔、模板腔、第一人称观点腔、整段高亮和过度装饰；重点句突出只用于关键数据、机制转折、适用边界和行动建议。",
       "failure_mode": "退回改写，直到真人感检查通过。"
     },
     {
@@ -427,7 +427,7 @@
     },
     {
       "id": "wechat_layout",
-      "gate": "公众号 HTML 必须遵守微信 CSS 兼容规则，正文不重复系统标题。",
+      "gate": "公众号 HTML 必须遵守微信 CSS 兼容规则，正文不重复系统标题；重点句突出必须使用微信兼容的 strong+span 或局部 table，不能在 p 上放背景、字体或颜色样式。",
       "failure_mode": "阻断发布，回排版阶段修复。"
     },
     {
@@ -535,7 +535,7 @@
     },
     {
       "name": "human_voice",
-      "must": "The draft must remove formulaic AI patterns while preserving factual accuracy."
+      "must": "The draft must remove formulaic AI patterns and first-person opinion frames while preserving factual accuracy, and use emphasis only for genuinely important sentences."
     },
     {
       "name": "positive_value_framing",
