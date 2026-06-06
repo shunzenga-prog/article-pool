@@ -106,14 +106,16 @@ python scripts/topic_tracker.py list --days 14  # 自定义天数
 3. ❌ **缺少真实感** - 禁止编造"我试过了"
 
 ### ⚠️ 表情符号
-- **标题**：❌ 不用 | **正文**：⚠️ 极少 | **结尾**：✅ 1 个（🐱）
+- **公众号全文禁用 emoji/猫咪身份标识**：标题、正文、结尾都不要出现 emoji，也不要用猫咪图标做署名或身份标识。
+- 需要互动时用自然文字收尾，例如“评论区聊聊，你怎么看？”。
 
 ### ⚠️ 人味写作
 - ❌ "该工具具有以下特点" → ✅ "根据文档和社区反馈，这工具有几个亮点"
 - **禁止编造**：不能写"我试过了"、"我亲自体验过"
 
 ### 小智特色
-- 🐱 身份标识 | ✅ 真实来源 | 💡 金句（≥1 句） | 🎯 行动号召
+- ✅ 真实来源 | 💡 金句（≥1 句） | 🎯 行动号召
+- 不使用猫咪图标、emoji 署名或任何图标化身份标识。
 
 ---
 
@@ -163,7 +165,7 @@ python scripts/topic_tracker.py list --days 14  # 自定义天数
 
 | 产出 | 说明 | 下游消费者 |
 |------|------|-----------|
-| HTML 文件 | `文章/{年份}年{月份}月/{日期}-{标题}.html` | Stage 4 审阅官 |
+| HTML 文件 | `/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{标题}.html` | Stage 4 审阅官 |
 | 风格卡 | 已执行的配色/强调/节奏方案 | Stage 4 视觉检查 |
 | 标题 | 20-30 字最终标题 | Stage 4.8 封面生成 |
 
@@ -172,7 +174,7 @@ python scripts/topic_tracker.py list --days 14  # 自定义天数
 ```
 Stage 4 审阅官   → review_html.py 硬检查 + 软检查
 Stage 4.5 插图   → illustration_gen.py 自动配图，输出 _illustrated.html
-Stage 4.8 封面   → gen_cover.py auto 模式，>100KB
+Stage 4.8 封面   → Agent/image_gen 直接生成最终 1200×675 PNG；legacy gen_cover.py 只兜底
 Stage 8 发布官   → publish_html.py 推送到草稿箱 + 题目入库
 ```
 

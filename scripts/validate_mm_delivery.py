@@ -37,8 +37,8 @@ def _resolve_existing(path: Path | str, *, base: Path | None = None) -> Path:
         candidates.append(PROJECT_ROOT / raw)
     for candidate in candidates:
         if candidate.exists():
-            return candidate.resolve()
-    return (candidates[0] if candidates else raw).resolve()
+            return candidate.absolute()
+    return (candidates[0] if candidates else raw).absolute()
 
 
 def _base_stem(article: Path) -> str:

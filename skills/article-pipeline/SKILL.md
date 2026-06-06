@@ -42,7 +42,7 @@ Stage 4.5 (Agent)      ┌─ 插图Agent ─┐
   → _illustrated.html  └──────────────┘
     ↓
 Stage 4.8 (Agent)      ┌─ 封面Agent ─┐
-  GPT Image优先         │ 验证>100KB  │
+  image_gen直接最终封面 │ 验证>100KB  │
   绝不geometric正常通过 └──────────────┘
     ↓
 Stage 5-6 (AI语义)
@@ -90,7 +90,7 @@ context = {
     "hypothetical_parts": [],  # 假设性内容标记
     "truth_check": {"passed": True, "fabricated_parts": [], "suggestions": []},
     # 文件约定
-    "html_path": "",  # wechat-writer 产出：文章/{年份}年{月份}月/{日期}-{标题}.html
+    "html_path": "",  # wechat-writer 产出：/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{标题}.html
     "illustrated_path": "",  # Stage 4.5 产出：*_illustrated.html
     "cover_path": "",  # Stage 4.8 产出：同名 .png
     "style_card": {},  # wechat-writer 产出：配色/强调/节奏方案
@@ -104,9 +104,9 @@ context = {
 ### 文件命名约定
 
 ```
-HTML 原文：     文章/{年份}年{月份}月/{日期}-{标题}.html  （wechat-writer 产出）
-插图版 HTML：   文章/{年份}年{月份}月/{日期}-{标题}_illustrated.html  （Stage 4.5 产出）
-封面图：        文章/{年份}年{月份}月/{日期}-{标题}.png  （Stage 4.8 产出）
+HTML 原文：     /Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{标题}.html  （wechat-writer 产出）
+插图版 HTML：   /Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{标题}_illustrated.html  （Stage 4.5 产出）
+封面图：        /Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{标题}.png  （Stage 4.8 产出）
 ```
 
 **⚠️ Stage 4.5 之后的所有操作（审阅终检、发布）都针对 `_illustrated.html`。**
@@ -236,7 +236,7 @@ else:
 | 方向 | 内容 | 说明 |
 |------|------|------|
 | → 传入 | 选题 + 平台 + Context Variables（含 word_count_target） | pipeline Stage 0-1 已确定 |
-| ← 传回 | HTML 文件路径 | `文章/{年份}年{月份}月/{日期}-{标题}.html` |
+| ← 传回 | HTML 文件路径 | `/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{标题}.html` |
 | ← 传回 | 风格卡 | 已执行的配色/强调/节奏方案 |
 | ← 传回 | 标题 | 20-30 字最终标题 |
 
@@ -395,7 +395,7 @@ Agent({
 
 ## Stage 4.8: 封面生成（Agent 硬约束）
 
-**职责：** 调用 `cover-agent` 生成 1200×675 封面图。强制 auto 模式，绝不 geometric。
+**职责：** 调用 `cover-agent` 根据文章语义直接生成最终 1200×675 封面图。当前 Agent 具备 image_gen / GPT Image 能力时，禁止调用 `gen_cover.py` 二次处理；legacy 脚本只在无生图能力或用户要求真实图库/事实图片时兜底。
 
 **Agent 调用：**
 
@@ -412,23 +412,22 @@ Agent({
 - 输出路径：<PNG路径>
 - 关键词：<逗号分隔>
 
-使用 auto 模式（不要传 --mode 参数）。如果当前 Agent 支持 GPT Image / image_gen，必须先生成本地背景图并传 --background-image；生成后验证文件 >100KB。"
+如果当前 Agent 支持 GPT Image / image_gen，必须直接生成最终 1200×675 PNG 到输出路径；不要调用 gen_cover.py，也不要生成 cover_bg 再二次合成。生成后验证文件 >100KB，并写明语义锚点。"
 })
 ```
 
 **封面 Agent 硬约束：**
-- 在支持 GPT Image / image_gen 的 Codex 环境中，必须先由 Agent 生成 1200×675 本地背景图，再调用 `gen_cover.py --background-image`
-- 永不传 `--mode geometric`
-- 验证输出文件 >100KB（真实背景图 200-500KB，geometric 约 50KB）
-- 如果最终来源是 `geometric`，不得直接视为通过；需要重试 GPT Image、换 prompt，或向用户说明 GPT Image 不可用
+- 在支持 GPT Image / image_gen 的 Codex 环境中，必须直接生成最终 1200×675 PNG 封面
+- 不调用 `gen_cover.py --background-image`；不把 Agent 图当“背景图”再交给脚本
+- 验证输出文件 >100KB，并确认至少命中 3 个文章语义锚点
+- 如果最终来源是 `geometric` 或泛化科技图，不得视为通过；需要重试 GPT Image、换 prompt，或向用户说明 GPT Image 不可用
 - 失败时报告原因，不静默降级
 
 **封面图规格：** 1200×675px PNG，16:9 比例。配色与文章风格卡协调。
 
-**手动备用命令：**
+**旧兜底命令（仅限无生图能力或用户要求真实图库/事实图片）：**
 ```bash
 python scripts/gen_cover.py --title "标题" --keywords "关键词1,关键词2" --output cover.png
-python scripts/gen_cover.py --title "标题" --background-image cover-bg.png --keywords "关键词1,关键词2" --output cover.png
 # 不要加 --mode geometric
 ```
 
@@ -538,7 +537,7 @@ Stage 8 完成后，逐项确认以下 7 项：
 
 | # | 检查项 | 通过标志 |
 |---|--------|----------|
-| 1 | HTML 已生成 | 文件在 `文章/{年份}年{月份}月/` 目录（wechat-writer 产出） |
+| 1 | HTML 已生成 | 文件在 `/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/` 目录（wechat-writer 产出） |
 | 2 | **插图已嵌入** | `_illustrated.html` 存在，含微信 CDN 图片链接（Stage 4.5 产出） |
 | 3 | 封面图已生成 | 同名 `.png` 与 HTML 同目录，文件 >100KB（Stage 4.8 产出） |
 | 4 | 审阅已通过 | `review_html.py --json` 返回 `passed: true`（Stage 4 产出） |

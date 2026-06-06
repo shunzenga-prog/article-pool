@@ -457,13 +457,23 @@ def _escape_filter_path(path: Path) -> str:
     return text.replace("\\", "\\\\").replace(":", r"\:").replace("'", r"\'")
 
 
+def _is_windows_drive_path(path: Path) -> bool:
+    return bool(re.match(r"^[A-Za-z]:[/\\]", str(path)))
+
+
+def _filter_path(path: Path) -> Path:
+    if _is_windows_drive_path(path):
+        return path
+    return path.resolve()
+
+
 def subtitle_filter_arg(subtitle_path: Path, fonts_dir: Path | None) -> tuple[str, Path]:
-    subtitle_path = subtitle_path.resolve()
+    subtitle_path = _filter_path(subtitle_path)
     cwd = subtitle_path.parent
     filename = subtitle_path.name.replace("\\", "\\\\").replace("'", r"\'")
     value = f"subtitles=filename='{filename}'"
     if fonts_dir:
-        value += f":fontsdir='{_escape_filter_path(fonts_dir.resolve())}'"
+        value += f":fontsdir='{_escape_filter_path(_filter_path(fonts_dir))}'"
     return value, cwd
 
 

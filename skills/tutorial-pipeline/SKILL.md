@@ -367,20 +367,9 @@ python scripts/code_image_generator.py chart chart_code.py -o stepN_chart.png
 
 ### Stage 8: 封面生成（教程专用）
 
-```bash
-# 教程封面：使用 gen_cover.py（强制 auto 模式，绝不传 --mode geometric）
-python scripts/gen_cover.py \
-    --title "保姆级教程：5 分钟上手 XX" \
-    --subtitle "零基础也能学会" \
-    --output cover.png
-```
+教程封面默认由 Agent/image_gen 根据教程语义直接生成最终 1200×675 PNG：必须体现真实学习场景、关键工具、操作界面或步骤结果，不调用 `gen_cover.py` 二次处理。
 
-> ⚠️ **永不传 `--mode geometric`**。auto 模式内置了 geometric 兜底（5级级联的最后一级），无需手动指定。手动传 geometric 会跳过真实背景图搜索，产出的纯色封面只有 ~50KB，不符合 >100KB 的质量要求。
-
-**教程封面参数建议：**
-- 不传 `--mode`——默认 auto，自动级联搜索背景（OG→Pexels→AI→Unsplash→Brave→geometric）
-- 标题格式偏好：「保姆级教程：xxx」或「手把手教你 xxx」
-- tag 用 `AI 实战教程` / `技术教程`
+`gen_cover.py` 仅在没有 image_gen 能力或用户明确要求真实图库/事实图片时作为 legacy fallback；`geometric` 不能作为成功封面。
 
 ---
 

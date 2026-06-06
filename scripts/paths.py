@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 """
 Centralised path configuration — single source of truth for every directory and file path
 in the project. All scripts import from here instead of computing their own paths.
@@ -17,6 +19,8 @@ you set an override in .env.
 """
 
 import os
+import re
+from datetime import date, datetime
 from pathlib import Path
 
 # ── Auto-detected project roots ──
@@ -73,6 +77,8 @@ def _resolve(raw: str | None, default: str) -> Path:
 
 
 # ── WORK_DIR umbrella ──
+load_env()
+
 # If WORK_DIR is set, all subdirectories default to $WORK_DIR/<sub>.
 # Individual *_DIR overrides still take precedence.
 _WORK_DIR_RAW = os.environ.get("WORK_DIR")
@@ -83,6 +89,7 @@ _REPORTS_DEFAULT = str((_WORK_DIR / "reports") if _WORK_DIR else PROJECT_ROOT / 
 _OUTPUT_DEFAULT = str((_WORK_DIR / "output") if _WORK_DIR else PROJECT_ROOT / "output")
 
 # ── Public directory paths ──
+ARTICLE_ROOT = _resolve(os.environ.get("ARTICLE_ROOT"), str(PROJECT_ROOT / "文章"))
 ILLUSTRATIONS_DIR = _resolve(os.environ.get("ILLUSTRATIONS_DIR"), _ILLUSTRATIONS_DEFAULT)
 REPORTS_DIR = _resolve(os.environ.get("REPORTS_DIR"), _REPORTS_DEFAULT)
 OUTPUT_DIR = _resolve(os.environ.get("OUTPUT_DIR"), _OUTPUT_DEFAULT)
@@ -103,3 +110,52 @@ ILLUSTRATION_RULES_FILE = CONFIG_DIR / "illustration_rules.json"
 # ── Ensure directories exist ──
 for _d in (ILLUSTRATIONS_DIR, REPORTS_DIR, OUTPUT_DIR):
     _d.mkdir(parents=True, exist_ok=True)
+
+
+def parse_article_date(value: date | datetime | str | None = None) -> date:
+    """Return a date for article path generation."""
+    if value is None:
+        return datetime.now().date()
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    raw = str(value).strip()
+    for fmt in ("%Y-%m-%d", "%Y%m%d", "%m%d"):
+        try:
+            parsed = datetime.strptime(raw, fmt)
+            if fmt == "%m%d":
+                return date(datetime.now().year, parsed.month, parsed.day)
+            return parsed.date()
+        except ValueError:
+            pass
+    raise ValueError(f"Unsupported article date: {value}")
+
+
+def safe_article_title(title: str) -> str:
+    """Sanitize a title for filesystem use while keeping readable Chinese text."""
+    cleaned = re.sub(r'[\\/:*?"<>|]+', "", title)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned or "未命名文章"
+
+
+def article_month_dir(publish_date: date | datetime | str | None = None) -> Path:
+    """Return ARTICLE_ROOT/YYYY年MM月 for a publish date."""
+    d = parse_article_date(publish_date)
+    return ARTICLE_ROOT / f"{d.year}年{d.month:02d}月"
+
+
+def article_basename(title: str, publish_date: date | datetime | str | None = None) -> str:
+    """Return MMDD-safe_title for a publish date."""
+    d = parse_article_date(publish_date)
+    return f"{d.month:02d}{d.day:02d}-{safe_article_title(title)}"
+
+
+def article_output_path(
+    title: str,
+    suffix: str,
+    publish_date: date | datetime | str | None = None,
+) -> Path:
+    """Return the canonical article output path under ARTICLE_ROOT."""
+    normalized_suffix = suffix if suffix.startswith(".") else f".{suffix}"
+    return article_month_dir(publish_date) / f"{article_basename(title, publish_date)}{normalized_suffix}"

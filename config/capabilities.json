@@ -11,7 +11,7 @@
       "type": "agent",
       "file": "agents/article-pool/cover-agent.md",
       "name": "cover-agent",
-      "description": "封面图生成 Agent - 永远用 auto 模式生成真实背景图，校验输出质量",
+      "description": "封面图生成 Agent - image_gen 直接生成最终 1200x675 封面，legacy auto 只兜底",
       "tools": "Bash, Read",
       "is_quality_gate": false,
       "blocking": false,
@@ -203,7 +203,7 @@
       "type": "script",
       "file": "scripts/gen_cover.py",
       "name": "gen_cover",
-      "description": "封面图生成 — 1200x675 PNG，auto 模式自动搜索背景图",
+      "description": "legacy 封面脚本 — 1200x675 PNG；仅在无 image_gen 能力或用户要求图库/事实图片时兜底",
       "params": {
         "title": {"help": "Main title."},
         "subtitle": {"default": ""},

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
 """
 Validate the mm-article multimodal workflow package.
 
@@ -148,18 +150,25 @@ def _validate_output_contract(manifest: dict[str, Any]) -> None:
         "illustrated_html",
         "cdn_html",
         "cover_png",
-        "cover_background",
         "visual_dir",
         "body_image_pattern",
         "screenshot_pattern",
+        "source_screenshot_pattern",
     )
     for field in required_wechat_fields:
         if not wechat.get(field):
             raise ValueError(f"manifest.output_contract.wechat.{field} is required")
+    if wechat.get("cover_background"):
+        raise ValueError("manifest.output_contract.wechat.cover_background is obsolete; covers must be generated directly as final PNG")
 
     for key in ("illustration_policy", "cover_policy"):
         if not isinstance(manifest.get(key), dict):
             raise ValueError(f"manifest.{key} must be an object")
+    cover_policy = manifest["cover_policy"]
+    if cover_policy.get("default_strategy") != "agent_direct_final_cover":
+        raise ValueError("manifest.cover_policy.default_strategy must be agent_direct_final_cover")
+    if cover_policy.get("agent_background"):
+        raise ValueError("manifest.cover_policy.agent_background is obsolete; do not generate cover backgrounds")
 
 
 def validate_project(root: Path | str) -> dict[str, Any]:

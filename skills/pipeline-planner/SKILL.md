@@ -136,7 +136,7 @@ on_stage_complete:
 ### Infrastructure
 | key | 说明 |
 |-----|------|
-| `script.gen_cover` | 封面 CLI |
+| `script.gen_cover` | legacy 封面兜底 CLI |
 | `script.publish_html` | 发布 CLI |
 | `script.topic_tracker` | 选题入库 CLI |
 | `script.terminal_screenshot` | 终端截图 |

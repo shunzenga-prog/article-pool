@@ -4,19 +4,19 @@
 
 ## 旧文章格式基线
 
-`mm-article` 的默认产物格式参考现有老文章池，而不是新造一套路径：
+`mm-article` 的默认产物格式参考现有老文章池的命名，但根目录固定为 `ARTICLE_ROOT=/Users/mulin/workspace/公众号/文章`，不能写到仓库内的相对 `文章/` 目录。
 
 ```text
-文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent.html
-文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent_cdn.html
-文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent.png
-文章/2026年05月/images_claude_agent_view/agent-view-blog-01.png
-文章/2026年5月/2026-05-18-ClaudeCode自动干活Harness3车道才稳.html
+/Users/mulin/workspace/公众号/文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent.html
+/Users/mulin/workspace/公众号/文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent_cdn.html
+/Users/mulin/workspace/公众号/文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent.png
+/Users/mulin/workspace/公众号/文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent-image-01.png
+/Users/mulin/workspace/公众号/文章/2026年06月/0605-claude code最新实践指南.html
 ```
 
-默认使用主流老格式：`文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.html`。少量旧文章存在 `{YYYY-MM-DD}-{title}.html` 或 `{YYYYMMDD}-{title}.html`，这些只作为兼容读取格式，新产物不要默认使用。
+默认使用主流老格式：`/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.html`。少量旧文章存在 `{YYYY-MM-DD}-{title}.html` 或 `{YYYYMMDD}-{title}.html`，这些只作为兼容读取格式，新产物不要默认使用。
 
-所有路径都按当前工作区或 `ARTICLE_ROOT` 解析；不要把 `E:\...` 这样的本地绝对路径写进正文或报告给读者。
+所有正式文章产物都按 `ARTICLE_ROOT` 解析；不要把 `E:\...` 这样的本地绝对路径写进正文或报告给读者。
 
 ## 输出目录
 
@@ -25,17 +25,17 @@
 公众号文章默认输出到：
 
 ```text
-文章/{YYYY}年{MM}月/
+/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/
 ```
 
 文件命名：
 
 ```text
-文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.html
-文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_illustrated.html
-文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_cdn.html
-文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_publish.html
-文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png
+/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.html
+/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_illustrated.html
+/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_cdn.html
+/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_publish.html
+/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png
 ```
 
 规则：
@@ -49,28 +49,29 @@
 
 ### 资产目录
 
-图片资产放在月份目录下，使用有语义的相对目录名，参考旧文章的 `images_claude_agent_view/`、`screenshots_ep5/`、`claude-code-harness-images/`：
+图片资产平铺放在文章所在的月份目录下，和 HTML 或 Markdown 文件同目录，不再为正式文章插图创建 `images_*` 或 `screenshots_*` 子目录：
 
 ```text
-文章/{YYYY}年{MM}月/{visual_slug}/
+/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/
 ```
 
 常用文件：
 
 ```text
-01-topic.png
-02-topic.png
-img-01-step.png
-step1-output.png
+{MMDD}-{safe_title}-image-01.png
+{MMDD}-{safe_title}-image-02.png
+{MMDD}-{safe_title}-screenshot-01.png
+{MMDD}-{safe_title}-source-x-01-compact.png
+{MMDD}-{safe_title}-terminal-01.png
 ```
 
 规则：
 
-- 事实型截图目录优先用 `screenshots_{topic_slug}`。
-- 文章配图目录优先用 `images_{topic_slug}` 或 `{topic_slug}-images`。
-- HTML 正文只写相对路径，例如 `images_claude_agent_view/agent-view-blog-01.png`。
+- 事实型截图和概念插图都平铺在同一个月份目录，用 basename 派生命名。
+- 原文证据截图使用 `{MMDD}-{safe_title}-source-{platform}-{NN}-compact.png`，例如 `0606-Magenta实时音乐模型-source-x-01-compact.png`。
+- HTML 正文只写同目录相对文件名，例如 `{MMDD}-{safe_title}-image-01.png`。
 - 发布前由脚本上传或替换为 CDN URL。
-- Agent 生成的封面背景默认放到月份目录：`文章/{YYYY}年{MM}月/{MMDD}_cover_bg.png`。
+- Agent/image_gen 直接生成的最终封面默认放到月份目录：`/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png`。
 
 ### 运行报告目录
 
@@ -84,6 +85,7 @@ reports/mm-article/{YYYYMMDD-HHMMSS}-{slug}/
 
 ```text
 evidence.json
+source_capture.json
 title_decision.json
 content_prompt.md
 visual_plan.json
@@ -121,6 +123,24 @@ delivery_gate.json
 ## 配图流程
 
 配图按“事实优先，概念补充”的顺序执行。
+
+### 原文证据截图
+
+原文证据截图属于证据产物，先于正文起草和后续配图规划生成。它用于证明“原始网页、X 发帖、官方公告或论文页面确实这样表述”，不是装饰图。
+
+保存规则：
+
+- 图片平铺在文章月份目录，文件名使用 `{MMDD}-{safe_title}-source-{platform}-{NN}-compact.png`。
+- 运行报告写入 `reports/mm-article/{run_id}/source_capture.json`。
+- 每条记录至少包含 `source_url`、`captured_at`、`screenshot_path`、`claim_supported`、`translated`、`crop_style`、`visual_slot_id`、`reader_use`。
+- 社交平台发帖默认使用 compact 截图，只保留头像、账号、正文和必要时间信息；不要把侧栏、浏览器导航、视频大块区域、推荐流一起截入正文素材。
+
+与后续配图协调：
+
+- `source_capture.json` 中的 `visual_slot_id` 会先占用同一视觉槽位。
+- `visual_plan.json`、`image_requests.json` 和 `generated_images.json` 必须避开已占用槽位。
+- 同一段落或同一视觉槽位已有原文证据截图时，后续概念插图默认跳过；如确有必要，只能改为替换该截图，或移动到下一小节的独立槽位。
+- 不允许同一段落连续堆叠“原文截图 + 产品截图 + 概念图”。连续图片之间必须有承接文字、不同 claim 和明确阅读价值。
 
 ### 事实型图片
 
@@ -164,7 +184,7 @@ delivery_gate.json
 python scripts/illustration_gen.py <article.html> --emit-image-requests reports/mm-article/{run_id}/image_requests.json --dry-run
 ```
 
-2. Agent 按 `image_requests.json` 逐张生成本地图片，保存到月份目录下的语义图片目录，例如 `文章/{YYYY}年{MM}月/images_{topic_slug}/` 或 `screenshots_{topic_slug}/`。
+2. Agent 按 `image_requests.json` 逐张生成本地图片，平铺保存到文章所在月份目录，例如 `/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}-image-01.png`。
    生成前先核对每条请求的 `paragraph_context`。如果上下文为空、过泛或与插入位置不一致，先回到文章段落修正请求，不直接生图。
 
 3. 写入生成结果清单：
@@ -180,7 +200,7 @@ reports/mm-article/{run_id}/generated_images.json
   "images": [
     {
       "id": "image_001",
-      "path": "文章/2026年05月/images_topic/01-concept.png",
+      "path": "/Users/mulin/workspace/公众号/文章/2026年05月/0517-topic-image-01.png",
       "intended_use": "解释第二节的抽象概念",
       "kind": "concept"
     }
@@ -203,19 +223,15 @@ python scripts/illustration_gen.py <article.html> --use-local-images reports/mm-
 ### 默认策略
 
 1. 先写封面 brief，并保存为 `cover_brief_artifact` 或写入运行报告。brief 必须从文章主张提炼，包含文章主张、内容符号、品牌元素、主体、构图、禁用元素、缩略图目标和模型归因边界。
-2. 如果当前环境支持 `image_gen`，Agent 先生成无文字封面背景：
+2. 如果当前环境支持 `image_gen`，Agent 直接生成无文字最终封面：
 
 ```text
-文章/{YYYY}年{MM}月/{MMDD}_cover_bg.png
+/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png
 ```
 
-3. 再调用封面脚本输出最终封面：
+3. 不调用 `gen_cover.py --background-image`。`gen_cover.py` 只在没有 image_gen 能力、用户明确要求真实图库/事实图片，或旧链路兜底时使用。
 
-```powershell
-python scripts/gen_cover.py --title "<title>" --background-image "文章/{YYYY}年{MM}月/{MMDD}_cover_bg.png" --output "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png"
-```
-
-当前封面脚本是纯图封面模式，`--title` 主要用于关键词、主题和元数据选择；生成背景图的 prompt 里不要写标题文字。
+生成 prompt 里不要写标题文字；封面必须是纯图，不带水印、角标或来源标识。
 
 如果使用内置生图工具且宿主没有暴露底层模型名，报告里只能记录“内置 image_gen / Agent 生成”，不得声称具体底层模型名。只有显式 CLI/API 返回模型配置时，才能记录具体模型。
 

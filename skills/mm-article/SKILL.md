@@ -35,15 +35,16 @@ Article Pool 的语义优先多模态文章工作流。
 1. 识别平台、文章类型、时效性、目标字数和发布要求。
 2. 根据 manifest 构建语义任务计划，不要照搬旧 pipeline stage。
 3. 先做搜索来源规划和时效性校验，再收集证据，并把证据保存为带来源、时间和用途说明的产物。
-4. 如果任务涉及本地资料、历史文章或知识库，调用 `article-research-kb`，产出 `local_kb_evidence_artifacts`，并把它和外部证据分开记录。
-5. 生成标题并通过标题硬约束后，构造文章内容提示词。
-6. 起草文章，并在文中标记视觉需求：截图、图表、封面、事实图片、生成插图。
-7. 执行去 AI 味改写，再做平台排版和格式校验。
-8. 对事实型视觉内容，优先使用真实截图、官方图片或浏览器/终端捕获结果。
-9. 对概念型视觉内容，先判断 `Mode B` / `Mode C`：宿主有生图能力时走 Host-Native prompt 到本地图；没有生图能力时只输出 prompt 和状态，`不要假装出图成功`。
-10. 如果用户要求文章转视频或网页演示，先生成 `script.md` 和 `outline.md`，再交给 `mm-video` 或网页演示实现。
-11. 发布前完成审阅：标题、事实、时效、风格、排版、格式、视觉和发布条件。
-12. 仅在边界明确的动作中使用确定性工具：HTML 审阅、封面后处理、图片嵌入、选题入库和草稿发布。
+4. 对会直接进入正文引用的原文页面、社交平台发帖、官方公告或论文页面，先执行 `evidence.source_capture`，产出 `source_capture_artifacts`，再进入标题、深度研究和起草。
+5. 如果任务涉及本地资料、历史文章或知识库，调用 `article-research-kb`，产出 `local_kb_evidence_artifacts`，并把它和外部证据分开记录。
+6. 生成标题并通过标题硬约束后，构造文章内容提示词。
+7. 起草文章，并在文中标记视觉需求：截图、图表、封面、事实图片、生成插图。
+8. 执行去 AI 味改写，再做平台排版和格式校验。
+9. 对事实型视觉内容，优先使用真实截图、官方图片或浏览器/终端捕获结果。
+10. 对概念型视觉内容，先判断 `Mode B` / `Mode C`：宿主有生图能力时走 Host-Native prompt 到本地图；没有生图能力时只输出 prompt 和状态，`不要假装出图成功`。
+11. 如果用户要求文章转视频或网页演示，先生成 `script.md` 和 `outline.md`，再交给 `mm-video` 或网页演示实现。
+12. 发布前完成审阅：标题、事实、时效、风格、排版、格式、视觉和发布条件。
+13. 仅在边界明确的动作中使用确定性工具：HTML 审阅、封面后处理、图片嵌入、选题入库和草稿发布。
 
 ## 创作硬约束
 
@@ -72,6 +73,7 @@ Article Pool 的语义优先多模态文章工作流。
 - 段落推进：每一节必须有自然转折和推进动作，不能只是提纲项的展开。
 - 结构节奏：开头钩子、主体段落、转折、案例、结尾行动。
 - 重点句突出计划：每个大节最多选择 1 句真正支撑判断、边界或行动的重点句，用微信兼容的 `strong + span` 或局部 `table` 做轻量突出；不要把普通形容词、空泛金句或整段文字高亮。
+- 原文证据截图：如果已产出 `source_capture_artifacts`，提示词必须说明每张截图支持的 claim、建议插入位置和视觉槽位，避免同一位置连续插入多张图。
 - 视觉计划：哪些段落需要真实截图，哪些可以用概念图，封面表达什么。
 - 封面 brief：从正文主张提炼视觉主体、品牌视觉元素、构图和避雷词；不能只写“高端科技感封面”。
 - 平台规则：公众号写 HTML，CSDN 写 Markdown，小红书写笔记，不允许机械互转。
@@ -82,6 +84,7 @@ Article Pool 的语义优先多模态文章工作流。
 请围绕「{选题}」创作一篇面向「{读者}」的「{平台}/{文章类型}」文章。
 核心角度是：{角度}。
 必须使用以下证据：{证据清单，含来源和发布时间}。
+已采集的原文证据截图：{source_capture_artifacts，含来源 URL、截图路径、是否翻译、支持 claim 和视觉槽位}。
 写作倾向：以客观事实和正面意义为主，从消费者/用户能解决什么问题出发；限制和边界只做事实说明，不写抬杠式反思。
 标题约束：20-30 字，至少 2 个钩子，不用弱词，不要 AI 味句式。
 正文要求：自然叙述，有人味，有具体判断，不编造亲历；事实和假设分清；必须包含研究问题、机制解释、正向价值、限制边界和读者可执行判断。
@@ -174,6 +177,27 @@ Article Pool 的语义优先多模态文章工作流。
 
 每个关键事实至少有 1 个可靠来源；争议性或高风险判断尽量交叉验证 2 个以上来源。
 
+### 原文证据截图
+
+原文证据截图是证据层产物，不是普通配图。凡是正文要引用“某人/某机构在网页、X、论坛、官方页面上说了什么”，优先在起草前执行 `evidence.source_capture`，产出 `source_capture_artifacts`。
+
+- 截图优先使用真实网页版；如果读者需要中文理解，可以使用浏览器翻译后的页面，但报告里必须记录 `translated=true` 和原始 URL。
+- 截图范围只保留头像/账号/正文/必要时间信息；不要截浏览器导航、侧栏、视频大块区域、评论噪声或无关推荐。
+- 对 X 等社交平台发帖，默认使用紧凑裁剪：头像、显示名、handle、正文文字、必要时间信息；需要展示原貌时才保留更大页面截图。
+- 每条 `source_capture_artifacts` 必须记录 `source_url`、`captured_at`、`screenshot_path`、`claim_supported`、`translated`、`crop_style`、`visual_slot_id` 和 `reader_use`。
+- 截图不能暴露登录态、Cookie、私信、通知、内部链接、用户隐私或本地绝对路径；发现这些内容时必须重新裁剪或放弃截图。
+- 正文图注只能写读者需要的信息，例如“图：Google Magenta 在 X 上介绍 MRT2 的 MIDI 控制能力”，不能写“裁切版”“视觉计划”“截图处理”等生产备注。
+
+### 视觉槽位协调
+
+`source_capture_artifacts` 会先占用视觉槽位。后续 `plan.visuals`、`capture.factual` 和 `generate.image` 必须读取这些槽位，避免同一位置连续插入多张图。
+
+- 每个视觉需求都要有 `visual_slot_id`、段落位置、用途和事实/概念属性。
+- 如果某段已经放了原文证据截图，默认跳过该段的概念插图；确有必要时只能改为替换，或移动到下一小节中有独立叙事作用的位置。
+- 同一位置不得连续插入多张图。两张图片必须有明确文字承接、不同 claim，且不造成“截图后又堆一张泛科技图”的阅读噪声。
+- 教程截图、产品 UI 截图和原文证据截图都属于已占用槽位；概念图只能补充抽象机制，不能贴在同一段落制造图像堆叠。
+- 视觉审阅时要检查相邻图片、连续图片、同一段落重复配图；发现冲突时回到视觉计划重排。
+
 ### 排版
 
 - 公众号正文直接从导语开始，不重复系统标题。
@@ -226,6 +250,7 @@ Article Pool 的语义优先多模态文章工作流。
 | kind | 示例 | 必填字段 |
 | --- | --- | --- |
 | `evidence` | 搜索结果、官方文档、文章来源 | `path_or_url`, `captured_at`, `claim_supported` |
+| `source_capture` | 原文证据截图、翻译后网页紧凑截图 | `source_url`, `screenshot_path`, `claim_supported`, `visual_slot_id` |
 | `draft` | HTML 或 Markdown 文章 | `path`, `platform`, `title` |
 | `visual_plan` | 封面、插图、截图清单 | `items`, `rationale` |
 | `cover_brief` | 封面视觉 brief | `article_claim`, `content_symbols`, `brand_visual_elements`, `composition`, `avoid_generic`, `model_attribution` |
@@ -238,11 +263,11 @@ Article Pool 的语义优先多模态文章工作流。
 
 详细目录、命名、配图流程和封面流程见 `references/output-contract.md`。核心约定：
 
-- 公众号文章默认参考老文章池格式，输出到 `文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.html`。
+- 公众号文章默认参考老文章池命名，但根目录固定为 `/Users/mulin/workspace/公众号/文章`，输出到 `/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.html`。
 - 插图版输出为同名 `_illustrated.html`，发布脚本生成的 CDN 版本为同名 `_cdn.html`。
-- 封面输出为同名 `.png`；Agent 生成的封面背景写到 `文章/{YYYY}年{MM}月/{MMDD}_cover_bg.png`。
-- 本地截图和 Agent 生成图放在月份目录下的语义图片目录，例如 `images_claude_agent_view/`、`screenshots_ep5/`、`claude-code-harness-images/`。
-- 运行记录放入 `reports/mm-article/{run_id}/`，包括证据、标题决策、内容提示词、视觉计划、图片请求、生成图片清单、审阅和发布结果。
+- 封面输出为同名 `.png`；当前 Agent 具备 image_gen 能力时，直接生成最终封面到该路径，不再生成 `{MMDD}_cover_bg.png` 再交给脚本二次处理。
+- 本地截图和 Agent 生成图与 HTML 或 Markdown 文件平铺在同一个月份目录下，不创建正式文章图片子目录；原文证据截图使用 `{MMDD}-{safe_title}-source-{platform}-{NN}-compact.png`。
+- 运行记录放入 `reports/mm-article/{run_id}/`，包括证据、原文证据截图、标题决策、内容提示词、视觉计划、图片请求、生成图片清单、审阅和发布结果。
 - 封面生成必须记录 `cover_brief_artifact` 或等价字段；如果用户反馈封面，需要记录反馈点和下一版 prompt 的变化。
 - 正文里不得出现本地绝对路径；本地图必须在发布前上传或替换为可访问 URL。
 
@@ -250,7 +275,7 @@ Article Pool 的语义优先多模态文章工作流。
 
 - 如果 Codex 生图能力可用，概念型封面和概念型插图优先生成本地图片。
 - 使用内置生图工具时，如果宿主没有暴露底层模型名，不得声称底层模型名；模型归因必须按实际可见工具能力记录。
-- 如果浏览器或截图工具可用，事实型界面和教程证据必须优先真实捕获，不要凭空生成。
+- 如果浏览器或截图工具可用，事实型界面、教程证据和原文证据截图必须优先真实捕获，不要凭空生成。
 - 如果只有文本工具可用，保留语义计划，但使用旧流程安全兜底，并标记视觉置信度不足。
 - 绝不要用生成图片伪造截图、产品界面、官方 Logo 或现实证据。
 
@@ -259,7 +284,7 @@ Article Pool 的语义优先多模态文章工作流。
 只有当输入已经由语义层决定后，才使用这些工具：
 
 - `python scripts/review_html.py <article.html>`：用于微信 HTML 兼容性门禁。
-- `python scripts/gen_cover.py --title "<title>" --background-image <local-image> --output <cover.png>`：本地背景图已经存在后，用于最终封面排版。
+- `python scripts/gen_cover.py --title "<title>" --output <cover.png>`：legacy 兜底，仅在无 image_gen 能力或用户明确要求真实图库/事实图片时使用；默认封面不得调用该脚本。
 - `python scripts/illustration_gen.py <article.html> --emit-image-requests <requests.json> --dry-run`：用于生成概念图片需求清单；每条请求必须包含 `paragraph_context`，生图 prompt 要根据插图所在段落的具体内容生成，不能只按标题词或主题词泛化。
 - `python scripts/illustration_gen.py <article.html> --use-local-images <generated_images.json>`：用于嵌入已经生成的本地图片。
 - `python scripts/validate_mm_delivery.py <article.html> --run-dir reports/mm-article/<run_id> --title "<title>" --write-report`：用于最终交付门禁，检查封面、插图、图片质量、HTML 审阅、流程泄漏、运行报告和发布状态。
@@ -271,6 +296,8 @@ Article Pool 的语义优先多模态文章工作流。
 
 - 对时效性或事实性内容，文章中的说法必须有来源支撑。
 - 每个视觉产物都要对应它支持的段落或封面目标。
+- 原文证据截图必须先作为 `source_capture_artifacts` 进入证据台账，并和后续配图共享视觉槽位。
+- 同一段落或同一视觉槽位不得连续插入多张图；后续配图要跳过、替换或移动。
 - 正文插图生成时必须先读 `image_requests.json` 里的 `paragraph_context`；画面要回应该段落的机制、场景或关系，而不是做通用科技背景图。
 - 封面必须能回到 `cover_brief_artifact`，并体现文章主张、内容符号和合法品牌视觉元素。
 - 概念图必须明确是概念图，不能伪装成截图或新闻照片。

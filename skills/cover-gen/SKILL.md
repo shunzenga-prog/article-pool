@@ -1,13 +1,13 @@
 ---
 name: cover-gen
-description: Use when generating or repairing Article Pool WeChat cover images, including 1200x675 covers, GPT Image local backgrounds, gen_cover.py, or cover visual QA.
+description: Use when generating or repairing Article Pool WeChat cover images, including direct 1200x675 Agent/image_gen covers, legacy gen_cover.py fallback, or cover visual QA.
 ---
 
 # 公众号封面图生成
 
-基于 Python PIL 的专业封面图生成器，生成 1200×675px 的公众号 16:9 封面。
+公众号封面图必须是 1200×675px 的 16:9 纯图片封面。
 
-**v2.2 更新：** 当前 Agent 支持 GPT Image / image_gen 时，必须先生成本地背景图，再交给 `gen_cover.py --background-image` 处理。非 Codex 环境继续走旧 auto 来源，不会报错。
+**v3.0 更新：** 当前 Agent 支持 GPT Image / image_gen 时，必须由 Agent 根据文章语义直接生成最终封面图。不要把 Agent 生成图再交给 `gen_cover.py --background-image` 二次处理。`gen_cover.py` 只在当前环境没有生图能力、用户明确要图库/真实图，或作为旧链路兜底时使用。
 
 ## 触发场景
 
@@ -18,34 +18,37 @@ description: Use when generating or repairing Article Pool WeChat cover images, 
 ## 快速使用
 
 ```bash
-# Codex / GPT Image 模式（推荐）：先由 Agent 生成本地背景图，再交给脚本处理
-python3 scripts/gen_cover.py --title "AI 圈沸腾的一周" --background-image cover-bg.png --output cover.png
+# Codex / GPT Image 模式（推荐）：Agent 直接生成最终 1200×675 PNG
+# 不调用 gen_cover.py；直接把最终图片保存到文章月份目录的封面路径
 
-# 旧智能模式：仅在 GPT Image 不可用或不适合时使用
+# legacy 兜底：仅在 GPT Image 不可用、用户要求真实图/图库、或旧链路兜底时使用
 python3 scripts/gen_cover.py --title "AI 圈沸腾的一周" --output cover.png
 
-# 指定文章文件，优先提取文章链接中的 OG 图片
+# legacy 兜底：指定文章文件，优先提取文章链接中的 OG 图片
 python3 scripts/gen_cover.py --title "标题" --article article.html --output cover.png
 
-# 指定关键词辅助图片搜索
+# legacy 兜底：指定关键词辅助图片搜索
 python3 scripts/gen_cover.py --title "标题" --keywords "AI,OpenAI,芯片" --output cover.png
 
-# 使用 Agent/Codex 已生成的本地背景图
-python3 scripts/gen_cover.py --title "标题" --background-image cover-bg.png --output cover.png
-
-# 纯几何模式（如果不需要照片背景）
-python3 scripts/gen_cover.py --title "标题" --mode geometric --output cover.png
+# 禁止在默认流程中使用 --mode geometric；只有用户明确要求纯几何封面时才可手动调用
 ```
 
-## 背景图片获取策略（自动模式）
+## 生成策略
 
-**重要：** 在 Codex 且可用 GPT Image / image_gen 的环境中，T0 不是可选优化，而是默认必走。脚本不能直接调用 GPT Image，所以必须由 Agent 先生成本地图片，再通过 `--background-image` 传给脚本。
+**重要：** 在 Codex 且可用 GPT Image / image_gen 的环境中，封面不是“背景图 + 脚本合成”，而是 Agent 直接按文章语义生成最终封面。脚本不能替代语义判断，也不能把泛化背景当作合格封面。
 
-脚本按以下优先级自动获取背景图片：
+推荐顺序：
+
+| 优先级 | 来源 | 说明 |
+|--------|------|------|
+| T0 | Agent/Codex 直接生图 | 根据文章语义锚点生成最终 1200×675 PNG |
+| T1 | 真实截图/事实图片 | 用户要求或文章需要事实型图片时使用 |
+| T2 | `gen_cover.py` 旧 auto 链路 | 仅在无生图能力或旧流程兜底时使用 |
+
+旧 `gen_cover.py` 自动模式内部来源如下，只能作为兜底参考：
 
 | 优先级 | 来源 | 需要 API Key | 说明 |
 |--------|------|-------------|------|
-| T0 | Agent/Codex 本地背景图 | 否 | 通过 `--background-image` 传入，适合概念封面 |
 | T1 | OG:Image | 否 | 从文章链接的网页提取 og:image |
 | T2 | Pexels | 是（推荐） | 高质量摄影照片，200次/小时免费 |
 | T3 | Pollinations.ai | 否 | AI 生成，主题相关，完全免费 |
@@ -53,7 +56,7 @@ python3 scripts/gen_cover.py --title "标题" --mode geometric --output cover.pn
 | T5 | Brave 搜索 | 是 | Brave 图片搜索引擎 |
 | T6 | 几何抽象 | 否 | 始终可用的兜底方案 |
 
-如果封面最终走到 T6 几何抽象，在 Codex 环境中应视为需要复核，而不是正常完成。
+如果封面最终走到 T6 几何抽象，在 Codex 环境中应视为失败，而不是正常完成。
 
 **推荐配置 Pexels API Key**（免费注册，2分钟搞定）：
 1. 访问 https://www.pexels.com/api/
@@ -68,8 +71,19 @@ python3 scripts/gen_cover.py --title "标题" --mode geometric --output cover.pn
 |------|-----|
 | 尺寸 | 1200 × 675 px |
 | 格式 | PNG |
-| 模式 | auto（智能背景）/ geometric（几何抽象） |
+| 模式 | Agent 直接生图优先；auto/geometric 仅为旧脚本兜底 |
 | 设计原则 | 手机优先：封面缩略图约 375×150px，只保留大标题可读 |
+
+## 语义贴合门禁
+
+生成或修复封面时，必须先从文章里提炼 3-5 个核心语义锚点，再决定画面元素。封面至少命中其中 3 个，才算通过；不能只用“科技感、芯片、抽象线条”这类泛化元素。
+
+检查方式：
+- 文章讲具体设备：画面必须出现对应设备或清晰替代物，例如 Mac、本地电脑、桌面工作站。
+- 文章讲具体能力：画面必须出现对应能力线索，例如本地运行、多模态输入、统一内存、离线节点。
+- 文章讲具体数字或门槛：优先用视觉结构表达，例如 16 个内存块、低门槛设备群，而不是无关装饰。
+- 若原文没有事实图片，优先生成语义化 AI 背景；禁止退回纯色几何图案当作合格封面。
+- 发布前人工看图确认：如果遮住标题也看不出文章大概在讲什么，必须重做。
 
 ## 照片背景模式
 
@@ -91,11 +105,11 @@ python3 scripts/gen_cover.py --title "标题" --mode geometric --output cover.pn
 封面为纯图片，标题在订阅号列表中已并排显示，无需在图片上重复。
 - 主图片：AI 生成或网络图库照片
 - 无标题、无副标题、无任何文字覆盖
-- 仅左下角保留微小的来源标识（9px，几乎不可见）
+- 不保留来源角标、水印或脚本标识
 
 ## 自定义封面
 
-通过命令行参数控制：
+以下参数仅适用于 `gen_cover.py` legacy 兜底链路；默认 Agent/image_gen 直接封面不使用这些参数：
 
 ```
 --title "主标题"
@@ -123,9 +137,8 @@ sudo apt-get install fonts-droid-fallback fonts-dejavu-core
 
 ## 发布集成
 
-生成封面后发布：
+生成封面后发布。Codex / image_gen 模式下不需要运行 `gen_cover.py`：
 
 ```bash
-python3 scripts/gen_cover.py --title "标题" --output cover.png
 python3 scripts/publish_html.py article.html --cover cover.png
 ```

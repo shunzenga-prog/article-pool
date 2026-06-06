@@ -32,7 +32,7 @@
 
 借鉴 `gpt-image-2` 的 A/B/C 模式，但 Article Pool 默认只采用 B/C：
 
-- **Mode B：Host-Native**。当前 Agent 有 `image_gen` 或宿主生图能力时，先渲染高质量 prompt，再调用宿主图像工具生成本地图，最后交给 `gen_cover.py` 或 `illustration_gen.py` 后处理。
+- **Mode B：Host-Native**。当前 Agent 有 `image_gen` 或宿主生图能力时，先渲染高质量 prompt，再调用宿主图像工具生成本地图。封面必须直接生成最终 PNG，不交给 `gen_cover.py` 后处理；正文插图可按插图流程交给 `illustration_gen.py` 上传和嵌入。
 - **Mode C：Advisor**。没有生图能力时，只生成可复用 prompt 和 brief，写入运行报告，不要假装出图成功。
 
 Article Pool 不默认启用 Garden Mode A，不读取 `ENABLE_GARDEN_IMAGEGEN`，不调用外部 Node 生图脚本。这样仓库保持自包含，且不会把 API Key、网关和付费依赖变成硬条件。

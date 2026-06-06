@@ -26,7 +26,7 @@
     },
     {
       "name": "browser_capture",
-      "preferred_for": ["official_docs", "web_ui", "publish_preview"],
+      "preferred_for": ["official_docs", "web_ui", "source_evidence_posts", "publish_preview"],
       "fallback": "source_link_with_text_evidence"
     },
     {
@@ -36,35 +36,37 @@
     }
   ],
   "output_contract": {
-    "article_root": "文章",
-    "base_dir": "文章/{YYYY}年{MM}月",
+    "article_root": "/Users/mulin/workspace/公众号/文章",
+    "base_dir": "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月",
     "basename": "{MMDD}-{safe_title}",
     "safe_title_rule": "Use the final title with filesystem-unsafe characters removed; keep readable Chinese and spaces when the existing article pool style uses them; never expose local absolute paths in article body.",
     "legacy_reference_examples": [
-      "文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent.html",
-      "文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent_cdn.html",
-      "文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent.png",
-      "文章/2026年05月/images_claude_agent_view/agent-view-blog-01.png"
+      "/Users/mulin/workspace/公众号/文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent.html",
+      "/Users/mulin/workspace/公众号/文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent_cdn.html",
+      "/Users/mulin/workspace/公众号/文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent.png",
+      "/Users/mulin/workspace/公众号/文章/2026年05月/0517-Claude Code新功能一屏管住所有Agent-image-01.png"
     ],
     "wechat": {
-      "draft_html": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.html",
-      "illustrated_html": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_illustrated.html",
-      "cdn_html": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_cdn.html",
-      "publish_variant_html": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_publish.html",
-      "cover_png": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png",
-      "cover_background": "文章/{YYYY}年{MM}月/{MMDD}_cover_bg.png",
-      "visual_dir": "文章/{YYYY}年{MM}月/{visual_slug}",
-      "body_image_pattern": "文章/{YYYY}年{MM}月/{visual_slug}/{NN}-{image_slug}.png",
-      "screenshot_pattern": "文章/{YYYY}年{MM}月/{visual_slug}/{NN}-{screenshot_slug}.png",
+      "draft_html": "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.html",
+      "illustrated_html": "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_illustrated.html",
+      "cdn_html": "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_cdn.html",
+      "publish_variant_html": "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_publish.html",
+      "cover_png": "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png",
+      "visual_dir": "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月",
+      "body_image_pattern": "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}-image-{NN}.png",
+      "screenshot_pattern": "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}-screenshot-{NN}.png",
+      "source_screenshot_pattern": "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}-source-{platform}-{NN}-compact.png",
       "visual_slug_examples": [
-        "images_claude_agent_view",
-        "screenshots_ep5",
-        "claude-code-harness-images"
+        "0517-Claude Code新功能一屏管住所有Agent-image-01.png",
+        "0605-claude code最新实践指南-image-01.png",
+        "0605-claude code最新实践指南-screenshot-01.png",
+        "0606-Magenta实时音乐模型-source-x-01-compact.png"
       ]
     },
     "reports": {
       "run_dir": "reports/mm-article/{YYYYMMDD-HHMMSS}-{slug}",
       "evidence": "reports/mm-article/{run_id}/evidence.json",
+      "source_capture": "reports/mm-article/{run_id}/source_capture.json",
       "title_decision": "reports/mm-article/{run_id}/title_decision.json",
       "content_prompt": "reports/mm-article/{run_id}/content_prompt.md",
       "visual_plan": "reports/mm-article/{run_id}/visual_plan.json",
@@ -99,12 +101,18 @@
       "Factual visuals must be captured or sourced from real pages; generated images cannot replace evidence.",
       "Decorative-only images are rejected unless they serve the cover or a section opener.",
       "Tutorial key steps need real screenshots or verified output."
+    ],
+    "slot_conflict_rules": [
+      "source_capture_artifacts reserve their target visual_slot_id before plan.visuals requests later images.",
+      "Do not place a generated illustration, factual screenshot, or source evidence screenshot in the same visual slot.",
+      "If a paragraph or section already has source_capture_artifacts, skip generated illustration for that slot unless the generated image replaces the source image.",
+      "Use no consecutive visuals without explanatory text between them; avoid screenshot-image stacks that do not advance the narrative.",
+      "When capture.factual finds an occupied slot, skip generated illustration or move the later visual to the next section with a distinct purpose."
     ]
   },
   "cover_policy": {
-    "default_strategy": "agent_background_then_cover_layout",
-    "agent_background": "文章/{YYYY}年{MM}月/{MMDD}_cover_bg.png",
-    "final_cover": "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png",
+    "default_strategy": "agent_direct_final_cover",
+    "final_cover": "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png",
     "aspect_ratio": "1200x675",
     "prompt_rules": [
       "Generate pure visual artwork with no title text inside the image.",
@@ -115,12 +123,13 @@
       "Do not claim a concrete underlying model name when the built-in image tool does not expose one.",
       "Regenerate if the result looks like generic stock technology art rather than the article's specific argument."
     ],
-    "layout_command": "python scripts/gen_cover.py --title \"<title>\" --background-image <cover-bg.png> --output <cover.png>",
+    "layout_command": "image_gen direct final 1200x675 PNG; do not call scripts/gen_cover.py when image generation is available",
     "success_checks": [
       "cover file exists",
       "cover is 1200x675",
       "cover is readable at thumbnail size",
-      "cover source is not geometric fallback when image generation is available"
+      "cover is generated directly by Agent/image_gen when image generation is available",
+      "cover source is not geometric fallback"
     ]
   },
   "legacy_lane": {
@@ -176,23 +185,30 @@
       "execution": "semantic_agent"
     },
     {
+      "kind": "evidence.source_capture",
+      "intent": "Capture original source evidence screenshots from web pages or social posts before drafting, including translated compact crops when useful for the article.",
+      "inputs": ["evidence_artifacts", "timeliness_artifact", "host_capabilities"],
+      "outputs": ["source_capture_artifacts"],
+      "execution": "host_tool"
+    },
+    {
       "kind": "research.depth",
       "intent": "For release, trend, policy, pricing, benchmark, incident, or analysis articles, build the root question, rejected shallow angles, metric map, mechanism chain, comparison frame, neutral counterpoints, positive value framing, and reader payoff before title and drafting.",
-      "inputs": ["user_request", "web_sources", "evidence_artifacts", "angle_decision"],
+      "inputs": ["user_request", "web_sources", "evidence_artifacts", "source_capture_artifacts", "angle_decision"],
       "outputs": ["research_depth_artifact"],
       "execution": "semantic_agent"
     },
     {
       "kind": "title.generate",
       "intent": "Generate and select a platform title that satisfies length, hook, weak-word, and anti-AI constraints.",
-      "inputs": ["angle_decision", "evidence_artifacts", "research_depth_artifact", "platform_rules"],
+      "inputs": ["angle_decision", "evidence_artifacts", "source_capture_artifacts", "research_depth_artifact", "platform_rules"],
       "outputs": ["title_artifact"],
       "execution": "semantic_agent"
     },
     {
       "kind": "draft.prompt",
       "intent": "Build the article content prompt with audience, root question, angle, metric map, mechanism, positive user value, neutral counterpoints, reader payoff, structure, evidence, tone, visual slots, and platform rules before drafting.",
-      "inputs": ["title_artifact", "angle_decision", "evidence_artifacts", "research_depth_artifact", "platform_rules"],
+      "inputs": ["title_artifact", "angle_decision", "evidence_artifacts", "source_capture_artifacts", "research_depth_artifact", "platform_rules"],
       "outputs": ["content_prompt_artifact"],
       "execution": "semantic_agent"
     },
@@ -206,7 +222,7 @@
     {
       "kind": "draft.article",
       "intent": "Write platform-native article content with claims tied to evidence and visual slots marked intentionally.",
-      "inputs": ["content_prompt_artifact", "writing_craft_artifact", "title_artifact", "evidence_artifacts"],
+      "inputs": ["content_prompt_artifact", "writing_craft_artifact", "title_artifact", "evidence_artifacts", "source_capture_artifacts"],
       "outputs": ["draft_artifact", "visual_slot_artifacts"],
       "execution": "semantic_agent"
     },
@@ -226,8 +242,8 @@
     },
     {
       "kind": "plan.visuals",
-      "intent": "Decide which visuals must be factual captures and which can be generated concept images.",
-      "inputs": ["layout_artifact", "evidence_artifacts", "host_capabilities"],
+      "intent": "Decide which visuals must be factual captures and which can be generated concept images, while honoring occupied source evidence slots.",
+      "inputs": ["layout_artifact", "evidence_artifacts", "source_capture_artifacts", "host_capabilities"],
       "outputs": ["visual_plan_artifact", "cover_brief_artifact"],
       "execution": "semantic_agent"
     },
@@ -247,8 +263,8 @@
     },
     {
       "kind": "capture.factual",
-      "intent": "Capture real UI, terminal, code, chart, or source evidence when the article makes factual or tutorial claims.",
-      "inputs": ["visual_plan_artifact"],
+      "intent": "Capture real UI, terminal, code, chart, or late factual screenshots without duplicating source evidence slots.",
+      "inputs": ["visual_plan_artifact", "source_capture_artifacts"],
       "outputs": ["screenshot_artifacts"],
       "execution": "host_tool"
     },
@@ -262,7 +278,7 @@
     {
       "kind": "inspect.visual",
       "intent": "Review images and screenshots for relevance, readability, truthfulness, and thumbnail strength.",
-      "inputs": ["image_artifacts", "screenshot_artifacts", "layout_artifact"],
+      "inputs": ["image_artifacts", "screenshot_artifacts", "source_capture_artifacts", "layout_artifact"],
       "outputs": ["visual_review_artifact"],
       "execution": "semantic_agent"
     },
@@ -283,7 +299,7 @@
     {
       "kind": "review.editorial",
       "intent": "Run a full editorial review for title, evidence, timeliness, human feel, layout, visuals, platform fit, and publish readiness.",
-      "inputs": ["format_validation_artifact", "visual_review_artifact", "evidence_artifacts"],
+      "inputs": ["format_validation_artifact", "visual_review_artifact", "evidence_artifacts", "source_capture_artifacts"],
       "outputs": ["editorial_review_artifact"],
       "execution": "semantic_agent"
     },
@@ -314,6 +330,7 @@
     "draft",
     "visual_plan",
     "local_kb_evidence",
+    "source_capture",
     "image_prompt",
     "web_video_plan",
     "image",
@@ -329,9 +346,9 @@
       "use_when": "A WeChat HTML draft is ready for compatibility checking."
     },
     {
-      "name": "cover_layout",
+      "name": "legacy_cover_fallback",
       "path": "scripts/gen_cover.py",
-      "use_when": "A semantic cover direction and local background image already exist."
+      "use_when": "Only when image_gen is unavailable or the user explicitly requests real gallery/factual image fallback; never for the default semantic cover path."
     },
     {
       "name": "illustration_embedding",
@@ -374,6 +391,11 @@
       "id": "evidence_ledger",
       "gate": "必须维护证据清单，记录来源、发布时间、检索时间、支持的具体说法。",
       "failure_mode": "不进入起草，先补齐证据清单。"
+    },
+    {
+      "id": "source_capture",
+      "gate": "原文证据截图必须记录来源 URL、截图时间、是否翻译、裁剪范围、支持的 claim 和读者可见用途。",
+      "failure_mode": "缺截图记录、来源不明、裁剪泄露登录态或无法支撑正文时，不进入起草或嵌图。"
     },
     {
       "id": "local_kb_retrieval",
@@ -446,8 +468,13 @@
       "failure_mode": "退回视觉计划或重新生成配图。"
     },
     {
+      "id": "visual_slot_conflict",
+      "gate": "同一视觉槽位不能连续图片堆叠；已有原文证据截图、教程截图或事实截图时，后续概念图必须跳过、替换或移动到有独立叙事作用的位置。",
+      "failure_mode": "发现相邻图片、连续图片或同一段落重复配图时，回到视觉计划重排槽位。"
+    },
+    {
       "id": "cover_policy",
-      "gate": "封面必须先形成从文章主张提炼的语义 brief，包含内容符号、品牌视觉元素、构图和避雷词；Agent 生成无文字背景图，再输出同名 PNG 封面。",
+      "gate": "封面必须先形成从文章主张提炼的语义 brief，包含内容符号、品牌视觉元素、构图和避雷词；当前环境支持 image_gen 时，Agent 必须直接生成最终同名 PNG 封面，不经过 gen_cover.py 二次处理。",
       "failure_mode": "封面泛化、审美失败、模型归因不实或 geometric 兜底时，回到 brief 重新生成封面。"
     },
     {

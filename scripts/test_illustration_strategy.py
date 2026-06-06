@@ -86,11 +86,24 @@ class IllustrationStrategyTests(unittest.TestCase):
         self.assertEqual([req["id"] for req in requests], ["image_001", "image_002"])
         self.assertEqual(requests[0]["width"], 670)
         self.assertEqual(requests[0]["height"], 380)
-        self.assertTrue(requests[0]["output_path"].endswith("agent_image_001.png"))
+        self.assertEqual(
+            Path(requests[0]["output_path"]),
+            article_path.parent / "article-image-01.png",
+        )
         self.assertIn("AI Agent 入门", requests[0]["prompt"])
         self.assertIn("paragraph_context", requests[0])
         self.assertIn("任务拆解、工具调用和记忆管理", requests[0]["paragraph_context"])
         self.assertIn("根据所在段落的具体信息", requests[0]["prompt"])
+
+    def test_article_image_output_path_is_flat_next_to_article(self):
+        article_path = Path("/Users/mulin/workspace/公众号/文章/2026年06月/0605-demo.html")
+
+        image_path = illustration_gen.article_image_output_path(article_path, 1)
+
+        self.assertEqual(
+            image_path,
+            Path("/Users/mulin/workspace/公众号/文章/2026年06月/0605-demo-image-01.png"),
+        )
 
     def test_build_agent_image_requests_prefers_section_context(self):
         items = [

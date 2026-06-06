@@ -153,22 +153,25 @@ class MultimodalWorkflowTests(unittest.TestCase):
         illustration = manifest["illustration_policy"]
         cover = manifest["cover_policy"]
 
-        self.assertEqual(output["base_dir"], "文章/{YYYY}年{MM}月")
+        self.assertEqual(output["article_root"], "/Users/mulin/workspace/公众号/文章")
+        self.assertEqual(output["base_dir"], "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月")
         self.assertEqual(output["basename"], "{MMDD}-{safe_title}")
-        self.assertEqual(wechat["draft_html"], "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.html")
-        self.assertEqual(wechat["illustrated_html"], "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_illustrated.html")
-        self.assertEqual(wechat["cdn_html"], "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_cdn.html")
-        self.assertEqual(wechat["cover_png"], "文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png")
-        self.assertEqual(wechat["visual_dir"], "文章/{YYYY}年{MM}月/{visual_slug}")
-        self.assertIn("images_claude_agent_view", wechat["visual_slug_examples"])
-        self.assertIn("screenshots_ep5", wechat["visual_slug_examples"])
+        self.assertEqual(wechat["draft_html"], "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.html")
+        self.assertEqual(wechat["illustrated_html"], "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_illustrated.html")
+        self.assertEqual(wechat["cdn_html"], "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}_cdn.html")
+        self.assertEqual(wechat["cover_png"], "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}.png")
+        self.assertEqual(wechat["visual_dir"], "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月")
+        self.assertEqual(wechat["body_image_pattern"], "/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}-image-{NN}.png")
+        self.assertIn("0605-claude code最新实践指南-image-01.png", wechat["visual_slug_examples"])
         self.assertIn("image_requests.json", reports["image_requests"])
         self.assertIn("generated_images.json", reports["generated_images"])
         self.assertEqual(illustration["default_strategy"], "agent_first_when_available")
         self.assertEqual(illustration["agent_first_flow"][0], "emit_image_requests")
         self.assertIn("paragraph_context", illustration["request_context_fields"])
+        self.assertEqual(cover["default_strategy"], "agent_direct_final_cover")
         self.assertEqual(cover["final_cover"], wechat["cover_png"])
-        self.assertEqual(cover["agent_background"], wechat["cover_background"])
+        self.assertNotIn("cover_background", wechat)
+        self.assertNotIn("agent_background", cover)
 
         self.assertIn("references/output-contract.md", skill_text)
         for heading in ["旧文章格式基线", "输出目录", "正文 HTML 格式", "配图流程", "封面图生成", "发布前输出检查"]:
@@ -205,6 +208,7 @@ class MultimodalWorkflowTests(unittest.TestCase):
             "文章主张",
             "品牌元素",
             "审美失败",
+            "不调用 `gen_cover.py --background-image`",
         ]:
             self.assertIn(phrase, output_spec)
 
@@ -262,6 +266,75 @@ class MultimodalWorkflowTests(unittest.TestCase):
             self.assertIn(phrase, video_skill)
 
         self.assertIn("image_mode_awareness", standards_text)
+
+    def test_source_evidence_capture_runs_before_drafting_and_visual_planning(self):
+        report = validate_mm_workflow.validate_project(ROOT)
+        manifest = report["manifest"]
+        skill_text = (ROOT / "skills" / "mm-article" / "SKILL.md").read_text(encoding="utf-8")
+        output_spec = (ROOT / "skills" / "mm-article" / "references" / "output-contract.md").read_text(
+            encoding="utf-8"
+        )
+        standards_text = (
+            ROOT / "skills" / "mm-article" / "references" / "production-standards.md"
+        ).read_text(encoding="utf-8")
+
+        tasks = manifest["semantic_tasks"]
+        task_kinds = [task["kind"] for task in tasks]
+        task_by_kind = {task["kind"]: task for task in tasks}
+
+        self.assertIn("evidence.source_capture", task_kinds)
+        self.assertLess(task_kinds.index("research.topic"), task_kinds.index("evidence.source_capture"))
+        self.assertLess(task_kinds.index("evidence.source_capture"), task_kinds.index("research.depth"))
+        self.assertLess(task_kinds.index("evidence.source_capture"), task_kinds.index("draft.prompt"))
+        self.assertLess(task_kinds.index("evidence.source_capture"), task_kinds.index("plan.visuals"))
+        self.assertEqual(task_by_kind["evidence.source_capture"]["outputs"], ["source_capture_artifacts"])
+
+        for downstream in ("research.depth", "draft.prompt", "draft.article", "plan.visuals", "capture.factual"):
+            self.assertIn("source_capture_artifacts", task_by_kind[downstream]["inputs"])
+
+        self.assertIn("source_capture", manifest["artifact_kinds"])
+        self.assertIn("source_screenshot_pattern", manifest["output_contract"]["wechat"])
+        self.assertIn("source_capture", manifest["output_contract"]["reports"])
+
+        for phrase in ["原文证据截图", "source_capture_artifacts", "头像/账号/正文", "必要时间信息"]:
+            self.assertIn(phrase, skill_text)
+        for phrase in ["source-x-01-compact.png", "source_capture.json", "原文证据截图"]:
+            self.assertIn(phrase, output_spec)
+        for phrase in ["原文证据截图", "登录态", "侧栏", "私信"]:
+            self.assertIn(phrase, standards_text)
+
+    def test_visual_slot_coordination_prevents_duplicate_adjacent_images(self):
+        report = validate_mm_workflow.validate_project(ROOT)
+        manifest = report["manifest"]
+        skill_text = (ROOT / "skills" / "mm-article" / "SKILL.md").read_text(encoding="utf-8")
+        output_spec = (ROOT / "skills" / "mm-article" / "references" / "output-contract.md").read_text(
+            encoding="utf-8"
+        )
+        standards_text = (
+            ROOT / "skills" / "mm-article" / "references" / "production-standards.md"
+        ).read_text(encoding="utf-8")
+
+        illustration_policy = manifest["illustration_policy"]
+        standard_ids = {item["id"] for item in manifest["production_standards"]}
+
+        self.assertIn("slot_conflict_rules", illustration_policy)
+        self.assertIn("visual_slot_conflict", standard_ids)
+
+        joined_rules = "\n".join(illustration_policy["slot_conflict_rules"])
+        for phrase in [
+            "source_capture_artifacts",
+            "same visual slot",
+            "no consecutive visuals",
+            "skip generated illustration",
+        ]:
+            self.assertIn(phrase, joined_rules)
+
+        for phrase in ["同一位置", "连续插入多张图", "视觉槽位"]:
+            self.assertIn(phrase, skill_text)
+        for phrase in ["同一段落", "同一视觉槽位", "改为替换"]:
+            self.assertIn(phrase, output_spec)
+        for phrase in ["visual_slot_conflict", "连续图片", "相邻图片"]:
+            self.assertIn(phrase, standards_text)
 
 
 if __name__ == "__main__":

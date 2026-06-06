@@ -56,6 +56,12 @@ FACTUAL_SOURCES = {"code_screenshot", "github_screenshot", "og_image", "web_sear
 GENERATIVE_SOURCES = {"agent_generate", "ai_generate", "fallback_pattern"}
 
 
+def article_image_output_path(article_path: str | Path, index: int) -> Path:
+    """Return a flat image path next to the source article."""
+    article = Path(article_path)
+    return article.parent / f"{article.stem}-image-{index:02d}.png"
+
+
 # ======================================================================
 # Block 1: Configuration Loader
 # ======================================================================
@@ -210,7 +216,7 @@ def build_agent_image_requests(article_path: str, article_type: str, items: list
         label = _item_label(item)
         paragraph_context, context_source = _item_paragraph_context(item, article_html, label)
         req_id = f"image_{idx + 1:03d}"
-        output_path = OUTPUT_DIR / f"agent_image_{idx + 1:03d}.png"
+        output_path = article_image_output_path(article_path, idx + 1)
         prompt = (
             f"为微信公众号文章生成一张配图。文章类型：{article_type}。"
             f"图片锚点：{label}。所在段落内容：{paragraph_context}。"
@@ -971,6 +977,29 @@ def _find_section_marker_after_line(lines: list[str], start_line: int) -> int | 
     return None
 
 
+def _table_depth_before_line(lines: list[str], line_num: int) -> int:
+    """Return unclosed <table> depth before inserting at line_num."""
+    depth = 0
+    for line in lines[:line_num]:
+        depth += len(re.findall(r"<table\b", line, re.I))
+        depth -= len(re.findall(r"</table>", line, re.I))
+        depth = max(depth, 0)
+    return depth
+
+
+def _move_after_open_table(lines: list[str], line_num: int) -> int:
+    """Move insertion point after the current table if line_num is inside one."""
+    depth = _table_depth_before_line(lines, line_num)
+    if depth <= 0:
+        return line_num
+    for i in range(line_num, len(lines)):
+        depth += len(re.findall(r"<table\b", lines[i], re.I))
+        depth -= len(re.findall(r"</table>", lines[i], re.I))
+        if depth <= 0:
+            return i + 1
+    return line_num
+
+
 def find_placement_positions(html: str, placement_strategy: str,
                              items: list[dict], image_urls: list[str]) -> list[dict]:
     """Determine image insertion line positions based on placement strategy."""
@@ -1035,6 +1064,7 @@ def find_placement_positions(html: str, placement_strategy: str,
                     insert_line = max(i + 2, next_header - 2)
                 else:
                     insert_line = i + 2
+                insert_line = _move_after_open_table(lines, insert_line)
                 placements.append({
                     "line": insert_line,
                     "url": image_urls[img_idx],
@@ -1067,7 +1097,8 @@ def generate_illustrations(article_path: str, article_type: str | None = None,
                            max_images: int | None = None, output_path: str | None = None,
                            image_strategy: str | None = None,
                            emit_image_requests: str | None = None,
-                           use_local_images: str | None = None) -> dict:
+                           use_local_images: str | None = None,
+                           allow_fallback_pattern: bool = False) -> dict:
     """Main orchestrator: analyze article → source images → embed → output."""
     # Load config
     rules = load_illustration_rules()
@@ -1329,11 +1360,11 @@ def generate_illustrations(article_path: str, article_type: str | None = None,
     print(f"  大小: {len(new_html):,} 字符 (原 {len(html):,})")
 
     # ── Step 8: Save summary ──
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     # Save local copies
     local_paths = []
     for idx, si in enumerate(sourced_images):
-        local_path = OUTPUT_DIR / f"ill_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{idx}.png"
+        local_path = article_image_output_path(article_path, idx + 1)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
         with open(local_path, "wb") as f:
             f.write(si["data"].getvalue())
         local_paths.append(str(local_path))
@@ -1352,6 +1383,16 @@ def generate_illustrations(article_path: str, article_type: str | None = None,
         src = si["source"]
         source_counts[src] = source_counts.get(src, 0) + 1
     summary["sources_used"] = source_counts
+
+    fallback_count = source_counts.get("fallback_pattern", 0) + source_counts.get("fallback_auto", 0)
+    if fallback_count and not allow_fallback_pattern:
+        print(f"\n❌ 插图门禁失败: {fallback_count} 张图片使用几何兜底。")
+        print("   请提供 Agent/Codex 本地图片、真实截图/OG 图片，或显式传 --allow-fallback-pattern。")
+        return {
+            "status": "failed",
+            "reason": "fallback_pattern_used",
+            "sources_used": source_counts,
+        }
 
     for idx, si in enumerate(sourced_images):
         summary["images"].append({
@@ -1411,6 +1452,8 @@ def main():
                         help="Write Agent/Codex image generation request JSON")
     parser.add_argument("--use-local-images", default=None,
                         help="Read Agent/Codex generated local image manifest JSON")
+    parser.add_argument("--allow-fallback-pattern", action="store_true",
+                        help="Allow geometric fallback images to pass the illustration gate")
 
     args = parser.parse_args()
 
@@ -1428,10 +1471,13 @@ def main():
         image_strategy=args.image_strategy,
         emit_image_requests=args.emit_image_requests,
         use_local_images=args.use_local_images,
+        allow_fallback_pattern=args.allow_fallback_pattern,
     )
 
     if result.get("status") == "skipped":
         print(result.get("reason", "No content to illustrate"))
+    if result.get("status") == "failed":
+        sys.exit(1)
 
 
 if __name__ == "__main__":
