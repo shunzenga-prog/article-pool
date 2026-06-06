@@ -23,6 +23,7 @@ from validate_mm_workflow import validate_article_output
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 REMOTE_IMAGE_RE = re.compile(r"^(?:https?:)?//|^data:", re.IGNORECASE)
+SOURCE_CAPTURE_IMAGE_RE = re.compile(r"-source-[a-z0-9_-]+-\d{2}-compact\.(?:png|jpe?g|webp)$", re.IGNORECASE)
 
 
 def _resolve_existing(path: Path | str, *, base: Path | None = None) -> Path:
@@ -80,6 +81,12 @@ def _resolve_local_image(src: str, html_path: Path) -> Path | None:
     return _resolve_existing(src, base=html_path.parent)
 
 
+def _body_image_role(path: Path) -> str:
+    if SOURCE_CAPTURE_IMAGE_RE.search(path.name):
+        return "source_capture"
+    return "body_image"
+
+
 def _image_quality(path: Path, *, role: str) -> dict[str, Any]:
     stat = path.stat()
     with Image.open(path) as image:
@@ -93,15 +100,27 @@ def _image_quality(path: Path, *, role: str) -> dict[str, Any]:
     if role == "cover":
         size_ok = stat.st_size >= 100 * 1024
         dimensions_ok = (width, height) == (1200, 675)
+    elif role == "source_capture":
+        size_ok = stat.st_size >= 10 * 1024
+        dimensions_ok = width >= 480 and height >= 100
     else:
         size_ok = stat.st_size >= 30 * 1024
         dimensions_ok = width >= 600 and height >= 300
 
     aspect = width / max(height, 1)
-    aspect_ok = abs(aspect - (16 / 9)) <= 0.08
+    aspect_ok = True if role == "source_capture" else abs(aspect - (16 / 9)) <= 0.08
     non_blank_ok = contrast >= 4.0
     brightness_ok = 18 <= brightness <= 245
     passed = all((size_ok, dimensions_ok, aspect_ok, non_blank_ok, brightness_ok))
+    checks = {
+        "size": size_ok,
+        "dimensions": dimensions_ok,
+        "aspect": aspect_ok,
+        "non_blank": non_blank_ok,
+        "brightness": brightness_ok,
+    }
+    if role == "source_capture":
+        checks["compact_dimensions"] = dimensions_ok
     return {
         "path": str(path),
         "role": role,
@@ -111,13 +130,7 @@ def _image_quality(path: Path, *, role: str) -> dict[str, Any]:
         "size_kb": round(stat.st_size / 1024, 1),
         "brightness": round(brightness, 1),
         "contrast": round(contrast, 1),
-        "checks": {
-            "size": size_ok,
-            "dimensions": dimensions_ok,
-            "aspect": aspect_ok,
-            "non_blank": non_blank_ok,
-            "brightness": brightness_ok,
-        },
+        "checks": checks,
     }
 
 
@@ -224,7 +237,7 @@ def validate_delivery(
     body_quality_reports = []
     for image_path in local_images:
         if image_path.exists():
-            body_quality_reports.append(_image_quality(image_path, role="body_image"))
+            body_quality_reports.append(_image_quality(image_path, role=_body_image_role(image_path)))
         else:
             body_quality_reports.append({"path": str(image_path), "passed": False, "reason": "missing file"})
     if local_images:

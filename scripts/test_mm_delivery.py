@@ -99,6 +99,47 @@ class MmDeliveryGateTests(unittest.TestCase):
             self.assertEqual(report["artifacts"]["cover"], str(cover))
             self.assertEqual(report["artifacts"]["illustrated_html"], str(illustrated))
 
+    def test_delivery_gate_accepts_compact_source_capture_images(self):
+        validate_mm_delivery = _load_delivery_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            article_dir = root / "文章" / "2026年05月"
+            article = article_dir / "0527-Test.html"
+            illustrated = article_dir / "0527-Test_illustrated.html"
+            cover = article_dir / "0527-Test.png"
+            source_image = article_dir / "0527-Test-source-x-01-compact.png"
+            run_dir = root / "reports" / "mm-article" / "run"
+
+            article_dir.mkdir(parents=True)
+            run_dir.mkdir(parents=True)
+            _write_gradient(cover, (1200, 675))
+            _write_gradient(source_image, (585, 145))
+            article.write_text('<meta charset="UTF-8"><p><span>正文</span></p>', encoding="utf-8")
+            illustrated.write_text(
+                '<meta charset="UTF-8"><p><span>正文</span></p>'
+                '<table><tr><td><img src="0527-Test-source-x-01-compact.png" alt="原文证据"></td></tr></table>',
+                encoding="utf-8",
+            )
+            for name, content in {
+                "evidence.json": "{}",
+                "title_decision.json": "{}",
+                "content_prompt.md": "prompt",
+                "visual_plan.json": "{}",
+                "image_requests.json": '{"requests":[]}',
+                "generated_images.json": '{"images":[]}',
+                "review.json": "{}",
+                "publish_result.json": '{"status":"ready_not_published"}',
+            }.items():
+                (run_dir / name).write_text(content, encoding="utf-8")
+
+            report = validate_mm_delivery.validate_delivery(article, run_dir=run_dir)
+
+            self.assertTrue(report["passed"], report)
+            by_id = {check["id"]: check for check in report["checks"]}
+            source_quality = by_id["body_images.quality"]["data"]["images"][0]
+            self.assertEqual(source_quality["role"], "source_capture")
+            self.assertTrue(source_quality["checks"]["compact_dimensions"])
+
 
 if __name__ == "__main__":
     unittest.main()
