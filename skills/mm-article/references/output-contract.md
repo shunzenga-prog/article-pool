@@ -216,6 +216,26 @@ python scripts/illustration_gen.py <article.html> --use-local-images reports/mm-
 
 5. 输出 `_illustrated.html` 后再做视觉审阅。
 
+6. 视觉审阅必须先执行 `verify_source_provenance`，再做尺寸、亮度、对比度和相关性评分。`geometric`、`fallback_pattern`、`fallback_auto`、`legacy_without_reason` 或缺少来源记录的图片不能进入评分。
+
+来源字段要求：
+
+```json
+{
+  "images": [
+    {
+      "id": "image_001",
+      "path": "/Users/mulin/workspace/公众号/文章/2026年05月/0517-topic-image-01.png",
+      "source": "agent_generated_local_image",
+      "kind": "concept",
+      "intended_use": "解释第二节的抽象概念"
+    }
+  ]
+}
+```
+
+权威人士社交平台发帖、官方公告截图、论文页面和产品页面截图优先记录为 `source_capture_artifacts`，不是概念插图。概念插图只有在来源为 `agent_generated_local_image` 且绑定段落上下文时才进入质量评分。
+
 ## 封面图生成
 
 封面是独立生产链，不能直接用旧 fallback 糊过去。
@@ -245,6 +265,7 @@ python scripts/illustration_gen.py <article.html> --use-local-images reports/mm-
 - 封面要看得出文章主张、内容机制和合法品牌元素；不能只有通用芯片、通用光线或普通素材站科技图。
 - 用户反馈“难看”“不像你的水平”“缺少品牌元素”等审美失败时，必须回到 brief 改文章主张、品牌元素、构图和避雷词，再重新生成封面。
 - 在支持生图时，`geometric` 兜底不能当作成功；要重试或报告生图不可用。
+- 封面进入评分前必须通过 `verify_source_provenance`：有生图能力时来源应记录为 `agent_direct_final_cover`；没有生图能力或用户要求事实图片时，必须写清楚真实来源。`legacy_without_reason` 和 `geometric` 在评分前驳回。
 
 ## 发布前输出检查
 

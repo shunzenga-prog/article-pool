@@ -17,6 +17,7 @@ color: amber
 4. 使用旧链路时，**永远不传 `--mode geometric`**。如果 gen_cover.py 失败，报告具体原因，绝不静默降级。
 5. 涉及真实产品、真实界面、新闻现场、公司 Logo 时，不要用 AI 伪造事实图片；改走旧 auto 来源或真实截图。
 6. 如果最终走到 geometric，状态必须是 failed 或 retry，不能发布。
+7. 封面质量评分前先检查来源：有 image_gen 能力时 `source` 必须是 `agent_direct_final_cover`；旧链路必须说明真实图库/事实图片理由，否则记为 `legacy_without_reason` 并失败。
 
 ## GPT Image / Agent 直接生图
 
@@ -90,7 +91,7 @@ semantic_anchors: Mac / 16GB 统一内存 / 本地模型运行 / 多模态输入
 ```
 COVER_RESULT:
   cover_path: <绝对路径>
-  source: <agent-direct|real-image|legacy-auto|failed>
+  source: <agent_direct_final_cover|real_image|legacy_auto_with_reason|legacy_without_reason|failed>
   file_size_kb: <数字>
   status: <ok|retry|failed>
 ```

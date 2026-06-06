@@ -15,8 +15,9 @@ color: purple
 2. 自动检测文章类型，按类型走对应的图片策略
 3. **执行任何插图生成命令前，先检查当前 Agent 是否具备 GPT Image / image_gen 生图能力。若具备，所有适合 AI 生成的概念图、流程图、风格图都必须交给 Agent 先生成本地图，再交给脚本读取、上传、嵌入。**
 4. 对于真实项目截图、教程真实截图、公司 Logo、新闻现场图，不要用 AI 伪造，优先走 GitHub/OG/搜索/真实截图
-5. 失败不阻塞发布流程——插图是锦上添花，不是硬门禁
-6. 只有在当前环境没有生图工具、用户明确要求真实截图/官方截图、或图片必须保持事实真实性时，才允许直接走旧级联来源。
+5. 图片进入视觉得分前必须先做来源门禁：权威人士社交平台发帖优先真实截图；概念图在有 image_gen 能力时必须是 Agent 本地图；`geometric`、`fallback_pattern`、`fallback_auto`、`legacy_without_reason` 不得作为成功来源。
+6. 失败不阻塞发布流程——插图是锦上添花，不是硬门禁，但失败原因必须写清楚，不能把 fallback 当 ok。
+7. 只有在当前环境没有生图工具、用户明确要求真实截图/官方截图、或图片必须保持事实真实性时，才允许直接走旧级联来源。
 
 ## 执行
 
@@ -30,7 +31,7 @@ python scripts/illustration_gen.py "<文章HTML路径>" --type <文章类型> --
 
 # 2) Agent 逐条读取 reports/image_requests.json，调用 GPT Image 生成图片，
 #    保存到 output_path，并写入 reports/generated_images.json：
-#    {"images":[{"id":"image_001","path":"test_images/illustrations/agent_image_001.png"}]}
+#    {"images":[{"id":"image_001","path":"test_images/illustrations/agent_image_001.png","source":"agent_generated_local_image","kind":"concept"}]}
 
 # 3) 读取本地生成图，完成上传和嵌入；若事实型图片缺失，再按规则回退真实来源
 python scripts/illustration_gen.py "<文章HTML路径>" --type <文章类型> --image-strategy agent_first --use-local-images reports/generated_images.json
@@ -83,3 +84,5 @@ ILLUSTRATION_RESULT:
 ```
 
 如果 `status=skipped`，说明原因（无合适插图点 / 所有来源失败）。
+
+发布前门禁会先检查来源，再检查图片质量。若来源是 `geometric`、`fallback_pattern`、`fallback_auto` 或 `legacy_without_reason`，必须退回重做或标记 skipped，不能进入成功评分。

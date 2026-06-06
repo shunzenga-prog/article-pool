@@ -77,7 +77,19 @@ class MmDeliveryGateTests(unittest.TestCase):
             )
             (run_dir / "image_requests.json").write_text('{"images":[]}', encoding="utf-8")
             (run_dir / "generated_images.json").write_text(
-                json.dumps({"images": [{"id": "image_001", "path": str(body_image)}]}),
+                json.dumps(
+                    {
+                        "images": [
+                            {"id": "cover", "path": str(cover), "source": "agent_direct_final_cover", "kind": "cover"},
+                            {
+                                "id": "image_001",
+                                "path": str(body_image),
+                                "source": "agent_generated_local_image",
+                                "kind": "concept",
+                            },
+                        ]
+                    }
+                ),
                 encoding="utf-8",
             )
             for name, content in {
@@ -126,7 +138,9 @@ class MmDeliveryGateTests(unittest.TestCase):
                 "content_prompt.md": "prompt",
                 "visual_plan.json": "{}",
                 "image_requests.json": '{"requests":[]}',
-                "generated_images.json": '{"images":[]}',
+                "generated_images.json": json.dumps(
+                    {"images": [{"id": "cover", "path": str(cover), "source": "agent_direct_final_cover", "kind": "cover"}]}
+                ),
                 "review.json": "{}",
                 "publish_result.json": '{"status":"ready_not_published"}',
             }.items():
@@ -139,6 +153,60 @@ class MmDeliveryGateTests(unittest.TestCase):
             source_quality = by_id["body_images.quality"]["data"]["images"][0]
             self.assertEqual(source_quality["role"], "source_capture")
             self.assertTrue(source_quality["checks"]["compact_dimensions"])
+
+    def test_delivery_gate_rejects_bad_image_provenance_before_quality_scoring(self):
+        validate_mm_delivery = _load_delivery_module()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            article_dir = root / "文章" / "2026年05月"
+            article = article_dir / "0527-Test.html"
+            illustrated = article_dir / "0527-Test_illustrated.html"
+            cover = article_dir / "0527-Test.png"
+            body_image = article_dir / "0527-Test-image-01.png"
+            run_dir = root / "reports" / "mm-article" / "run"
+
+            article_dir.mkdir(parents=True)
+            run_dir.mkdir(parents=True)
+            _write_gradient(cover, (1200, 675))
+            _write_gradient(body_image, (670, 377))
+            article.write_text('<meta charset="UTF-8"><p><span>正文</span></p>', encoding="utf-8")
+            illustrated.write_text(
+                '<meta charset="UTF-8"><p><span>正文</span></p>'
+                '<table><tr><td><img src="0527-Test-image-01.png" alt="配图"></td></tr></table>',
+                encoding="utf-8",
+            )
+            (run_dir / "image_requests.json").write_text('{"images":[]}', encoding="utf-8")
+            (run_dir / "generated_images.json").write_text(
+                json.dumps(
+                    {
+                        "images": [
+                            {"id": "cover", "path": str(cover), "source": "geometric", "kind": "cover"},
+                            {"id": "image_001", "path": str(body_image), "source": "fallback_pattern"},
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            for name, content in {
+                "evidence.json": "{}",
+                "title_decision.json": "{}",
+                "content_prompt.md": "prompt",
+                "visual_plan.json": "{}",
+                "review.json": "{}",
+                "publish_result.json": '{"status":"ready_not_published"}',
+            }.items():
+                (run_dir / name).write_text(content, encoding="utf-8")
+
+            report = validate_mm_delivery.validate_delivery(article, run_dir=run_dir)
+
+            self.assertFalse(report["passed"])
+            ids = [check["id"] for check in report["checks"]]
+            self.assertLess(ids.index("visual_provenance.passed"), ids.index("cover.quality"))
+            self.assertLess(ids.index("visual_provenance.passed"), ids.index("body_images.quality"))
+            provenance = {check["id"]: check for check in report["checks"]}["visual_provenance.passed"]
+            self.assertFalse(provenance["passed"])
+            self.assertIn("geometric", provenance["detail"])
+            self.assertIn("fallback_pattern", provenance["detail"])
 
 
 if __name__ == "__main__":

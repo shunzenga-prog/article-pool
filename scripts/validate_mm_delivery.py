@@ -24,6 +24,27 @@ from validate_mm_workflow import validate_article_output
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 REMOTE_IMAGE_RE = re.compile(r"^(?:https?:)?//|^data:", re.IGNORECASE)
 SOURCE_CAPTURE_IMAGE_RE = re.compile(r"-source-[a-z0-9_-]+-\d{2}-compact\.(?:png|jpe?g|webp)$", re.IGNORECASE)
+REJECTED_IMAGE_SOURCES = {
+    "geometric",
+    "fallback_pattern",
+    "fallback_auto",
+    "legacy_without_reason",
+}
+ALLOWED_IMAGE_SOURCES = {
+    "agent_direct_final_cover",
+    "agent_generated_local_image",
+    "source_capture_artifacts",
+    "authority_social_post",
+    "official_screenshot",
+    "official_image",
+    "browser_capture",
+    "terminal_capture",
+    "code_capture",
+    "data_chart",
+    "github_screenshot",
+    "og_image",
+    "web_search_factual",
+}
 
 
 def _resolve_existing(path: Path | str, *, base: Path | None = None) -> Path:
@@ -158,6 +179,91 @@ def _manifest_image_paths(run_dir: Path | None) -> list[Path]:
     return paths
 
 
+def _generated_image_entries(run_dir: Path | None) -> list[dict[str, Any]]:
+    if run_dir is None:
+        return []
+    manifest = run_dir / "generated_images.json"
+    if not manifest.exists():
+        return []
+    data = _read_json(manifest)
+    entries = data.get("images", data) if isinstance(data, dict) else data
+    if not isinstance(entries, list):
+        return []
+    normalized = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        raw = entry.get("path") or entry.get("output_path") or entry.get("file")
+        fixed = dict(entry)
+        if raw:
+            fixed["resolved_path"] = str(_resolve_existing(raw, base=run_dir))
+        normalized.append(fixed)
+    return normalized
+
+
+def _entry_source(entry: dict[str, Any] | None, *, role: str, path: Path | None = None) -> str:
+    if role == "source_capture":
+        return "source_capture_artifacts"
+    if not entry:
+        return "missing_source_metadata"
+    source = str(entry.get("source") or entry.get("provenance") or entry.get("origin") or "").strip()
+    if source:
+        return source
+    if str(entry.get("kind") or "").lower() == "cover" or str(entry.get("id") or "").lower() == "cover":
+        return "missing_source_metadata"
+    if path and SOURCE_CAPTURE_IMAGE_RE.search(path.name):
+        return "source_capture_artifacts"
+    return "missing_source_metadata"
+
+
+def _validate_visual_provenance(
+    *,
+    cover: Path,
+    local_images: list[Path],
+    generated_entries: list[dict[str, Any]],
+) -> dict[str, Any]:
+    entries_by_path = {
+        Path(entry["resolved_path"]): entry
+        for entry in generated_entries
+        if entry.get("resolved_path")
+    }
+    cover_entry = next(
+        (
+            entry
+            for entry in generated_entries
+            if str(entry.get("id") or "").lower() == "cover"
+            or str(entry.get("kind") or "").lower() == "cover"
+            or (entry.get("resolved_path") and Path(entry["resolved_path"]) == cover)
+        ),
+        None,
+    )
+
+    items = []
+    if cover.exists():
+        source = _entry_source(cover_entry, role="cover", path=cover)
+        items.append({"path": str(cover), "role": "cover", "source": source})
+
+    for image_path in local_images:
+        role = _body_image_role(image_path)
+        entry = entries_by_path.get(image_path)
+        source = _entry_source(entry, role=role, path=image_path)
+        items.append({"path": str(image_path), "role": role, "source": source})
+
+    failures = []
+    for item in items:
+        source = item["source"]
+        if source in REJECTED_IMAGE_SOURCES:
+            failures.append({**item, "reason": "rejected_source"})
+        elif source not in ALLOWED_IMAGE_SOURCES:
+            failures.append({**item, "reason": "unknown_or_missing_source"})
+
+    return {
+        "passed": not failures,
+        "items": items,
+        "failures": failures,
+    }
+
+
 def validate_delivery(
     article: Path | str,
     *,
@@ -223,6 +329,25 @@ def validate_delivery(
             image_sources=[],
             local_images=[],
         )
+
+    generated_entries = _generated_image_entries(resolved_run_dir)
+    provenance = _validate_visual_provenance(
+        cover=cover,
+        local_images=local_images,
+        generated_entries=generated_entries,
+    )
+    failed_sources = sorted({item["source"] for item in provenance["failures"]})
+    _add_check(
+        checks,
+        "visual_provenance.passed",
+        bool(provenance["passed"]),
+        (
+            "Visual sources accepted"
+            if provenance["passed"]
+            else f"Rejected or missing visual sources: {', '.join(failed_sources)}"
+        ),
+        provenance=provenance,
+    )
 
     if cover.exists():
         cover_quality = _image_quality(cover, role="cover")

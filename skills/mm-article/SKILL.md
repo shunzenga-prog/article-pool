@@ -41,10 +41,11 @@ Article Pool 的语义优先多模态文章工作流。
 7. 起草文章，并在文中标记视觉需求：截图、图表、封面、事实图片、生成插图。
 8. 执行去 AI 味改写，再做平台排版和格式校验。
 9. 对事实型视觉内容，优先使用真实截图、官方图片或浏览器/终端捕获结果。
-10. 对概念型视觉内容，先判断 `Mode B` / `Mode C`：宿主有生图能力时走 Host-Native prompt 到本地图；没有生图能力时只输出 prompt 和状态，`不要假装出图成功`。
-11. 如果用户要求文章转视频或网页演示，先生成 `script.md` 和 `outline.md`，再交给 `mm-video` 或网页演示实现。
-12. 发布前完成审阅：标题、事实、时效、风格、排版、格式、视觉和发布条件。
-13. 仅在边界明确的动作中使用确定性工具：HTML 审阅、封面后处理、图片嵌入、选题入库和草稿发布。
+10. 视觉审阅必须先看图片来源，再计算视觉得分：按 `visual_provenance_gate` 执行 `classify_visual_need → verify_source_provenance → score_visual_quality`。权威人士社交平台发帖属于 `authority_social_post`，优先用 `source_capture_artifacts` 或真实浏览器截图；概念图在宿主有生图能力时必须用 Agent/image_gen 本地图，不能让 legacy/geometric 兜底进入成功评分。
+11. 对概念型视觉内容，先判断 `Mode B` / `Mode C`：宿主有生图能力时走 Host-Native prompt 到本地图；没有生图能力时只输出 prompt 和状态，`不要假装出图成功`。
+12. 如果用户要求文章转视频或网页演示，先生成 `script.md` 和 `outline.md`，再交给 `mm-video` 或网页演示实现。
+13. 发布前完成审阅：标题、事实、时效、风格、排版、格式、视觉和发布条件。
+14. 仅在边界明确的动作中使用确定性工具：HTML 审阅、封面后处理、图片嵌入、选题入库和草稿发布。
 
 ## 创作硬约束
 
@@ -187,6 +188,21 @@ Article Pool 的语义优先多模态文章工作流。
 - 每条 `source_capture_artifacts` 必须记录 `source_url`、`captured_at`、`screenshot_path`、`claim_supported`、`translated`、`crop_style`、`visual_slot_id` 和 `reader_use`。
 - 截图不能暴露登录态、Cookie、私信、通知、内部链接、用户隐私或本地绝对路径；发现这些内容时必须重新裁剪或放弃截图。
 - 正文图注只能写读者需要的信息，例如“图：Google Magenta 在 X 上介绍 MRT2 的 MIDI 控制能力”，不能写“裁切版”“视觉计划”“截图处理”等生产备注。
+
+### 图片来源门禁
+
+视觉质量评分前必须先执行来源门禁。顺序固定为：
+
+```text
+classify_visual_need → verify_source_provenance → score_visual_quality
+```
+
+- `authority_social_post`：权威人士、机构账号或官方社交平台发帖，优先用 `source_capture_artifacts`，截图范围保留头像/账号/正文/必要时间信息。
+- `factual_evidence`：官方页面、产品 UI、终端、代码、数据图等事实型图片，必须来自真实捕获或官方/一手来源。
+- `concept_illustration`：概念插图在当前 Agent 具备 image_gen 能力时，必须是 `agent_generated_local_image`。
+- `concept_cover`：封面在当前 Agent 具备 image_gen 能力时，必须是 `agent_direct_final_cover`。
+
+以下来源在评分前直接驳回：`geometric`、`fallback_pattern`、`fallback_auto`、`legacy_without_reason`、缺少来源记录。旧链路只能在无 image_gen 能力、用户明确要求真实图库/事实图片，或有清晰事实来源理由时使用；否则不能进入视觉得分。
 
 ### 视觉槽位协调
 

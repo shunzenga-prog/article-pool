@@ -336,6 +336,39 @@ class MultimodalWorkflowTests(unittest.TestCase):
         for phrase in ["visual_slot_conflict", "连续图片", "相邻图片"]:
             self.assertIn(phrase, standards_text)
 
+    def test_visual_provenance_gate_runs_before_scoring(self):
+        report = validate_mm_workflow.validate_project(ROOT)
+        manifest = report["manifest"]
+        skill_text = (ROOT / "skills" / "mm-article" / "SKILL.md").read_text(encoding="utf-8")
+        output_spec = (ROOT / "skills" / "mm-article" / "references" / "output-contract.md").read_text(
+            encoding="utf-8"
+        )
+        standards_text = (
+            ROOT / "skills" / "mm-article" / "references" / "production-standards.md"
+        ).read_text(encoding="utf-8")
+
+        gate = manifest["visual_provenance_gate"]
+        standard_ids = {item["id"] for item in manifest["production_standards"]}
+
+        self.assertEqual(
+            gate["sequence"],
+            ["classify_visual_need", "verify_source_provenance", "score_visual_quality"],
+        )
+        self.assertIn("visual_provenance_gate", standard_ids)
+        self.assertIn("geometric", gate["reject_before_scoring"])
+        self.assertIn("fallback_pattern", gate["reject_before_scoring"])
+        self.assertIn("legacy_without_reason", gate["reject_before_scoring"])
+        self.assertIn("source_capture_artifacts", gate["priority_sources"]["authority_social_post"])
+        self.assertIn("agent_generated_local_image", gate["priority_sources"]["concept_illustration"])
+        self.assertIn("agent_direct_final_cover", gate["priority_sources"]["concept_cover"])
+
+        for phrase in ["先看图片来源", "再计算视觉得分", "authority_social_post"]:
+            self.assertIn(phrase, skill_text)
+        for phrase in ["verify_source_provenance", "legacy_without_reason", "geometric"]:
+            self.assertIn(phrase, output_spec)
+        for phrase in ["图片来源门禁", "评分前", "legacy_without_reason"]:
+            self.assertIn(phrase, standards_text)
+
 
 if __name__ == "__main__":
     unittest.main()

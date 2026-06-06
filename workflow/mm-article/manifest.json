@@ -132,6 +132,46 @@
       "cover source is not geometric fallback"
     ]
   },
+  "visual_provenance_gate": {
+    "sequence": [
+      "classify_visual_need",
+      "verify_source_provenance",
+      "score_visual_quality"
+    ],
+    "priority_sources": {
+      "authority_social_post": [
+        "source_capture_artifacts",
+        "browser_capture"
+      ],
+      "factual_evidence": [
+        "official_screenshot",
+        "official_image",
+        "browser_capture",
+        "terminal_capture",
+        "code_capture",
+        "data_chart"
+      ],
+      "concept_illustration": [
+        "agent_generated_local_image"
+      ],
+      "concept_cover": [
+        "agent_direct_final_cover"
+      ]
+    },
+    "reject_before_scoring": [
+      "geometric",
+      "fallback_pattern",
+      "fallback_auto",
+      "legacy_without_reason",
+      "missing_source_metadata"
+    ],
+    "rules": [
+      "Authority social posts and official pages are evidence visuals; capture them as source_capture_artifacts before planning concept illustrations.",
+      "When image generation is available, concept covers and concept illustrations must use Agent/image_gen local assets before any legacy cascade.",
+      "Legacy image sources must record a factual reason; otherwise mark as legacy_without_reason and reject before visual scoring.",
+      "Do not calculate visual quality scores until verify_source_provenance passes for the cover and each body image."
+    ]
+  },
   "legacy_lane": {
     "mode": "preserved",
     "protected_skills": [
@@ -468,6 +508,11 @@
       "failure_mode": "退回视觉计划或重新生成配图。"
     },
     {
+      "id": "visual_provenance_gate",
+      "gate": "图片必须先按事实/概念用途验证来源，再计算视觉得分；权威人士社交平台发帖优先用 source_capture_artifacts，概念图在有 image_gen 能力时优先用 Agent 本地图。",
+      "failure_mode": "来源为 geometric、fallback_pattern、fallback_auto、legacy_without_reason 或缺少来源记录时，评分前阻断并回到证据截图、Agent 生图或视觉计划阶段。"
+    },
+    {
       "id": "visual_slot_conflict",
       "gate": "同一视觉槽位不能连续图片堆叠；已有原文证据截图、教程截图或事实截图时，后续概念图必须跳过、替换或移动到有独立叙事作用的位置。",
       "failure_mode": "发现相邻图片、连续图片或同一段落重复配图时，回到视觉计划重排槽位。"
@@ -579,6 +624,10 @@
     {
       "name": "visual_relevance",
       "must": "Every visual artifact must map to a paragraph, cover goal, or publish requirement."
+    },
+    {
+      "name": "visual_provenance_first",
+      "must": "Verify cover and illustration source provenance before image quality scoring; reject geometric, fallback_pattern, fallback_auto, legacy_without_reason, and missing source metadata before scoring."
     },
     {
       "name": "wechat_compatibility",

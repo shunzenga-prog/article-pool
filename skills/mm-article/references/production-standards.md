@@ -23,6 +23,7 @@
 - 标题不满足平台约束，或含弱词、错误品牌名、AI 味句式。
 - 公众号 HTML 违反微信 CSS 硬规则，或正文首屏重复系统标题。
 - 生成图被当作截图、新闻图、官方图或现实证据使用。
+- 图片来源门禁未通过，或在评分前发现来源为 `geometric`、`fallback_pattern`、`fallback_auto`、`legacy_without_reason`、缺少来源记录。
 - 原文证据截图缺少来源记录、裁剪范围泄露登录态/私信/侧栏噪声，或截图不能支撑正文 claim。
 - `visual_slot_conflict`：同一段落、同一视觉槽位出现相邻图片或连续图片堆叠，且没有独立叙事作用。
 - 封面没有从文章主张提炼 brief，或封面泛化成普通素材站科技图。
@@ -185,6 +186,9 @@
 - 事实型视觉优先真实捕获：官方页面、产品 UI、终端输出、代码运行结果、论文图表。
 - 概念型视觉可以用生图，但必须标记为概念图。
 - 每张图必须有用途、来源、路径、插入位置、事实型/概念型标记。
+- 视觉审阅必须先做图片来源门禁，再做视觉得分。顺序固定为 `classify_visual_need → verify_source_provenance → score_visual_quality`。
+- 权威人士社交平台发帖、官方公告、论文页和产品页面属于事实证据，优先使用 `source_capture_artifacts` 或真实浏览器截图；概念图不能替代。
+- `geometric`、`fallback_pattern`、`fallback_auto`、`legacy_without_reason` 和缺少来源记录的图片在评分前直接阻断，不允许靠尺寸、亮度或构图分数过关。
 - 每张图必须有唯一视觉槽位；原文证据截图、教程截图、产品截图和概念插图不得挤在同一视觉槽位。
 - 配图必须先产出 `image_requests.json`，且每条请求必须包含 `paragraph_context`；再由 Agent 按所在段落内容生成本地图并写入 `generated_images.json`，最后用 `--use-local-images` 嵌入。
 - `visual_slot_conflict`：如果同一段落已有原文证据截图，后续概念图必须跳过、改为替换或移动到下一小节；相邻图片和连续图片必须有文字承接和不同 claim，否则退回视觉计划。

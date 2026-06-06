@@ -387,6 +387,11 @@ Agent({
 - 对概念图、流程图、风格图、封面风格插图，默认使用 `--image-strategy agent_first`。
 - 只有事实型素材（官方截图、真实界面、项目截图、Logo、新闻现场）或 GPT Image 不可用时，才允许直接走 OG/GitHub/搜索/旧 AI/几何兜底。
 
+**图片来源门禁（评分前）：**
+- 权威人士社交平台发帖、官方公告、论文页和产品页面优先真实截图或 `source_capture_artifacts`，不是概念插图。
+- `generated_images.json` 必须给每张图写 `source` 和 `kind`；概念插图应为 `agent_generated_local_image`。
+- `geometric`、`fallback_pattern`、`fallback_auto`、`legacy_without_reason` 和缺少来源记录的图片，先驳回再谈质量评分。
+
 **旧级联兜底：** GitHub截图 → 网页OG → Brave搜索 → AI生成 → 几何兜底
 
 **输出：** `_illustrated.html` + 插图清单 JSON。插图 Agent 失败不阻塞后续 Stage。
@@ -421,6 +426,7 @@ Agent({
 - 不调用 `gen_cover.py --background-image`；不把 Agent 图当“背景图”再交给脚本
 - 验证输出文件 >100KB，并确认至少命中 3 个文章语义锚点
 - 如果最终来源是 `geometric` 或泛化科技图，不得视为通过；需要重试 GPT Image、换 prompt，或向用户说明 GPT Image 不可用
+- 评分前先验来源：有 image_gen 能力时来源必须是 `agent_direct_final_cover`；旧链路必须说明真实图库/事实图片理由，否则记为 `legacy_without_reason` 并失败
 - 失败时报告原因，不静默降级
 
 **封面图规格：** 1200×675px PNG，16:9 比例。配色与文章风格卡协调。

@@ -86,6 +86,8 @@ Agent/Codex 生成图不由 Python 脚本直接调用。脚本只负责输出请
 
 **Codex 执行硬约束：** 如果当前 Agent 可以调用 GPT Image / image_gen，不要直接运行旧级联命令。必须先 `--emit-image-requests`，由 Agent 生成本地图并写入 `generated_images.json`，再 `--use-local-images`。只有事实型官方截图、项目截图、Logo、新闻图或 GPT Image 不可用时，才允许跳过本地生图。
 
+**来源门禁：** 插图进入质量评分或发布前检查时，必须先验证来源。权威人士社交平台发帖、官方公告、论文页和产品页面优先用真实截图/`source_capture_artifacts`；概念插图在 Agent 具备 image_gen 能力时必须记录为 `agent_generated_local_image`。`generated_images.json` 每条记录都要写 `source` 和 `kind`。`geometric`、`fallback_pattern`、`fallback_auto`、`legacy_without_reason` 或缺少来源记录时，先驳回再谈画面质量。
+
 ### 4. 图片处理
 - 缩放至 670px 宽度（微信公众号正文宽度）
 - 格式统一为 PNG
