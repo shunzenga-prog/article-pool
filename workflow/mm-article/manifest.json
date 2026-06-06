@@ -102,12 +102,60 @@
       "Decorative-only images are rejected unless they serve the cover or a section opener.",
       "Tutorial key steps need real screenshots or verified output."
     ],
+    "short_form_wechat": {
+      "max_content_chars": 1000,
+      "content_visual_target": "0-1",
+      "decision_required": true,
+      "decision_fields": [
+        "visual_slot_id",
+        "section",
+        "nearby_claim",
+        "visual_need",
+        "decision",
+        "kind",
+        "capture_method_or_prompt",
+        "skip_reason"
+      ],
+      "rules": [
+        "source_capture_count_does_not_reduce_content_visual_review",
+        "keep at most 1-2 source evidence screenshots unless the article needs a source-heavy proof trail",
+        "add 0-1 content visual when it explains a mechanism, comparison, UI, data relationship, or reader decision better than text",
+        "if no content visual is added, record skip_reason in visual_plan.json"
+      ]
+    },
     "slot_conflict_rules": [
       "source_capture_artifacts reserve their target visual_slot_id before plan.visuals requests later images.",
       "Do not place a generated illustration, factual screenshot, or source evidence screenshot in the same visual slot.",
       "If a paragraph or section already has source_capture_artifacts, skip generated illustration for that slot unless the generated image replaces the source image.",
       "Use no consecutive visuals without explanatory text between them; avoid screenshot-image stacks that do not advance the narrative.",
       "When capture.factual finds an occupied slot, skip generated illustration or move the later visual to the next section with a distinct purpose."
+    ]
+  },
+  "visual_taxonomy": {
+    "required_buckets": ["evidence_visuals", "content_visuals", "cover_visual"],
+    "evidence_visuals": {
+      "purpose": "Prove that a source page, social post, official announcement, paper, or repository said a specific thing.",
+      "sources": ["source_capture_artifacts", "browser_capture", "official_screenshot"],
+      "examples": ["authority_social_post", "official_announcement", "model_card", "paper_page"],
+      "does_not_count_as": ["content_visuals", "cover_visual"]
+    },
+    "content_visuals": {
+      "purpose": "Help the reader understand a mechanism, product surface, comparison, data relationship, scenario, or decision point in the article body.",
+      "allowed_kinds": ["concept_illustration", "factual_ui_capture", "official_image", "data_chart", "mechanism_diagram"],
+      "required_fields": ["visual_slot_id", "section", "nearby_claim", "visual_need", "kind", "capture_method_or_prompt", "decision"],
+      "decision_values": ["add", "skip", "replace_evidence_visual", "move_to_distinct_slot"]
+    },
+    "cover_visual": {
+      "purpose": "Serve the WeChat cover and thumbnail only.",
+      "max_count": 1,
+      "required_fields": ["cover_brief_artifact", "source", "path", "thumbnail_readability"]
+    },
+    "rules": [
+      "source_capture_does_not_satisfy_content_visuals",
+      "visual_plan.json must separate evidence_visuals, content_visuals, and cover_visual",
+      "content_visuals must include either an add decision with capture_method_or_prompt or a skip decision with skip_reason",
+      "cover_visual must not be counted as a body illustration",
+      "body visuals must not be adjacent unless each supports a distinct claim and has text between them"
     ]
   },
   "cover_policy": {
@@ -282,7 +330,7 @@
     },
     {
       "kind": "plan.visuals",
-      "intent": "Decide which visuals must be factual captures and which can be generated concept images, while honoring occupied source evidence slots.",
+      "intent": "Decide which visuals must be factual captures and which can be generated concept images, while honoring occupied source evidence slots; separate evidence_visuals, content_visuals, and cover_visual so source captures do not satisfy content illustration needs.",
       "inputs": ["layout_artifact", "evidence_artifacts", "source_capture_artifacts", "host_capabilities"],
       "outputs": ["visual_plan_artifact", "cover_brief_artifact"],
       "execution": "semantic_agent"
@@ -506,6 +554,11 @@
       "id": "illustration_policy",
       "gate": "配图必须按事实优先、Agent 概念图补充、manifest 嵌入的流程执行。",
       "failure_mode": "退回视觉计划或重新生成配图。"
+    },
+    {
+      "id": "content_visual_planning",
+      "gate": "视觉计划必须把证据图、内容性配图和封面图分账；证据截图不能抵消内容配图需求。短稿也必须记录 content_visual_decision，说明补不补内容图、插入位置、获取方式或生成提示词。",
+      "failure_mode": "缺少视觉分账或短稿没有补不补内容图的说明时，退回 plan.visuals 补齐 visual_plan.json。"
     },
     {
       "id": "visual_provenance_gate",

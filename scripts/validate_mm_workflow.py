@@ -171,6 +171,31 @@ def _validate_output_contract(manifest: dict[str, Any]) -> None:
         raise ValueError("manifest.cover_policy.agent_background is obsolete; do not generate cover backgrounds")
 
 
+def _validate_visual_planning_contract(manifest: dict[str, Any]) -> None:
+    taxonomy = manifest.get("visual_taxonomy")
+    if not isinstance(taxonomy, dict):
+        raise ValueError("manifest.visual_taxonomy must be an object")
+    required_buckets = taxonomy.get("required_buckets")
+    if required_buckets != ["evidence_visuals", "content_visuals", "cover_visual"]:
+        raise ValueError("manifest.visual_taxonomy.required_buckets must separate evidence, content, and cover visuals")
+    for bucket in required_buckets:
+        if not isinstance(taxonomy.get(bucket), dict):
+            raise ValueError(f"manifest.visual_taxonomy.{bucket} must be an object")
+    if "source_capture_does_not_satisfy_content_visuals" not in taxonomy.get("rules", []):
+        raise ValueError("manifest.visual_taxonomy.rules must prevent source captures from satisfying content visuals")
+
+    illustration = manifest.get("illustration_policy", {})
+    short_form = illustration.get("short_form_wechat")
+    if not isinstance(short_form, dict):
+        raise ValueError("manifest.illustration_policy.short_form_wechat must be an object")
+    if not short_form.get("decision_required"):
+        raise ValueError("manifest.illustration_policy.short_form_wechat.decision_required must be true")
+    decision_fields = set(short_form.get("decision_fields", []))
+    for field in ("capture_method_or_prompt", "skip_reason"):
+        if field not in decision_fields:
+            raise ValueError(f"manifest.illustration_policy.short_form_wechat.decision_fields must include {field}")
+
+
 def validate_project(root: Path | str) -> dict[str, Any]:
     root = Path(root)
     skill_path = root / "skills" / "mm-article" / "SKILL.md"
@@ -214,6 +239,7 @@ def validate_project(root: Path | str) -> dict[str, Any]:
 
     dataflow_errors = _collect_dataflow_errors(manifest)
     _validate_output_contract(manifest)
+    _validate_visual_planning_contract(manifest)
 
     return {
         "skill": skill,

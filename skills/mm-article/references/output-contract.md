@@ -124,6 +124,49 @@ delivery_gate.json
 
 配图按“事实优先，概念补充”的顺序执行。
 
+### 视觉分类账
+
+`visual_plan.json` 必须把所有图片分成三条账，不能只写一个笼统的 `items`：
+
+```json
+{
+  "evidence_visuals": [],
+  "content_visuals": [],
+  "cover_visual": {},
+  "content_visual_decision": []
+}
+```
+
+- `evidence_visuals`：证据图，用来证明来源页面、X 发帖、官方公告、论文或仓库确实这样表述。原文证据截图、权威人士社交平台发帖截图、官方页面截图都放这里。
+- `content_visuals`：内容性配图，用来帮助读者理解机制、产品界面、参数对比、数据关系、使用场景或行动判断。内容性配图必须写明获取方式或生成提示词。
+- `cover_visual`：封面图，只服务公众号封面和缩略图，不计入正文插图数量。
+
+证据截图不能抵消内容配图需求。也就是说，即使 `evidence_visuals` 已经有 X 发帖截图，`plan.visuals` 仍然要复盘正文是否需要内容性配图，并把结果写入 `content_visual_decision`。
+
+`content_visual_decision` 每条记录至少包含：
+
+```json
+{
+  "visual_slot_id": "content_mechanism_01",
+  "section": "低延迟机制解释",
+  "nearby_claim": "MIDI、音频和文字可以持续影响正在生成的音乐",
+  "visual_need": "用机制图帮助读者理解实时控制链路",
+  "decision": "add",
+  "kind": "concept_illustration",
+  "capture_method_or_prompt": "生成一张无文字机制图：MIDI 键盘、Mac、本地 AI 音乐模型、声波帧连接，表达低延迟实时控制",
+  "skip_reason": ""
+}
+```
+
+如果不补内容图，`decision` 写 `skip`，`skip_reason` 必须说明原因，例如“短稿正文已足够清楚，新增内容图会和证据截图相邻造成视觉噪声”。不能只写“已有 X 截图”。
+
+短稿规则：
+
+- `short_form_wechat` 指约 1000 字以内公众号文章。
+- 证据图通常保留 1-2 张；超过 2 张要说明为什么需要更重的来源链。
+- 内容性配图目标为 0-1 张；必须记录补不补内容图、插入位置、获取方式或生成提示词。
+- 不得在同一视觉槽位连续堆叠证据截图和内容图；确需二者都出现时，必须移动到不同小节，并用正文承接。
+
 ### 原文证据截图
 
 原文证据截图属于证据产物，先于正文起草和后续配图规划生成。它用于证明“原始网页、X 发帖、官方公告或论文页面确实这样表述”，不是装饰图。
@@ -139,6 +182,7 @@ delivery_gate.json
 
 - `source_capture.json` 中的 `visual_slot_id` 会先占用同一视觉槽位。
 - `visual_plan.json`、`image_requests.json` 和 `generated_images.json` 必须避开已占用槽位。
+- `source_capture_artifacts` 进入 `evidence_visuals`，不能当作 `content_visuals`。后续内容插图决策必须单独完成。
 - 同一段落或同一视觉槽位已有原文证据截图时，后续概念插图默认跳过；如确有必要，只能改为替换该截图，或移动到下一小节的独立槽位。
 - 不允许同一段落连续堆叠“原文截图 + 产品截图 + 概念图”。连续图片之间必须有承接文字、不同 claim 和明确阅读价值。
 
@@ -186,6 +230,7 @@ python scripts/illustration_gen.py <article.html> --emit-image-requests reports/
 
 2. Agent 按 `image_requests.json` 逐张生成本地图片，平铺保存到文章所在月份目录，例如 `/Users/mulin/workspace/公众号/文章/{YYYY}年{MM}月/{MMDD}-{safe_title}-image-01.png`。
    生成前先核对每条请求的 `paragraph_context`。如果上下文为空、过泛或与插入位置不一致，先回到文章段落修正请求，不直接生图。
+   对内容性配图，`paragraph_context` 必须来自 `content_visual_decision` 中的 `nearby_claim` 和 `visual_need`，并保留 `capture_method_or_prompt`。不要只按文章标题生成通用科技背景。
 
 3. 写入生成结果清单：
 

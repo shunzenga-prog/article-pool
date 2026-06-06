@@ -369,6 +369,64 @@ class MultimodalWorkflowTests(unittest.TestCase):
         for phrase in ["图片来源门禁", "评分前", "legacy_without_reason"]:
             self.assertIn(phrase, standards_text)
 
+    def test_visual_planning_separates_evidence_content_and_cover_visuals(self):
+        report = validate_mm_workflow.validate_project(ROOT)
+        manifest = report["manifest"]
+        skill_text = (ROOT / "skills" / "mm-article" / "SKILL.md").read_text(encoding="utf-8")
+        output_spec = (ROOT / "skills" / "mm-article" / "references" / "output-contract.md").read_text(
+            encoding="utf-8"
+        )
+        standards_text = (
+            ROOT / "skills" / "mm-article" / "references" / "production-standards.md"
+        ).read_text(encoding="utf-8")
+
+        taxonomy = manifest["visual_taxonomy"]
+        self.assertEqual(taxonomy["required_buckets"], ["evidence_visuals", "content_visuals", "cover_visual"])
+        self.assertIn("source_capture_artifacts", taxonomy["evidence_visuals"]["sources"])
+        self.assertIn("concept_illustration", taxonomy["content_visuals"]["allowed_kinds"])
+        self.assertEqual(taxonomy["cover_visual"]["max_count"], 1)
+        self.assertIn("source_capture_does_not_satisfy_content_visuals", taxonomy["rules"])
+
+        plan_visuals = next(task for task in manifest["semantic_tasks"] if task["kind"] == "plan.visuals")
+        self.assertIn("separate evidence_visuals, content_visuals, and cover_visual", plan_visuals["intent"])
+
+        standard_ids = {item["id"] for item in manifest["production_standards"]}
+        self.assertIn("content_visual_planning", standard_ids)
+
+        for phrase in ["证据图", "内容性配图", "封面图"]:
+            self.assertIn(phrase, skill_text)
+        for phrase in ["evidence_visuals", "content_visuals", "cover_visual", "内容插图决策"]:
+            self.assertIn(phrase, output_spec)
+        for phrase in ["证据截图不能抵消内容配图", "content_visual_planning"]:
+            self.assertIn(phrase, standards_text)
+
+    def test_short_wechat_articles_require_content_visual_decision(self):
+        report = validate_mm_workflow.validate_project(ROOT)
+        manifest = report["manifest"]
+        skill_text = (ROOT / "skills" / "mm-article" / "SKILL.md").read_text(encoding="utf-8")
+        output_spec = (ROOT / "skills" / "mm-article" / "references" / "output-contract.md").read_text(
+            encoding="utf-8"
+        )
+        standards_text = (
+            ROOT / "skills" / "mm-article" / "references" / "production-standards.md"
+        ).read_text(encoding="utf-8")
+
+        short_form = manifest["illustration_policy"]["short_form_wechat"]
+
+        self.assertEqual(short_form["max_content_chars"], 1000)
+        self.assertEqual(short_form["content_visual_target"], "0-1")
+        self.assertTrue(short_form["decision_required"])
+        self.assertIn("capture_method_or_prompt", short_form["decision_fields"])
+        self.assertIn("skip_reason", short_form["decision_fields"])
+        self.assertIn("source_capture_count_does_not_reduce_content_visual_review", short_form["rules"])
+
+        for phrase in ["短稿", "0-1 张内容性配图", "不补内容图"]:
+            self.assertIn(phrase, skill_text)
+        for phrase in ["short_form_wechat", "capture_method_or_prompt", "skip_reason"]:
+            self.assertIn(phrase, output_spec)
+        for phrase in ["短稿", "补不补内容图", "content_visual_decision"]:
+            self.assertIn(phrase, standards_text)
+
 
 if __name__ == "__main__":
     unittest.main()
